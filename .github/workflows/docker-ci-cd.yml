@@ -18,7 +18,8 @@ jobs:
     - name: Display directory structure
       run: |
         pwd
-        ls -R
+        find . -type d
+        find . -name "*.csproj"
         
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
