@@ -47,7 +47,7 @@ jobs:
       uses: docker/build-push-action@v4
       with:
         context: .
-        file: ./BE/Dockerfile
+        file: ./BE-ExploreNowSolution/BE/Dockerfile
         push: true
         tags: |
           ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }}:${{ github.sha }}
