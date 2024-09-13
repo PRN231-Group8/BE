@@ -39,8 +39,8 @@ jobs:
     - name: Build and push Docker image
       uses: docker/build-push-action@v4
       with:
-        context: .
-        file: ./Dockerfile
+        context: BE-ExploreNowSolution/BE
+        file: BE-ExploreNowSolution/BE/Dockerfile
         push: true
         tags: |
           ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }}:${{ github.sha }}
