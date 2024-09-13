@@ -17,8 +17,7 @@ jobs:
     - name: Display directory structure
       run: |
         pwd
-        find . -type d
-        find . -name "*.csproj"
+        ls -R
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
@@ -46,8 +45,8 @@ jobs:
     - name: Build and push Docker image
       uses: docker/build-push-action@v4
       with:
-        context: .
-        file: BE/Dockerfile
+        context: ./BE
+        file: ./BE/Dockerfile
         push: true
         tags: |
           ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }}:${{ github.sha }}
