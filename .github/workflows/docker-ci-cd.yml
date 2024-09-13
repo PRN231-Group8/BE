@@ -9,7 +9,6 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    
     steps:
     - uses: actions/checkout@v3
       with:
@@ -21,38 +20,33 @@ jobs:
         find . -type d
         find . -name "*.csproj"
 
-    - name: Check file existence
-      run: |
-        ls -R BE
-        [ -f BE/PRN.ExploreNow.Services/PRN.ExploreNow.Services.csproj ] || echo "File not found"
-    
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: '8.0.x'
-        
+
     - name: Restore dependencies
       run: dotnet restore BE/BE.csproj
-      
+
     - name: Build
       run: dotnet build BE/BE.csproj --configuration Release --no-restore
-      
+
     - name: Test
       run: dotnet test BE/BE.csproj --no-build --verbosity normal
 
     - name: Display Dockerfile contents
       run: cat BE/Dockerfile
-      
+
     - name: Login to Docker Hub
       uses: docker/login-action@v2
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
-        
+
     - name: Build and push Docker image
       uses: docker/build-push-action@v4
       with:
-        context: ./BE
+        context: .
         file: ./BE/Dockerfile
         push: true
         tags: |
