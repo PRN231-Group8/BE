@@ -17,15 +17,18 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: '8.0.x'
+    
+    - name: Display current directory
+      run: pwd && ls -R
         
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore BE/BE.csproj
       
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build BE/BE.csproj --configuration Release --no-restore
       
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet test BE/BE.csproj --no-build --verbosity normal
       
     - name: Login to Docker Hub
       uses: docker/login-action@v2
@@ -37,6 +40,7 @@ jobs:
       uses: docker/build-push-action@v4
       with:
         context: .
+        file: ./Dockerfile
         push: true
         tags: |
           ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }}:${{ github.sha }}
