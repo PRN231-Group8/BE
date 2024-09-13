@@ -20,7 +20,12 @@ jobs:
         pwd
         find . -type d
         find . -name "*.csproj"
-        
+
+    - name: Check file existence
+      run: |
+        ls -R BE
+        [ -f BE/PRN.ExploreNow.Services/PRN.ExploreNow.Services.csproj ] || echo "File not found"
+    
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
@@ -47,7 +52,7 @@ jobs:
     - name: Build and push Docker image
       uses: docker/build-push-action@v4
       with:
-        context: .
+        context: ./BE
         file: ./BE/Dockerfile
         push: true
         tags: |
