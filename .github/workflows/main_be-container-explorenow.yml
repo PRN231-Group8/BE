@@ -52,7 +52,7 @@ jobs:
         
     - name: Verify deployment
       run: |
-        response=$(curl -sS -o /dev/null -w "%{http_code}" https://be-container-explorenow-duhthwhkecf0eef7.southeastasia-01.azurewebsites.net)
+        response=$(curl -sS -o /dev/null -w "%{http_code}" https://be-container-explorenow-duhthwhkecf0eef7.southeastasia-01.azurewebsites.net/swagger/index.html)
         if [ $response = "200" ]; then
           echo "Deployment successful"
         else
