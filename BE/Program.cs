@@ -17,15 +17,13 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 {
 	app.UseSwagger();
-	app.UseSwaggerUI();
-}
-else
-{
-	// In enviroment production, we can force HTTPS
-	app.UseHttpsRedirection();
+	app.UseSwaggerUI(c =>
+	{
+		c.SwaggerEndpoint("/swagger/v1/swagger.json", "API V1");
+	});
 }
 
 app.UseHttpsRedirection();
