@@ -3,6 +3,10 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+	serverOptions.ListenAnyIP(8080); // Listening HTTP traffic in port 8080
+});
 
 builder.Services.AddControllers();
 
@@ -17,6 +21,11 @@ if (app.Environment.IsDevelopment())
 {
 	app.UseSwagger();
 	app.UseSwaggerUI();
+}
+else
+{
+	// In enviroment production, we can force HTTPS
+	app.UseHttpsRedirection();
 }
 
 app.UseHttpsRedirection();
