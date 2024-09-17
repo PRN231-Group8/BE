@@ -10,10 +10,6 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["BE/BE.csproj", "BE/"]
-COPY ["PRN.ExploreNow.Data/PRN.ExploreNow.Data.csproj", "PRN.ExploreNow.Data/"]
-COPY ["PRN.ExploreNow.Domain/PRN.ExploreNow.Domain.csproj", "PRN.ExploreNow.Domain/"]
-COPY ["PRN.ExploreNow.Handlers/PRN.ExploreNow.Handlers.csproj", "PRN.ExploreNow.Handlers/"]
-COPY ["PRN.ExploreNow.Services/PRN.ExploreNow.Services.csproj", "PRN.ExploreNow.Services/"]
 RUN dotnet restore "./BE/BE.csproj"
 COPY . .
 WORKDIR "/src/BE"

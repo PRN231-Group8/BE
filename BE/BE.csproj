@@ -31,11 +31,4 @@
 		<PackageReference Include="System.Linq.Dynamic.Core" Version="1.4.5" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <ProjectReference Include="..\PRN.ExploreNow.Data\PRN.ExploreNow.Data.csproj" />
-	  <ProjectReference Include="..\PRN.ExploreNow.Domain\PRN.ExploreNow.Domain.csproj" />
-	  <ProjectReference Include="..\PRN.ExploreNow.Handlers\PRN.ExploreNow.Handlers.csproj" />
-	  <ProjectReference Include="..\PRN.ExploreNow.Services\PRN.ExploreNow.Services.csproj" />
-	</ItemGroup>
-
 </Project>
