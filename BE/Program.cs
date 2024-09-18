@@ -1,12 +1,18 @@
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.WebHost.ConfigureKestrel(serverOptions =>
 {
-	serverOptions.ListenAnyIP(80); // Listening HTTP traffic in port 8080
+	serverOptions.ListenAnyIP(80); // Listening HTTP traffic in port 80
 });
+
+// Add health checks
+builder.Services.AddHealthChecks()
+	.AddCheck("self", () => HealthCheckResult.Healthy());
 
 builder.Services.AddControllers();
 
@@ -29,6 +35,20 @@ if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+	ResponseWriter = async (context, report) =>
+	{
+		context.Response.ContentType = "application/json";
+		var result = System.Text.Json.JsonSerializer.Serialize(
+			new
+			{
+				status = report.Status.ToString(),
+				checks = report.Entries.Select(e => new { key = e.Key, value = e.Value.Status.ToString() })
+			});
+		await context.Response.WriteAsync(result);
+	}
+});
 
 app.MapControllers();
 
