@@ -52,7 +52,7 @@ jobs:
     
     - name: Health check
       run: |
-        sleep 30  # Wait for the app to start
+        sleep 120  # Wait for the app to start 2 minutes
         response=$(curl -sS -o /dev/null -w "%{http_code}" https://be-container-explorenow-duhthwhkecf0eef7.southeastasia-01.azurewebsites.net/health)
         if [ $response = "200" ]; then
           echo "Health check passed"
