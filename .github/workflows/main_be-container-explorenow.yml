@@ -50,7 +50,7 @@ jobs:
         publish-profile: ${{ secrets.AzureAppService_PublishProfile_521dd4021dc64635b6a6fb91be24c22d }}
         images: 'myexplorenow.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_283cb2cdd354458895117cc70b5b693e }}/be:${{ github.sha }}'
     
-     - name: Health check
+    - name: Health check
       run: |
         sleep 30  # Wait for the app to start
         response=$(curl -sS -o /dev/null -w "%{http_code}" https://be-container-explorenow-duhthwhkecf0eef7.southeastasia-01.azurewebsites.net/health)
