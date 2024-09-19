@@ -53,8 +53,8 @@ jobs:
     - name: Health check
       run: |
         sleep 120
-        response_content=$(curl -sS https://be-container-explorenow-duhthwhkecf0eef7.southeastasia-01.azurewebsites.net/health/swagger/index.html)
-        response_code=$(curl -sS -o /dev/null -w "%{http_code}" https://be-container-explorenow-duhthwhkecf0eef7.southeastasia-01.azurewebsites.net/health/swagger/index.html)
+        response_content=$(curl -sS https://be-container-explorenow-duhthwhkecf0eef7.southeastasia-01.azurewebsites.net/health)
+        response_code=$(curl -sS -o /dev/null -w "%{http_code}" https://be-container-explorenow-duhthwhkecf0eef7.southeastasia-01.azurewebsites.net/health)
         echo "Response content: $response_content"
         echo "Response code: $response_code"
         if [ $response_code = "200" ]; then
