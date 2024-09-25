@@ -35,8 +35,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Domain\Domain.csproj" />
-	  <ProjectReference Include="..\Services\Services.csproj" />
+	  <ProjectReference Include="..\Domain\ExploreNow.Domain.csproj" />
+	  <ProjectReference Include="..\Services\ExploreNow.Services.csproj" />
 	</ItemGroup>
 
 </Project>

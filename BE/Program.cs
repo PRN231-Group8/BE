@@ -1,11 +1,14 @@
-using Data.Context;
-using Domain.Entities;
+using System.Text.Json;
+using ExploreNow.Data.Context;
+using ExploreNow.Data.UnitOfWorks;
+using ExploreNow.Domain.Contracts.UnitOfWorks;
+using ExploreNow.Domain.Entities;
+using ExploreNow.Services.Interfaces;
+using ExploreNow.Services.Services;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Services.Interfaces;
-using Services.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,6 +36,7 @@ builder.Services.Configure<IdentityOptions>(options =>
 });
 
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 builder.Services.AddHealthChecks()
     .AddCheck("self", () => HealthCheckResult.Healthy());
@@ -44,13 +48,10 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment() || app.Environment.IsProduction()) 
+if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "API V1");
-    });
+    app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "API V1"); });
 }
 
 app.UseHttpsRedirection();
@@ -61,7 +62,7 @@ app.MapHealthChecks("/health", new HealthCheckOptions
     ResponseWriter = async (context, report) =>
     {
         context.Response.ContentType = "application/json";
-        var result = System.Text.Json.JsonSerializer.Serialize(
+        var result = JsonSerializer.Serialize(
             new
             {
                 status = report.Status.ToString(),

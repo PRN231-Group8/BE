@@ -1,15 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace ExploreNow.Domain.Entities;
 
-namespace Domain.Entities
+public class Moods : BaseEntity
 {
-    public class Moods : BaseEntity
-    {
-        public string MoodTag { get; set; }
-        public Guid TourId { get; set; }
-        public Tour Tour { get; set; }
-    }
+    public string MoodTag { get; set; }
+    public Guid TourId { get; set; }
+    public Tour Tour { get; set; }
 }

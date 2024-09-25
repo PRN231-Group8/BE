@@ -1,18 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Domain.OtherObjects;
+﻿using ExploreNow.Domain.Enums;
 
-namespace Domain.Entities
+namespace ExploreNow.Domain.Entities;
+
+public class Transportation : BaseEntity
 {
-    public class Transportation : BaseEntity
-    {
-        public decimal Price { get; set; }
-        public int Capacity { get; set; }
-        public TransportationType Type { get; set; }
-        public Guid BookingId { get; set; }
-        public Booking Booking { get; set; }
-    }
+    public decimal Price { get; set; }
+    public int Capacity { get; set; }
+    public TransportationType Type { get; set; }
+    public Guid BookingId { get; set; }
+    public Booking Booking { get; set; }
 }

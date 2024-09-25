@@ -1,9 +1,8 @@
-﻿using Domain.DTO.Auth;
+﻿using ExploreNow.Domain.Models.Response.Auth;
 
-namespace Services.Interfaces
+namespace ExploreNow.Services.Interfaces;
+
+public interface IAuthService
 {
-    public interface IAuthService
-    {
-        Task<AuthServiceResponseDto> SeedRolesAsync();
-    }
+    Task<AuthResponse> SeedRolesAsync();
 }

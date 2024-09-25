@@ -1,27 +1,25 @@
-﻿using AutoMapper;
-using MediatR;
+﻿using ExploreNow.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Services.Interfaces;
 
-namespace BE.Controllers
+namespace ExploreNow.API.Controllers;
+
+[Route("api/auth")]
+[ApiController]
+public class AuthController : Controller
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class AuthController : Controller
+    private readonly IAuthService _authService;
+
+    public AuthController(IAuthService authService)
     {
-        private readonly IAuthService _authService;
+        _authService = authService;
+    }
 
-        public AuthController(IAuthService authService)
-        {
-            _authService = authService;
-        }
-        [HttpPost]
-        [Route("seed-roles")]
-        public async Task<IActionResult> SeedRoles()
-        {
-            var seerRoles = await _authService.SeedRolesAsync();
+    [HttpPost]
+    [Route("seed-roles")]
+    public async Task<IActionResult> SeedRoles()
+    {
+        var seedRoles = await _authService.SeedRolesAsync();
 
-            return Ok(seerRoles);
-        }
+        return Ok(seedRoles);
     }
 }

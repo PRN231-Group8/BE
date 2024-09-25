@@ -1,15 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace ExploreNow.Domain.Entities;
 
-namespace Domain.Entities
+public class Comments : BaseEntity
 {
-    public class Comments : BaseEntity
-    {
-        public string Content { get; set; }
-        public Guid PostId { get; set; }
-        public Posts Post { get; set; }
-    }
+    public string Content { get; set; }
+    public Guid PostId { get; set; }
+    public Posts Post { get; set; }
 }

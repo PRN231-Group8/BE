@@ -1,6 +1,12 @@
-﻿namespace Domain.DTO.Auth
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ExploreNow.Domain.Models.Response.Auth
 {
-    public class AuthServiceResponseDto
+    public class AuthResponse
     {
         public bool IsSucceed { get; set; }
         public string? Token { get; set; }
