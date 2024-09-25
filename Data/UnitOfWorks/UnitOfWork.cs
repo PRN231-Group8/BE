@@ -15,6 +15,8 @@ namespace ExploreNow.Data.UnitOfWorks
         }
 
         // public ILocationRepository LocationRepository => GetRepository<ILocationRepository>();
+        // public ITourRepository TourRepository => GetRepository<ITourRepository>();
+        // ...
 
     }
 }
