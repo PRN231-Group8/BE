@@ -26,9 +26,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="CQRS\Commands\" />
-	  <Folder Include="CQRS\Queries\" />
 	  <Folder Include="Models\Request\" />
+	  <Folder Include="NewFolder\" />
 	</ItemGroup>
 
 </Project>

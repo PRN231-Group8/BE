@@ -13,7 +13,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExploreNow.Data", "Data\Exp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExploreNow.Validations", "ExploreNow.Validations\ExploreNow.Validations.csproj", "{8D23ABD4-3022-4873-B271-DB01EFBC4321}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExploreNow.UnitTests", "ExploreNow.UnitTests\ExploreNow.UnitTests.csproj", "{ED0453DF-C595-4FA2-9841-9946D7181A2B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExploreNow.UnitTests", "ExploreNow.UnitTests\ExploreNow.UnitTests.csproj", "{ED0453DF-C595-4FA2-9841-9946D7181A2B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExploreNow.Handlers", "ExploreNow.Handlers\ExploreNow.Handlers.csproj", "{D4B12505-3817-4ACB-B26D-D1BF29EB7CE8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{ED0453DF-C595-4FA2-9841-9946D7181A2B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ED0453DF-C595-4FA2-9841-9946D7181A2B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ED0453DF-C595-4FA2-9841-9946D7181A2B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D4B12505-3817-4ACB-B26D-D1BF29EB7CE8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4B12505-3817-4ACB-B26D-D1BF29EB7CE8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4B12505-3817-4ACB-B26D-D1BF29EB7CE8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4B12505-3817-4ACB-B26D-D1BF29EB7CE8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
