@@ -1,6 +1,6 @@
-﻿using ExploreNow.Domain.Models.Response.Auth;
+﻿using PRN231.ExploreNow.BusinessObject.Models.Response.Auth;
 
-namespace ExploreNow.Services.Interfaces;
+namespace PRN231.ExploreNow.Services.Interfaces;
 
 public interface IAuthService
 {

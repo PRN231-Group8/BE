@@ -1,9 +1,9 @@
-﻿using ExploreNow.Domain.Entities;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using PRN231.ExploreNow.BusinessObject.Entities;
 
-namespace ExploreNow.Data.Context;
+namespace PRN231.ExploreNow.Repositories.Context;
 
 public class ApplicationDbContext : BaseDbContext
 {

@@ -1,11 +1,11 @@
-﻿using ExploreNow.Domain.Entities;
-using ExploreNow.Domain.Enums;
-using ExploreNow.Domain.Models.Response.Auth;
-using ExploreNow.Services.Interfaces;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
+using PRN231.ExploreNow.BusinessObject.Entities;
+using PRN231.ExploreNow.BusinessObject.Enums;
+using PRN231.ExploreNow.BusinessObject.Models.Response.Auth;
+using PRN231.ExploreNow.Services.Interfaces;
 
-namespace ExploreNow.Services.Services;
+namespace PRN231.ExploreNow.Services.Services;
 
 public class AuthService : IAuthService
 

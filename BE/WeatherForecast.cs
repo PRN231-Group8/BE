@@ -1,4 +1,4 @@
-namespace ExploreNow.API;
+namespace PRN231.ExploreNow.API;
 
 public class WeatherForecast
 {

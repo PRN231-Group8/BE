@@ -1,12 +1,12 @@
-﻿using ExploreNow.Data.Context;
-using ExploreNow.Domain.Contracts.UnitOfWorks;
+﻿using PRN231.ExploreNow.Repositories.Context;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using PRN231.ExploreNow.BusinessObject.Contracts.UnitOfWorks;
 
-namespace ExploreNow.Data.UnitOfWorks
+namespace PRN231.ExploreNow.Repositories.UnitOfWorks
 {
     public class UnitOfWork : BaseUnitOfWork<ApplicationDbContext>, IUnitOfWork
     {

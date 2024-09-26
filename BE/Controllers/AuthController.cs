@@ -1,7 +1,7 @@
-﻿using ExploreNow.Services.Interfaces;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using PRN231.ExploreNow.Services.Interfaces;
 
-namespace ExploreNow.API.Controllers;
+namespace PRN231.ExploreNow.API.Controllers;
 
 [Route("api/auth")]
 [ApiController]

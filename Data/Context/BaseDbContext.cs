@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ExploreNow.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using PRN231.ExploreNow.BusinessObject.Entities;
 
-namespace ExploreNow.Data.Context
+namespace PRN231.ExploreNow.Repositories.Context
 {
     public abstract class BaseDbContext : IdentityDbContext<ApplicationUser, IdentityRole, string>
     {

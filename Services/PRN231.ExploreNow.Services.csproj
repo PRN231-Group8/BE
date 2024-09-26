@@ -12,8 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Data\ExploreNow.Data.csproj" />
-    <ProjectReference Include="..\Domain\ExploreNow.Domain.csproj" />
+    <ProjectReference Include="..\Data\PRN231.ExploreNow.Repositories.csproj" />
   </ItemGroup>
 
 </Project>

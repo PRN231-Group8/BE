@@ -1,14 +1,14 @@
 using System.Text.Json;
-using ExploreNow.Data.Context;
-using ExploreNow.Data.UnitOfWorks;
-using ExploreNow.Domain.Contracts.UnitOfWorks;
-using ExploreNow.Domain.Entities;
-using ExploreNow.Services.Interfaces;
-using ExploreNow.Services.Services;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using PRN231.ExploreNow.BusinessObject.Contracts.UnitOfWorks;
+using PRN231.ExploreNow.BusinessObject.Entities;
+using PRN231.ExploreNow.Repositories.Context;
+using PRN231.ExploreNow.Repositories.UnitOfWorks;
+using PRN231.ExploreNow.Services.Interfaces;
+using PRN231.ExploreNow.Services.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

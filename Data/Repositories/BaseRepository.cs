@@ -1,5 +1,4 @@
-﻿using ExploreNow.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,9 +6,10 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
-using ExploreNow.Domain.Contracts.Repositories;
+using PRN231.ExploreNow.BusinessObject.Contracts.Repositories;
+using PRN231.ExploreNow.BusinessObject.Entities;
 
-namespace ExploreNow.Data.Repositories
+namespace PRN231.ExploreNow.Repositories.Repositories
 {
     public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : BaseEntity
     {

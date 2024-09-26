@@ -1,8 +1,4 @@
-﻿using ExploreNow.Data.Repositories;
-using ExploreNow.Domain.Contracts.Repositories;
-using ExploreNow.Domain.Contracts.UnitOfWorks;
-using ExploreNow.Domain.Entities;
-using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -10,9 +6,13 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using ExploreNow.Data.Context;
+using PRN231.ExploreNow.BusinessObject.Contracts.Repositories;
+using PRN231.ExploreNow.BusinessObject.Contracts.UnitOfWorks;
+using PRN231.ExploreNow.BusinessObject.Entities;
+using PRN231.ExploreNow.Repositories.Context;
+using PRN231.ExploreNow.Repositories.Repositories;
 
-namespace ExploreNow.Data.UnitOfWorks
+namespace PRN231.ExploreNow.Repositories.UnitOfWorks
 {
     public class BaseUnitOfWork<TContext> : IBaseUnitOfWork
         where TContext : BaseDbContext
