@@ -35,7 +35,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Services\PRN231.ExploreNow.Services.csproj" />
+		<ProjectReference Include="..\Services\PRN231.ExploreNow.Services.csproj" />
 	</ItemGroup>
 
 </Project>

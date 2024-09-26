@@ -1,7 +1,5 @@
-﻿namespace ExploreNow.Validations
-{
-    public class Class1
-    {
+﻿namespace ExploreNow.Validations;
 
-    }
+public class Class1
+{
 }
