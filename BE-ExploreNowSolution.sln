@@ -9,9 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PRN231.ExploreNow.Services"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PRN231.ExploreNow.Repositories", "Data\PRN231.ExploreNow.Repositories.csproj", "{E2991210-D6F5-46FE-94D5-9E1CD8E868FD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExploreNow.Validations", "ExploreNow.Validations\ExploreNow.Validations.csproj", "{8D23ABD4-3022-4873-B271-DB01EFBC4321}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PRN231.ExploreNow.Validations", "ExploreNow.Validations\PRN231.ExploreNow.Validations.csproj", "{8D23ABD4-3022-4873-B271-DB01EFBC4321}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExploreNow.UnitTests", "ExploreNow.UnitTests\ExploreNow.UnitTests.csproj", "{ED0453DF-C595-4FA2-9841-9946D7181A2B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PRN231.ExploreNow.UnitTests", "ExploreNow.UnitTests\PRN231.ExploreNow.UnitTests.csproj", "{ED0453DF-C595-4FA2-9841-9946D7181A2B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PRN231.ExploreNow.BusinessObject", "PRN231.ExploreNow.BusinessObject\PRN231.ExploreNow.BusinessObject.csproj", "{17931F2C-959B-4CAF-86BD-70BBF1DA8D0D}"
 EndProject
