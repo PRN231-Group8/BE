@@ -10,13 +10,14 @@ public class ApplicationUser : IdentityUser<string>
     public string? Gender { get; set; }
     public string? Address { get; set; }
     public DateTime CreatedDate { get; set; }
-    public string CreatedBy { get; set; }
-    public string LastUpdatedBy { get; set; }
+    public string? CreatedBy { get; set; }
+    public string? LastUpdatedBy { get; set; }
     public DateTime? LastUpdatedDate { get; set; }
-    public bool IsActive { get; set; } = false;
     public string? AvatarPath { get; set; }
-
-    public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+    public string? VerifyToken { get; set; }
+    public DateTime? VerifyTokenExpires { get; set; }
+    public bool isActived { get; set; } = false;
+    public ICollection<Tour> Tours { get; set; } = new List<Tour>();
     public ICollection<Posts> Posts { get; set; }
     public ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
 }
