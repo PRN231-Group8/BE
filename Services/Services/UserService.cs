@@ -1,33 +1,38 @@
-﻿using PRN231.ExploreNow.BusinessObject.Contracts.Repositories.Interfaces;
+﻿using Microsoft.EntityFrameworkCore;
+using PRN231.ExploreNow.BusinessObject.Contracts.Repositories.Interfaces;
+using PRN231.ExploreNow.BusinessObject.Contracts.UnitOfWorks;
 using PRN231.ExploreNow.Services.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PRN231.ExploreNow.Services.Services
 {
     public class UserService : IUserService
     {
-        private readonly IUserRepository _userRepo;
-        public UserService(IUserRepository userRepo)
+        private readonly IUnitOfWork _unitOfWork;
+
+        public UserService(IUnitOfWork unitOfWork)
         {
-            _userRepo = userRepo;
+            _unitOfWork = unitOfWork;
         }
+
         public async Task<bool> VerifyEmailTokenAsync(string email, string token)
         {
-            var user = await _userRepo.GetUserByEmailAsync(email);
+            var userRepo = _unitOfWork.GetRepository<IUserRepository>();
+            var user = await userRepo.GetUserByEmailAsync(email);
 
-            if (user != null && user.VerifyToken == token && !user.isActived)
+            if (user == null || user.VerifyToken != token || user.isActived)
             {
-                user.isActived = true;
-                user.VerifyToken = null;
-                user.VerifyTokenExpires = DateTime.MinValue;
-                await _userRepo.Update(user);
-                return true;
+                return false;
             }
-            return false;
+
+            user.isActived = true;
+            user.VerifyToken = null;
+            user.VerifyTokenExpires = DateTime.MinValue;
+
+            userRepo.Update(user);
+            await _unitOfWork.SaveChanges();
+
+            return true;
         }
+
     }
 }
