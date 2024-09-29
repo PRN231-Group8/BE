@@ -18,26 +18,26 @@ public class AuthService : IAuthService
 {
     private readonly IConfiguration _configuration;
     private readonly EmailVerify _emailVerify;
-    private readonly IConfigurationSection _goolgeSettings;
+    private readonly IConfigurationSection _googleSettings;
     private readonly IConfigurationSection _jwtSettings;
     private readonly ILogger<AuthService> _logger;
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly UserManager<ApplicationUser> _userManager;
 
     public AuthService(
-        UserManager<ApplicationUser> userManager,
-        RoleManager<IdentityRole> roleManager,
-        ILogger<AuthService> logger,
-        IConfiguration configuration,
-        EmailVerify emailVerify,
-        TokenGenerator tokenGenerator
-    )
+    UserManager<ApplicationUser> userManager,
+    RoleManager<IdentityRole> roleManager,
+    ILogger<AuthService> logger,
+    IConfiguration configuration,
+    EmailVerify emailVerify,
+    TokenGenerator tokenGenerator
+)
     {
         _userManager = userManager;
         _roleManager = roleManager;
         _configuration = configuration;
         _jwtSettings = _configuration.GetSection("JWT");
-        _goolgeSettings = _configuration.GetSection("GoogleAuthSettings");
+        _googleSettings = _configuration.GetSection("GoogleAuthSettings");
         _logger = logger;
         _emailVerify = emailVerify;
     }
