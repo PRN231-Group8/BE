@@ -1,6 +1,6 @@
-﻿namespace ExploreNow.Domain.Entities;
+﻿namespace PRN231.ExploreNow.BusinessObject.Entities;
 
-public class LocationRequest : BaseEntity
+public class LocationInTour : BaseEntity
 {
     public Guid TourId { get; set; }
     public Tour Tour { get; set; }
