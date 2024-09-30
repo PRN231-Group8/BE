@@ -22,7 +22,8 @@ public class ApplicationDbContext : BaseDbContext
     public DbSet<TourTimestamp> TourTimestamps { get; set; }
     public DbSet<Transaction> Transactions { get; set; }
     public DbSet<Transportation> Transportations { get; set; }
-    public DbSet<TourTrip> TourTrips { get; set; } 
+    public DbSet<TourTrip> TourTrips { get; set; }
+    public DbSet<TourMood> TourMoods { get; set; }
     public DbSet<Payment> Payments { get; set; }  
 
     // Configure relationships using Fluent API
@@ -56,10 +57,21 @@ public class ApplicationDbContext : BaseDbContext
         // Tour -> LocationInTour (1-to-Many)
         modelBuilder.Entity<LocationInTour>()
             .HasOne(lit => lit.Tour)
-            .WithMany(t => t.LocationRequests)  // Tour has a collection of LocationInTours
+            .WithMany(t => t.LocationInTours)  // Tour has a collection of LocationInTours
             .HasForeignKey(lit => lit.TourId)
             .OnDelete(DeleteBehavior.Cascade);  // Define cascade delete behavior
 
-        // Add more configurations for other relationships as necessary
+        modelBuilder.Entity<TourMood>()
+        .HasKey(tm => new { tm.TourId, tm.MoodId });
+
+        modelBuilder.Entity<TourMood>()
+            .HasOne(tm => tm.Tour)
+            .WithMany(t => t.TourMoods)
+            .HasForeignKey(tm => tm.TourId);
+
+        modelBuilder.Entity<TourMood>()
+            .HasOne(tm => tm.Mood)
+            .WithMany(m => m.TourMoods)
+            .HasForeignKey(tm => tm.MoodId);
     }
 }

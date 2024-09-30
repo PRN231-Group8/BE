@@ -12,7 +12,7 @@ public class Tour : BaseEntity
     public string Description { get; set; }
     public ICollection<Transportation> Transportations { get; set; }
     public ICollection<TourTimestamp> TourTimestamps { get; set; }
-    public ICollection<LocationInTour> LocationRequests { get; set; }
-    public ICollection<Moods> Moods { get; set; }
+    public ICollection<LocationInTour> LocationInTours { get; set; }
+    public ICollection<TourMood> TourMoods { get; set; }
     public ICollection<TourTrip> TourTrips { get; set; }
 }
