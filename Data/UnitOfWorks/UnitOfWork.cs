@@ -1,5 +1,6 @@
 ﻿using PRN231.ExploreNow.BusinessObject.Contracts.UnitOfWorks;
 using PRN231.ExploreNow.Repositories.Context;
+using PRN231.ExploreNow.Repositories.Repositories.Interface;
 
 namespace PRN231.ExploreNow.Repositories.UnitOfWorks;
 
@@ -9,7 +10,7 @@ public class UnitOfWork : BaseUnitOfWork<ApplicationDbContext>, IUnitOfWork
     {
     }
 
-    // public ILocationRepository LocationRepository => GetRepository<ILocationRepository>();
+    public ILocationRepository LocationRepository => GetRepository<ILocationRepository>();
     // public ITourRepository TourRepository => GetRepository<ITourRepository>();
     // ...
 }

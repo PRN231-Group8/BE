@@ -1,11 +1,16 @@
 using System.Text.Json;
+using ExploreNow.Validations.Location;
+using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using PRN231.ExploreNow.BusinessObject.Contracts.UnitOfWorks;
 using PRN231.ExploreNow.BusinessObject.Entities;
+using PRN231.ExploreNow.BusinessObject.Models.Request;
 using PRN231.ExploreNow.Repositories.Context;
+using PRN231.ExploreNow.Repositories.Repositories;
+using PRN231.ExploreNow.Repositories.Repositories.Interface;
 using PRN231.ExploreNow.Repositories.UnitOfWorks;
 using PRN231.ExploreNow.Services.Interfaces;
 using PRN231.ExploreNow.Services.Services;
@@ -37,6 +42,9 @@ builder.Services.Configure<IdentityOptions>(options =>
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<ILocationService, LocationService>();
+builder.Services.AddScoped<ILocationRepository, LocationRepository>();
+builder.Services.AddScoped<IValidator<LocationsRequest>, LocationRequestValidator>();
 
 builder.Services.AddHealthChecks()
     .AddCheck("self", () => HealthCheckResult.Healthy());
