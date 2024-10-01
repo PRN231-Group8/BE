@@ -1,5 +1,6 @@
 using System.Text.Json;
 using ExploreNow.Validations.Location;
+using ExploreNow.Validations.Photo;
 using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
@@ -45,6 +46,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<ILocationService, LocationService>();
 builder.Services.AddScoped<ILocationRepository, LocationRepository>();
 builder.Services.AddScoped<IValidator<LocationsRequest>, LocationRequestValidator>();
+builder.Services.AddScoped<IValidator<PhotoRequest>, PhotoRequestValidator>();
 
 builder.Services.AddHealthChecks()
     .AddCheck("self", () => HealthCheckResult.Healthy());

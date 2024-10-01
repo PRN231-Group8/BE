@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using PRN231.ExploreNow.BusinessObject.Enums;
 using PRN231.ExploreNow.BusinessObject.Models.Request;
@@ -12,12 +13,13 @@ namespace PRN231.ExploreNow.API.Controllers
     public class LocationController : Controller
     {
         private readonly ILocationService _locationService;
-        private readonly IValidator<LocationsRequest> _validator; 
-
-        public LocationController(ILocationService locationService, IValidator<LocationsRequest> validator)
+        private readonly IValidator<LocationsRequest> _locationValidator;
+        private readonly IValidator<PhotoRequest> _photoValidator;
+        public LocationController(ILocationService locationService, IValidator<LocationsRequest> locationValidator, IValidator<PhotoRequest> photoValidator)
         {
             _locationService = locationService;
-            _validator = validator;
+            _locationValidator = locationValidator;
+            _photoValidator = photoValidator;
         }
 
         [HttpGet]
@@ -49,12 +51,15 @@ namespace PRN231.ExploreNow.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] LocationsRequest locationsRequest)
         {
-            var validationResult = await _validator.ValidateAsync(locationsRequest);
+            ValidationResult validationResult = await _locationValidator.ValidateAsync(locationsRequest);
             if (!validationResult.IsValid)
             {
-                return BadRequest(validationResult.Errors);
+                return Ok(new BaseResponse<object>
+                {
+                    IsSucceed = false,
+                    Message = validationResult.Errors.Select(e => new { e.PropertyName, e.ErrorMessage }).ToString()
+                });
             }
-
             var data = await _locationService.CreateAsync(locationsRequest);
             var baseResponse = new BaseResponse<object>
             {
@@ -62,18 +67,22 @@ namespace PRN231.ExploreNow.API.Controllers
                 Result = data,
                 Message = "Location created successfully"
             };
-            return Ok(baseResponse);
+            return CreatedAtAction(nameof(GetById), new { id = data.Id }, baseResponse);
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] LocationsRequest locationsRequest)
         {
-            var validationResult = await _validator.ValidateAsync(locationsRequest);
+            ValidationResult validationResult = await _locationValidator.ValidateAsync(locationsRequest);
             if (!validationResult.IsValid)
             {
-                return BadRequest(validationResult.Errors);
+                return BadRequest(new BaseResponse<object>
+                {
+                    IsSucceed = false,
+                    Message = validationResult.Errors.Select(e => new { e.PropertyName, e.ErrorMessage }).ToString()
+                });
             }
-
+            
             var data = await _locationService.UpdateAsync(id, locationsRequest);
             var baseResponse = new BaseResponse<object>
             {
@@ -92,7 +101,7 @@ namespace PRN231.ExploreNow.API.Controllers
             {
                 IsSucceed = true,
                 Result = data,
-                Message = "Location delete successfully"
+                Message = "Location deleted successfully"
             };
             return Ok(baseResponse);
         }

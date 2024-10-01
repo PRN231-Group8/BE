@@ -9,11 +9,11 @@ using PRN231.ExploreNow.Repositories.Repositories.Interface;
 
 namespace PRN231.ExploreNow.Repositories.Repositories
 {
-    public class LocationRepository : ILocationRepository
+    public class LocationRepository : BaseRepository<Location>, ILocationRepository
     {
         private readonly ApplicationDbContext _context;
 
-        public LocationRepository(ApplicationDbContext context)
+        public LocationRepository(ApplicationDbContext context) : base(context)
         {
             _context = context;
         }
@@ -35,7 +35,6 @@ namespace PRN231.ExploreNow.Repositories.Repositories
                 query = query.OrderBy(l => l.Status == sortByStatus.Value);
             }
 
-            var totalRecords = await query.CountAsync();
             var locations = await query.Skip((page - 1) * pageSize)
                                        .Take(pageSize)
                                        .ToListAsync();
@@ -100,15 +99,19 @@ namespace PRN231.ExploreNow.Repositories.Repositories
             existingLocation.Status = newLocation.Status;
             existingLocation.Temperature = newLocation.Temperature;
 
-            existingLocation.Photos = newLocation.Photos.Select(p => new Photo
+            if (newLocation.Photos != null && newLocation.Photos.Any())
             {
-                Url = p.Url,
-                Alt = p.Alt,
-                Code = p.Code ?? GenerateUniqueCode(),
-                CreatedBy = "admin",
-                CreatedDate = DateTime.Now,
-                LastUpdatedBy = "admin"
-            }).ToList();
+                _context.Photos.RemoveRange(existingLocation.Photos);
+                existingLocation.Photos = newLocation.Photos.Select(p => new Photo
+                {
+                    Url = p.Url,
+                    Alt = p.Alt,
+                    Code = p.Code ?? GenerateUniqueCode(),
+                    CreatedBy = "admin",
+                    CreatedDate = DateTime.Now,
+                    LastUpdatedBy = "admin"
+                }).ToList();
+            }
         }
 
         private LocationResponse MapToDto(Location location)
