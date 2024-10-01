@@ -14,6 +14,6 @@ public abstract class BaseDbContext : IdentityDbContext<ApplicationUser, Identit
 
     public override int SaveChanges()
     {
-        return SaveChangesAsync().Result;
+        return SaveChanges();
     }
 }
