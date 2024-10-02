@@ -54,7 +54,9 @@ namespace PRN231.ExploreNow.Repositories.Repositories
 
         public async Task<LocationResponse> UpdateAsync(Location location)
         {
-            var existingLocation = await GetById(location.Id);
+            var existingLocation = await GetQueryable(l => l.Id == location.Id && !l.IsDeleted)
+                .Include(l => l.Photos)
+                .FirstOrDefaultAsync();
             if (existingLocation == null)
             {
                 return null;
@@ -81,7 +83,6 @@ namespace PRN231.ExploreNow.Repositories.Repositories
             existingLocation.Address = newLocation.Address;
             existingLocation.Status = newLocation.Status;
             existingLocation.Temperature = newLocation.Temperature;
-
             if (newLocation.Photos != null && newLocation.Photos.Any())
             {
                 _context.Photos.RemoveRange(existingLocation.Photos);
@@ -107,7 +108,9 @@ namespace PRN231.ExploreNow.Repositories.Repositories
                 Address = location.Address,
                 Status = location.Status.ToString(),
                 Temperature = location.Temperature,
-                Photos = location.Photos.Select(p => new PhotoResponse
+                Photos = location.Photos
+                    .Where(p => !p.IsDeleted)
+                    .Select(p => new PhotoResponse
                 {
                     Id = p.Id,
                     Url = p.Url,
