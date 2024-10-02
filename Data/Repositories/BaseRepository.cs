@@ -160,4 +160,15 @@ public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : 
     }
 
     #endregion
+    #region Save Changes
+    public int SaveChanges()
+    {
+        return _dbContext.SaveChanges();
+    }
+
+    public async Task<int> SaveChangesAsync()
+    {
+        return await _dbContext.SaveChangesAsync();
+    }
+    #endregion
 }

@@ -20,74 +20,57 @@ namespace PRN231.ExploreNow.Repositories.Repositories
 
         public async Task<List<LocationResponse>> GetAllLocationsAsync(int page, int pageSize, WeatherStatus? sortByStatus, string? searchTerm)
         {
-            var query = _context.Locations
-                                .Where(l => !l.IsDeleted)
-                                .Include(l => l.Photos)
-                                .AsQueryable();
-
+            var query = GetQueryable()
+                        .Include(l => l.Photos)
+                        .Where(l => !l.IsDeleted);
             if (!string.IsNullOrEmpty(searchTerm))
             {
                 query = query.Where(l => l.Name.Contains(searchTerm) || l.Description.Contains(searchTerm));
             }
-
             if (sortByStatus.HasValue)
             {
                 query = query.OrderBy(l => l.Status == sortByStatus.Value);
             }
-
             var locations = await query.Skip((page - 1) * pageSize)
                                        .Take(pageSize)
                                        .ToListAsync();
-
             return locations.Select(MapToDto).ToList();
         }
 
         public async Task<LocationResponse> GetByIdAsync(Guid id)
         {
-            var location = await _context.Locations
-                                         .Where(l => !l.IsDeleted && l.Id == id)
-                                         .Include(l => l.Photos)
-                                         .FirstOrDefaultAsync();
-
+            var location = await GetQueryable(l => l.Id == id && !l.IsDeleted)
+                                .Include(l => l.Photos)
+                                .FirstOrDefaultAsync();
             return location == null ? null : MapToDto(location);
         }
 
         public async Task<LocationResponse> CreateAsync(Location location)
         {
-            await _context.Locations.AddAsync(location);
-            await _context.SaveChangesAsync();
-
+            Add(location);
+            await SaveChangesAsync();
             return MapToDto(location);
         }
 
         public async Task<LocationResponse> UpdateAsync(Location location)
         {
-            var existingLocation = await _context.Locations
-                                                 .Include(l => l.Photos)
-                                                 .FirstOrDefaultAsync(l => l.Id == location.Id);
-
+            var existingLocation = await GetById(location.Id);
             if (existingLocation == null)
             {
                 return null;
             }
-
             UpdateLocationProperties(existingLocation, location);
-
-            _context.Locations.Update(existingLocation);
-            await _context.SaveChangesAsync();
-
+            Update(existingLocation);
+            await SaveChangesAsync();
             return MapToDto(existingLocation);
         }
 
         public async Task<bool> DeleteAsync(Guid id)
         {
-            var location = await _context.Locations.FirstOrDefaultAsync(l => l.Id == id);
+            var location = await GetById(id);
             if (location == null) return false;
-
-            location.IsDeleted = true;
-            _context.Locations.Update(location);
-            await _context.SaveChangesAsync();
-
+            Delete(location);
+            await SaveChangesAsync();
             return true;
         }
 
