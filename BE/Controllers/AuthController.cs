@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using PRN231.ExploreNow.BusinessObject.Models.Request;
 using PRN231.ExploreNow.BusinessObject.Models.Response;
 using PRN231.ExploreNow.BusinessObject.Models.Response.Auth;
 using PRN231.ExploreNow.Services.Interfaces;
@@ -108,4 +110,15 @@ public class AuthController : Controller
 
         return BadRequest(operationResult);
     }
+
+    // Login Google
+    [HttpPost("google")]
+    public async Task<IActionResult> ExternalLogin([FromBody] ExternalAuthRequest requestAuth)
+    {
+		var result = await _authService.HandleExternalLogin(requestAuth);
+		if (!result.IsSucceed)
+			return BadRequest(result.ErrorMessage);
+
+		return Ok(result);
+	}
 }
