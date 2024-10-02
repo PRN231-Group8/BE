@@ -141,7 +141,7 @@ public class AuthService : IAuthService
         return new AuthResponse
         {
             IsSucceed = true,
-            Token = "Account created successfully and check your email to verify account! "
+            Token = "Account created successfully and check your email to verify account!"
         };
     }
     public async Task<AuthResponse> LoginAsync(LoginResponse loginResponse)
