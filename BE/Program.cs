@@ -1,7 +1,9 @@
 using System.Text;
 using System.Text.Json;
 using ExploreNow.Validations.Location;
+using ExploreNow.Validations.Photo;
 using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
@@ -55,6 +57,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<ILocationService, LocationService>();
 builder.Services.AddScoped<ILocationRepository, LocationRepository>();
 builder.Services.AddScoped<IValidator<LocationsRequest>, LocationRequestValidator>();
+builder.Services.AddScoped<IValidator<PhotoRequest>, PhotoRequestValidator>();
 builder.Services.AddScoped<EmailVerify>();
 builder.Services.AddScoped<TokenGenerator>();
 builder.Services.AddScoped<ITokenValidator, TokenValidator>();
