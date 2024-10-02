@@ -9,5 +9,5 @@ public interface IBaseUnitOfWork : IDisposable
 
     TRepository GetRepository<TRepository>() where TRepository : IBaseRepository;
 
-    Task<bool> SaveChanges(CancellationToken cancellationToken = default);
+    Task<bool> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
