@@ -29,7 +29,7 @@ namespace PRN231.ExploreNow.Services.Services
             user.VerifyTokenExpires = DateTime.MinValue;
 
             userRepo.Update(user);
-            await _unitOfWork.SaveChanges();
+            await _unitOfWork.SaveChangesAsync();
 
             return true;
         }
