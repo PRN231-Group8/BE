@@ -62,6 +62,10 @@ public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : 
     {
         DbSet.Add(entity);
     }
+    public async Task AddAsync(TEntity entity)
+    {
+        await DbSet.AddAsync(entity);
+    }
 
     public void AddRange(IEnumerable<TEntity> entities)
     {
@@ -75,6 +79,10 @@ public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : 
     public void Update(TEntity entity)
     {
         DbSet.Update(entity);
+    }
+    public Task UpdateAsync(TEntity entity)
+    {
+        return Task.Run(() => DbSet.Update(entity));
     }
 
     public void UpdateRange(IEnumerable<TEntity> entities)
@@ -90,6 +98,14 @@ public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : 
     {
         entity.IsDeleted = true;
         DbSet.Update(entity);
+    }
+    public Task DeleteAsync(TEntity entity)
+    {
+        return Task.Run(() =>
+        {
+            entity.IsDeleted = true;
+            DbSet.Update(entity);
+        });
     }
 
     public void DeleteRange(IEnumerable<TEntity> entities)

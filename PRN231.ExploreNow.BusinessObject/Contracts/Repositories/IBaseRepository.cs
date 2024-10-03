@@ -28,6 +28,6 @@ public interface IBaseRepository<TEntity> : IBaseRepository
     void Delete(TEntity entity);
     void DeleteRange(IEnumerable<TEntity> entities);
     void CheckCancellationToken(CancellationToken cancellationToken = default);
-    Task<int> SaveChangesAsync();
+    
 
 }

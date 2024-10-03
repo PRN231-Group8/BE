@@ -85,7 +85,11 @@ namespace PRN231.ExploreNow.Repositories.Repositories
             existingLocation.Temperature = newLocation.Temperature;
             if (newLocation.Photos != null && newLocation.Photos.Any())
             {
-                _context.Photos.RemoveRange(existingLocation.Photos);
+                foreach (var photo in existingLocation.Photos)
+                {
+                    photo.IsDeleted = true;
+                }
+                //_context.Photos.RemoveRange(existingLocation.Photos);
                 existingLocation.Photos = newLocation.Photos.Select(p => new Photo
                 {
                     Url = p.Url,
@@ -93,7 +97,8 @@ namespace PRN231.ExploreNow.Repositories.Repositories
                     Code = p.Code ?? GenerateUniqueCode(),
                     CreatedBy = "admin",
                     CreatedDate = DateTime.Now,
-                    LastUpdatedBy = "admin"
+                    LastUpdatedBy = "admin",
+                    IsDeleted = false
                 }).ToList();
             }
         }
