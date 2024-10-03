@@ -130,16 +130,11 @@ builder.Services.AddSwaggerGen(options =>
 
 
 #endregion
-builder.Services.AddCors(options =>
+//CORS
+builder.Services.AddCors(p => p.AddPolicy("corspolicy", build =>
 {
-    options.AddDefaultPolicy(
-        builder =>
-        {
-            builder.WithOrigins("https://localhost:4200")
-                   .AllowAnyHeader()
-                   .AllowAnyMethod();
-        });
-});
+    build.WithOrigins("http://localhost:4200").AllowAnyMethod().AllowAnyHeader();
+}));
 
 
 builder.Services.AddControllers();
@@ -154,6 +149,7 @@ if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
     app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "PRN231.ExploreNow.API V1"); });
 }
 app.UseRouting();
+app.UseCors("corspolicy");
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
