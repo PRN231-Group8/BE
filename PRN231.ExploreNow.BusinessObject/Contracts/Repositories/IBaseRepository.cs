@@ -20,7 +20,9 @@ public interface IBaseRepository<TEntity> : IBaseRepository
     Task<TEntity> GetById(Guid id);
 
     Task<IList<TEntity>> GetByIds(IList<Guid> ids);
-
+    Task AddAsync(TEntity entity);
+    Task<bool> DeleteAsync(Guid id);
+    Task UpdateAsync(TEntity entity);
     void Add(TEntity entity);
     void AddRange(IEnumerable<TEntity> entities);
     void Update(TEntity entity);

@@ -24,9 +24,9 @@ namespace PRN231.ExploreNow.Services.Services
             return await _unitOfWork.LocationRepository.GetAllLocationsAsync(page, pageSize, sortByStatus, searchTerm);
         }
 
-        public async Task<LocationResponse> GetByIdAsync(Guid id)
+        public async Task<Location> GetByIdAsync(Guid id)
         {
-            return await _unitOfWork.LocationRepository.GetByIdAsync(id);
+            return await _unitOfWork.LocationRepository.GetById(id);
         }
 
         public async Task<LocationResponse> CreateAsync(LocationsRequest locationsRequest)

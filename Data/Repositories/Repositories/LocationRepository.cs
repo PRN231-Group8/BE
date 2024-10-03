@@ -67,15 +67,6 @@ namespace PRN231.ExploreNow.Repositories.Repositories
             return MapToDto(existingLocation);
         }
 
-        public async Task<bool> DeleteAsync(Guid id)
-        {
-            var location = await GetById(id);
-            if (location == null) return false;
-            Delete(location);
-            await SaveChangesAsync();
-            return true;
-        }
-
         private void UpdateLocationProperties(Location existingLocation, Location newLocation)
         {
             existingLocation.Name = newLocation.Name;

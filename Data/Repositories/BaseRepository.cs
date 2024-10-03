@@ -99,15 +99,16 @@ public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : 
         entity.IsDeleted = true;
         DbSet.Update(entity);
     }
-    public Task DeleteAsync(TEntity entity)
+    public async Task<bool> DeleteAsync(Guid id)
     {
-        return Task.Run(() =>
-        {
-            entity.IsDeleted = true;
-            DbSet.Update(entity);
-        });
+        var entity = await GetById(id);
+        if (entity == null) return false;
+        entity.IsDeleted = true;
+        DbSet.Update(entity);
+        var result = await SaveChangesAsync(); 
+        return result > 0;
     }
-
+    
     public void DeleteRange(IEnumerable<TEntity> entities)
     {
         entities.Where(e => e.IsDeleted == false ? e.IsDeleted = true : e.IsDeleted = false);

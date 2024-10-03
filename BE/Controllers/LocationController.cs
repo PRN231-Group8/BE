@@ -9,7 +9,7 @@ using PRN231.ExploreNow.Services.Interfaces;
 namespace PRN231.ExploreNow.API.Controllers
 {
     [ApiController]
-    [Route("location")]
+    [Route("api/location")]
     public class LocationController : Controller
     {
         private readonly ILocationService _locationService;

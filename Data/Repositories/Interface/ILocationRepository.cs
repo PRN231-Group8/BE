@@ -11,5 +11,5 @@ public interface ILocationRepository : IBaseRepository<Location>
     Task<LocationResponse> GetByIdAsync(Guid id);
     Task<LocationResponse> CreateAsync(Location location);
     Task<LocationResponse> UpdateAsync(Location location);
-    Task<bool> DeleteAsync(Guid id);
+    
 }
