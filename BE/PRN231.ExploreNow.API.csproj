@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
@@ -28,7 +28,15 @@
 		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.2" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.3" />
 		<PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.7.3" />
+		<PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="6.7.3" />
+		<PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.7.3" />
+		<PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="6.7.3" />
 		<PackageReference Include="System.Linq.Dynamic.Core" Version="1.4.5" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\ExploreNow.Validations\PRN231.ExploreNow.Validations.csproj" />
+		<ProjectReference Include="..\Services\PRN231.ExploreNow.Services.csproj" />
 	</ItemGroup>
 
 </Project>
