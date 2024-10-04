@@ -146,7 +146,6 @@ public class AuthService : IAuthService
 			Token = "Account created successfully and check your email to verify account!"
 		};
 	}
-
 	public async Task<AuthResponse> LoginAsync(LoginResponse loginResponse)
 	{
 		var user = await _userManager.FindByNameAsync(loginResponse.UserName);
@@ -328,24 +327,47 @@ public class AuthService : IAuthService
 			return new ExternalAuthResponse { IsSucceed = false, ErrorMessage = "Invalid External Authentication." };
 
 		var info = new UserLoginInfo(externalAuth.Provider, payload.Subject, externalAuth.Provider);
+
 		var user = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
+
+		user = await _userManager.FindByEmailAsync(payload.Email);
 
 		if (user == null)
 		{
-			user = await _userManager.FindByEmailAsync(payload.Email);
-			if (user == null)
+			user = new ApplicationUser
 			{
-				user = new ApplicationUser { Email = payload.Email, UserName = payload.Email };
-				await _userManager.CreateAsync(user);
-				await _userManager.AddToRoleAsync(user, "Viewer");
+				Id = Guid.NewGuid().ToString(),
+				Email = payload.Email,
+				UserName = payload.Email,
+				FirstName = payload.GivenName,
+				LastName = payload.FamilyName,
+				isActived = true,
+				CreatedDate = DateTime.UtcNow,
+				EmailConfirmed = true
+			};
+
+			var result = await _userManager.CreateAsync(user);
+			if (!result.Succeeded)
+			{
+				return new ExternalAuthResponse { IsSucceed = false, ErrorMessage = "Failed to create user account." };
 			}
+			await _userManager.AddToRoleAsync(user, StaticUserRoles.CUSTOMER);
+		}
+
+		var logins = await _userManager.GetLoginsAsync(user);
+		if (!logins.Any(l => l.LoginProvider == externalAuth.Provider && l.ProviderKey == payload.Subject))
+		{
 			await _userManager.AddLoginAsync(user, info);
 		}
 
-		if (user == null)
-			return new ExternalAuthResponse { IsSucceed = false, ErrorMessage = "Invalid External Authentication." };
-
 		var token = await GenerateToken(user);
-		return new ExternalAuthResponse { Token = token, IsSucceed = true };
+		return new ExternalAuthResponse
+		{
+			Token = token,
+			IsSucceed = true,
+			Role = (await _userManager.GetRolesAsync(user)).FirstOrDefault(),
+			UserId = user.Id,
+			Email = user.Email
+		};
 	}
 }

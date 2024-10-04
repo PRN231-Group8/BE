@@ -1,12 +1,108 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using FluentAssertions;
+using Moq;
+using PRN231.ExploreNow.BusinessObject.Contracts.Repositories.Interfaces;
+using PRN231.ExploreNow.BusinessObject.Entities;
+using PRN231.ExploreNow.Repositories.UnitOfWorks.Interfaces;
+using PRN231.ExploreNow.Services.Services;
+using Xunit;
 
 namespace PRN231.ExploreNow.UnitTests
 {
-	internal class UserServiceTests
+    public class UserServiceTests
 	{
+		private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+		private readonly Mock<IUserRepository> _userRepositoryMock;
+		private readonly UserService _userService;
+
+		public UserServiceTests()
+		{
+			_unitOfWorkMock = new Mock<IUnitOfWork>();
+			_userRepositoryMock = new Mock<IUserRepository>();
+
+			_unitOfWorkMock.Setup(uow => uow.GetRepository<IUserRepository>())
+				.Returns(_userRepositoryMock.Object);
+
+			_userService = new UserService(_unitOfWorkMock.Object);
+		}
+
+		[Fact]
+		public async Task VerifyEmailTokenAsync_ShouldReturnFalse_WhenUserNotFound()
+		{
+			// Arange
+			_userRepositoryMock.Setup(repo => repo.GetUserByEmailAsync(It.IsAny<string>()))
+				.ReturnsAsync((ApplicationUser)null);
+
+			// Act
+			var result = await _userService.VerifyEmailTokenAsync("test@example.com", "token");
+
+			// Assert
+			result.Should().BeFalse();
+			_unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<System.Threading.CancellationToken>()), Times.Never());
+		}
+
+		[Fact]
+		public async Task VerifyEmailTokenAsync_ShouldReturnFalse_WhenTokenDoesNotMatch()
+		{
+			// Arrange
+			var user = new ApplicationUser
+			{
+				VerifyToken = "invalid-token",
+				isActived = false,
+			};
+			_userRepositoryMock.Setup(repo => repo.GetUserByEmailAsync(It.IsAny<string>()))
+				.ReturnsAsync(user);
+
+			// Act
+			var result = await _userService.VerifyEmailTokenAsync("test@example.com", "valid-token");
+
+			// Assert
+			result.Should().BeFalse();
+			_unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<System.Threading.CancellationToken>()), Times.Never);
+		}
+
+		[Fact]
+		public async Task VerifyEmailTokenAsync_ShouldReturnFalse_VerifyEmailTokenAsync_ShouldReturnFalse_WhenUserIsAlreadyActivated()
+		{
+			// Arrange
+			var user = new ApplicationUser
+			{
+				VerifyToken = "valid-token",
+				isActived = true,
+			};
+			_userRepositoryMock.Setup(repo => repo.GetUserByEmailAsync(It.IsAny<string>()))
+							   .ReturnsAsync(user);
+
+			// Act
+			var result = await _userService.VerifyEmailTokenAsync("test@example.com", "valid-token");
+
+			// Assert
+			result.Should().BeFalse();
+			_unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<System.Threading.CancellationToken>()), Times.Never);
+		}
+
+		[Fact]
+		public async Task VerifyEmailTokenAsync_ShouldActivateUser_WhenTokenIsValid()
+		{
+			// Arrange
+			var user = new ApplicationUser
+			{
+				VerifyToken = "valid-token",
+				isActived = false,
+				VerifyTokenExpires = DateTime.UtcNow.AddMinutes(30)
+			};
+			_userRepositoryMock.Setup(repo => repo.GetUserByEmailAsync(It.IsAny<string>()))
+							   .ReturnsAsync(user);
+
+			// Act
+			var result = await _userService.VerifyEmailTokenAsync("test@example.com", "valid-token");
+
+			// Assert
+			result.Should().BeTrue();
+			user.isActived.Should().BeTrue();
+			user.VerifyToken.Should().BeNull();
+			user.VerifyTokenExpires.Should().Be(DateTime.MinValue);
+			_userRepositoryMock.Verify(repo => repo.Update(user), Times.Once);
+			_unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<System.Threading.CancellationToken>()), Times.Once);
+		}
 	}
 }
