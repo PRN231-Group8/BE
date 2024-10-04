@@ -22,12 +22,15 @@ using PRN231.ExploreNow.Validations.Interface;
 
 var builder = WebApplication.CreateBuilder(args);
 
+#region Configure DbContext
 var connectionString = builder.Configuration.GetConnectionString("local");
 
 // Add DbContext and MySQL configuration
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 	options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+#endregion
 
+#region Configure Identity Options
 // Add Identity and configure Identity options
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 	.AddEntityFrameworkStores<ApplicationDbContext>()
@@ -44,7 +47,9 @@ builder.Services.Configure<IdentityOptions>(options =>
 	options.SignIn.RequireConfirmedEmail = false;
 	options.User.RequireUniqueEmail = true;
 });
+#endregion
 
+#region Configure Scoped
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<EmailVerify>();
@@ -53,9 +58,13 @@ builder.Services.AddScoped<ITokenValidator, TokenValidator>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmailVerify, EmailVerify>();
+#endregion
 
+#region Configure Health Checks For Azure Server
 builder.Services.AddHealthChecks()
 	.AddCheck("self", () => HealthCheckResult.Healthy());
+#endregion
+
 #region JwtBear and Authentication, Swagger API
 
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -136,9 +145,8 @@ builder.Services.AddSwaggerGen(options =>
 		}
 	});
 });
-
-
 #endregion
+
 //builder.Services.AddCors(options =>
 //{
 //	options.AddDefaultPolicy(
@@ -150,6 +158,7 @@ builder.Services.AddSwaggerGen(options =>
 //		});
 //});
 
+#region Config Cors
 builder.Services.AddCors(p =>
 	p.AddPolicy(
 		"corspolicy",
@@ -162,6 +171,7 @@ builder.Services.AddCors(p =>
 		}
 	)
 );
+#endregion
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

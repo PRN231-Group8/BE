@@ -8,7 +8,7 @@ using Xunit;
 
 namespace PRN231.ExploreNow.UnitTests
 {
-    public class UserServiceTests
+	public class UserServiceTests
 	{
 		private readonly Mock<IUnitOfWork> _unitOfWorkMock;
 		private readonly Mock<IUserRepository> _userRepositoryMock;
