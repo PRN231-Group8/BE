@@ -105,7 +105,7 @@ public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : 
         if (entity == null) return false;
         entity.IsDeleted = true;
         DbSet.Update(entity);
-        var result = await SaveChangesAsync(); 
+        var result = await _dbContext.SaveChangesAsync(); 
         return result > 0;
     }
     
@@ -176,16 +176,5 @@ public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : 
         return dbSet;
     }
 
-    #endregion
-    #region Save Changes
-    public int SaveChanges()
-    {
-        return _dbContext.SaveChanges();
-    }
-
-    public async Task<int> SaveChangesAsync()
-    {
-        return await _dbContext.SaveChangesAsync();
-    }
     #endregion
 }

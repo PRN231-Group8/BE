@@ -48,7 +48,7 @@ namespace PRN231.ExploreNow.Repositories.Repositories
         public async Task<LocationResponse> CreateAsync(Location location)
         {
             Add(location);
-            await SaveChangesAsync();
+            await _context.SaveChangesAsync();
             return MapToDto(location);
         }
 
@@ -63,7 +63,7 @@ namespace PRN231.ExploreNow.Repositories.Repositories
             }
             UpdateLocationProperties(existingLocation, location);
             Update(existingLocation);
-            await SaveChangesAsync();
+            await _context.SaveChangesAsync();
             return MapToDto(existingLocation);
         }
 
