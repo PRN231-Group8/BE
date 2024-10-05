@@ -6,6 +6,7 @@ using PRN231.ExploreNow.BusinessObject;
 using PRN231.ExploreNow.BusinessObject.Models.Response;
 using PRN231.ExploreNow.BusinessObject.Entities;
 using PRN231.ExploreNow.BusinessObject.Models.Request;
+using Microsoft.VisualBasic;
 
 namespace PRN231.ExploreNow.API.Controllers
 {
@@ -14,11 +15,12 @@ namespace PRN231.ExploreNow.API.Controllers
     public class TourController : ControllerBase
     {
         private readonly ITourService _tourService;
+        private readonly IUserService _userService;
 
-
-        public TourController(ITourService tourService)
+        public TourController(ITourService tourService, IUserService userService)
         {
             _tourService = tourService;
+            _userService = userService;
         }
 
         [HttpGet]
@@ -62,13 +64,111 @@ namespace PRN231.ExploreNow.API.Controllers
         }
 
         [HttpPost]
-        /*public async Task<IActionResult> AddTour(TourRequestModel model)
+        public async Task<IActionResult> AddTour([FromBody] TourRequestModel model)
         {
-            if( model != null)
+            try
             {
+                if (model != null)
+                {
+                    Tour tour = new Tour
+                    {
+                        Id = model.Id,
+                        Code = model.Code,
+                        CreatedBy = model.CreatedBy,
+                        CreatedDate = model.CreatedDate,
+                        StartDate = model.StartDate,
+                        EndDate = model.EndDate,
+                        LastUpdatedBy = model.LastUpdatedBy,
+                        LastUpdatedDate = model.LastUpdatedDate,
+                        IsDeleted = model.IsDeleted,
+                        TotalPrice = model.TotalPrice,
+                        Status = model.Status,
+                        UserId = model.UserId,
+                        User = model.User,
+                        Title = model.Title,
+                        Description = model.Description,
+                    };
 
-                await _tourService.Add(model);
+                    await _tourService.Add(tour);
+                    return Ok(new BaseResponse<Tour> { IsSucceed = true, Result = tour, Message = "Created successfully" });
+                }
+                return BadRequest(new BaseResponse<Tour> { IsSucceed = false, Message = "Please input correct" });
             }
-        }*/
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        [HttpPatch]
+        public async Task<IActionResult> Update([FromBody] TourRequestModel model)
+        {
+            try
+            {
+                if (model != null)
+                {
+                    if (await _tourService.GetById(model.Id) != null)
+                    {
+                        Tour tour = new Tour
+                        {
+                            Id = model.Id,
+                            Code = model.Code,
+                            CreatedBy = model.CreatedBy,
+                            CreatedDate = model.CreatedDate,
+                            StartDate = model.StartDate,
+                            EndDate = model.EndDate,
+                            LastUpdatedBy = model.LastUpdatedBy,
+                            LastUpdatedDate = model.LastUpdatedDate,
+                            IsDeleted = model.IsDeleted,
+                            TotalPrice = model.TotalPrice,
+                            Status = model.Status,
+                            UserId = model.UserId,
+                            User = model.User,
+                            Title = model.Title,
+                            Description = model.Description,
+                        };
+                        await _tourService.Update(tour);
+                        return Ok(new BaseResponse<Tour> { IsSucceed = true, Result = tour, Message = "Update successfully" });
+                    }
+                    return NotFound(new BaseResponse<Tour> { IsSucceed = false, Message = $"Not found tour with id = {model.Id}" });
+                }
+                return BadRequest(new BaseResponse<Tour> { IsSucceed = false, Message = "Please input correct" });
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+        [HttpDelete]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            try
+            {
+                if (id != null)
+                {
+                    if (await _tourService.GetById(id) != null)
+                    {
+                        await _tourService.Delete(id);
+                        return Ok(new BaseResponse<Tour> 
+                        { IsSucceed = true, 
+                            Message = "Delete successfully" 
+                        });
+                    }
+                    return NotFound(new BaseResponse<Tour>
+                    {
+                        IsSucceed = false,
+                        Message = $"Not found tour with id = {id}"
+                    });
+                }
+                return BadRequest(new BaseResponse<Tour> { 
+                    IsSucceed = false, 
+                    Message = "Please input correct" 
+                });
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
     }
 }
