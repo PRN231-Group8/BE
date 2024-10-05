@@ -76,7 +76,6 @@ namespace PRN231.ExploreNow.API.Controllers
                 {
                     Tour tour = new Tour
                     {
-                        Id = model.Id,
                         Code = model.Code,
                         CreatedBy = model.CreatedBy,
                         CreatedDate = DateTime.Now,
@@ -106,19 +105,18 @@ namespace PRN231.ExploreNow.API.Controllers
             }
         }
 
-        [HttpPut("{id}")
-        public async Task<IActionResult> Update([FromBody] TourRequestModel model)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update([FromBody] TourRequestModel model,Guid id)
         {
             try
             {
                 ValidationResult ValidateResult = await _tourValidation.ValidateAsync(model);
                 if (ValidateResult.IsValid)
                 {
-                    if (await _tourService.GetById(model.Id) != null)
+                    if (await _tourService.GetById(id) != null)
                     {
                         Tour tour = new Tour
                         {
-                            Id = model.Id,
                             Code = model.Code,
                             CreatedBy = model.CreatedBy,
                             CreatedDate = DateTime.Now,
@@ -136,7 +134,7 @@ namespace PRN231.ExploreNow.API.Controllers
                         await _tourService.Update(tour);
                         return Ok(new BaseResponse<Tour> { IsSucceed = true, Result = tour, Message = "Update successfully" });
                     }
-                    return NotFound(new BaseResponse<Tour> { IsSucceed = false, Message = $"Not found tour with id = {model.Id}" });
+                    return NotFound(new BaseResponse<Tour> { IsSucceed = false, Message = $"Not found tour with id = {id}" });
                 }
                 return BadRequest(new BaseResponse<Tour>
                 {

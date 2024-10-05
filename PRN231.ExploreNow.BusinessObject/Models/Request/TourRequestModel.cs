@@ -11,7 +11,6 @@ namespace PRN231.ExploreNow.BusinessObject.Models.Request
 {
     public class TourRequestModel
     {
-        public Guid Id { get; set; }
         public string Code { get; set; }
         public string CreatedBy { get; set; }
         public DateTime CreatedDate { get; set; }
