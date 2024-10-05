@@ -10,7 +10,6 @@ using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using PRN231.ExploreNow.BusinessObject.Contracts.Repositories;
 using PRN231.ExploreNow.BusinessObject.Contracts.Repositories.Interfaces;
-using PRN231.ExploreNow.BusinessObject.Contracts.UnitOfWorks;
 using PRN231.ExploreNow.BusinessObject.Entities;
 using PRN231.ExploreNow.BusinessObject.Utilities;
 using PRN231.ExploreNow.Repositories.Context;
@@ -52,6 +51,7 @@ builder.Services.AddScoped<TokenGenerator>();
 builder.Services.AddScoped<ITokenValidator, TokenValidator>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ITourService, TourService>();
 
 builder.Services.AddHealthChecks()
     .AddCheck("self", () => HealthCheckResult.Healthy());

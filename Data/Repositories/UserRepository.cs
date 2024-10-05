@@ -32,5 +32,19 @@ namespace PRN231.ExploreNow.BusinessObject.Contracts.Repositories
             _context.Users.Update(applicationUser);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<ApplicationUser> GetUserByIdAsync(int id)
+        {
+            return await _context.Users
+                .AsNoTracking()
+                .SingleOrDefaultAsync(u => u.Id.Equals(id));
+        }
+
+        public async Task<List<ApplicationUser>> GetAllUserAsync()
+        {
+            return await _context.Users
+                .AsNoTracking()
+                .ToListAsync();
+        }
     }
 }

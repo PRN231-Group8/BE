@@ -1,0 +1,19 @@
+﻿using PRN231.ExploreNow.BusinessObject.Entities;
+using PRN231.ExploreNow.BusinessObject.Models.Response;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace PRN231.ExploreNow.Services.Interfaces
+{
+    public interface ITourService
+    {
+        Task<IList<Tour>> GetAll();
+        Task<Tour> GetById(Guid id);
+        Task Add(Tour tour);
+        Task<BaseResponse<Tour>> Update(Tour tour);
+        Task Delete(Guid id);
+    }
+}

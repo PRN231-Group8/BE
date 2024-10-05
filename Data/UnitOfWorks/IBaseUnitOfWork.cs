@@ -1,7 +1,7 @@
 ﻿using PRN231.ExploreNow.BusinessObject.Contracts.Repositories;
 using PRN231.ExploreNow.BusinessObject.Entities;
 
-namespace PRN231.ExploreNow.BusinessObject.Contracts.UnitOfWorks;
+namespace PRN231.ExploreNow.Repositories.UnitOfWorks;
 
 public interface IBaseUnitOfWork : IDisposable
 {
