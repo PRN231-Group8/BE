@@ -37,7 +37,7 @@ namespace PRN231.ExploreNow.API.Controllers
             }
             catch (Exception ex)
             {
-                throw;
+                throw new Exception( new BaseResponse<Tour> { Message = ex.Message, IsSucceed = false}.ToString() );
             }
         }
 
@@ -59,7 +59,7 @@ namespace PRN231.ExploreNow.API.Controllers
             }
             catch (Exception ex)
             {
-                throw;
+                throw new Exception(new BaseResponse<Tour> { Message = ex.Message, IsSucceed = false }.ToString());
             }
         }
 
@@ -96,7 +96,7 @@ namespace PRN231.ExploreNow.API.Controllers
             }
             catch (Exception ex)
             {
-                throw;
+                throw new Exception(new BaseResponse<Tour> { Message = ex.Message, IsSucceed = false }.ToString());
             }
         }
 
@@ -136,7 +136,7 @@ namespace PRN231.ExploreNow.API.Controllers
             }
             catch (Exception ex)
             {
-                throw;
+                throw new Exception(new BaseResponse<Tour> { Message = ex.Message, IsSucceed = false }.ToString());
             }
         }
         [HttpDelete]
@@ -167,7 +167,7 @@ namespace PRN231.ExploreNow.API.Controllers
             }
             catch (Exception ex)
             {
-                throw;
+                throw new Exception(new BaseResponse<Tour> { Message = ex.Message, IsSucceed = false }.ToString());
             }
         }
     }
