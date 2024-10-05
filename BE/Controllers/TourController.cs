@@ -8,6 +8,8 @@ using PRN231.ExploreNow.BusinessObject.Entities;
 using PRN231.ExploreNow.BusinessObject.Models.Request;
 using Microsoft.VisualBasic;
 using PRN231.ExploreNow.BusinessObject.Enums;
+using PRN231.ExploreNow.Validations.Tour;
+using FluentValidation.Results;
 
 namespace PRN231.ExploreNow.API.Controllers
 {
@@ -15,13 +17,13 @@ namespace PRN231.ExploreNow.API.Controllers
     [ApiController]
     public class TourController : ControllerBase
     {
-        private readonly ITourService _tourService;
-        private readonly IUserService _userService;
+        private ITourService _tourService;
+        private readonly TourValidation _tourValidation;
 
-        public TourController(ITourService tourService, IUserService userService)
+        public TourController(ITourService tourService, TourValidation tourValidation)
         {
             _tourService = tourService;
-            _userService = userService;
+            _tourValidation = tourValidation;
         }
 
         [HttpGet]
@@ -49,7 +51,7 @@ namespace PRN231.ExploreNow.API.Controllers
             {
                 if (id != null)
                 {
-                    if ( _tourService.GetById(id) == null)
+                    if (_tourService.GetById(id) == null)
                     {
                         return NotFound(new BaseResponse<Tour> { IsSucceed = false, Results = null, Message = $"Not found tour with id = {id}" });
                     }
@@ -69,25 +71,34 @@ namespace PRN231.ExploreNow.API.Controllers
         {
             try
             {
-                Tour tour = new Tour
+                ValidationResult ValidateResult = await _tourValidation.ValidateAsync(model);
+                if (ValidateResult.IsValid)
                 {
-                    Id = model.Id,
-                    Code = model.Code,
-                    CreatedBy = model.CreatedBy,
-                    CreatedDate = DateTime.Now,
-                    StartDate = model.StartDate,
-                    EndDate = model.EndDate,
-                    LastUpdatedBy = model.LastUpdatedBy,
-                    LastUpdatedDate = DateTime.Now,
-                    IsDeleted = false,
-                    TotalPrice = model.TotalPrice,
-                    Status = model.Status,
-                    UserId = model.UserId,
-                    Title = model.Title,
-                    Description = model.Description,
-                };
-                await _tourService.Add(tour);
-                return Ok(new BaseResponse<Tour> { IsSucceed = true, Result = tour, Message = "Created successfully" }); ;
+                    Tour tour = new Tour
+                    {
+                        Id = model.Id,
+                        Code = model.Code,
+                        CreatedBy = model.CreatedBy,
+                        CreatedDate = DateTime.Now,
+                        StartDate = model.StartDate,
+                        EndDate = model.EndDate,
+                        LastUpdatedBy = model.LastUpdatedBy,
+                        LastUpdatedDate = DateTime.Now,
+                        IsDeleted = false,
+                        TotalPrice = model.TotalPrice,
+                        Status = model.Status,
+                        UserId = model.UserId,
+                        Title = model.Title,
+                        Description = model.Description,
+                    };
+                    await _tourService.Add(tour);
+                    return Ok(new BaseResponse<Tour> { IsSucceed = true, Result = tour, Message = "Created successfully" }); ;
+                }
+                return BadRequest(new BaseResponse<Tour>
+                {
+                    IsSucceed = true,
+                    Message = ValidateResult.Errors.Select(e => new { e.PropertyName, e.ErrorMessage }).ToString()
+                });
             }
             catch (Exception ex)
             {
@@ -100,7 +111,8 @@ namespace PRN231.ExploreNow.API.Controllers
         {
             try
             {
-                if (model != null)
+                ValidationResult ValidateResult = await _tourValidation.ValidateAsync(model);
+                if (ValidateResult.IsValid)
                 {
                     if (await _tourService.GetById(model.Id) != null)
                     {
@@ -126,7 +138,11 @@ namespace PRN231.ExploreNow.API.Controllers
                     }
                     return NotFound(new BaseResponse<Tour> { IsSucceed = false, Message = $"Not found tour with id = {model.Id}" });
                 }
-                return BadRequest(new BaseResponse<Tour> { IsSucceed = false, Message = "Please input correct" });
+                return BadRequest(new BaseResponse<Tour> 
+                { 
+                    IsSucceed = false,
+                    Message = ValidateResult.Errors.Select(e => new { e.PropertyName, e.ErrorMessage }).ToString()
+                });
             }
             catch (Exception ex)
             {
