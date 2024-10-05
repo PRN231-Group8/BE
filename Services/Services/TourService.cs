@@ -14,7 +14,7 @@ namespace PRN231.ExploreNow.Services.Services
 {
     public class TourService : ITourService
     {
-        private readonly UnitOfWork _unitOfWork;
+        private UnitOfWork _unitOfWork;
         
         public TourService(UnitOfWork unitOfWork)
         {
@@ -25,7 +25,7 @@ namespace PRN231.ExploreNow.Services.Services
         {
             _unitOfWork.GetRepositoryByEntity<Tour>().Add(tour);
 
-            _unitOfWork.SaveChanges();
+            _unitOfWork.SaveChangesAsync();
         }
 
         public async Task Delete(Guid id)
@@ -33,12 +33,12 @@ namespace PRN231.ExploreNow.Services.Services
             Tour tour = await _unitOfWork.GetRepositoryByEntity<Tour>().GetById(id);
 
             _unitOfWork.GetRepositoryByEntity<Tour>().Delete(tour);
-            _unitOfWork.SaveChanges();
+            _unitOfWork.SaveChangesAsync();
         }
 
         public async Task<IList<Tour>> GetAll()
         {
-            return (IList<Tour>)await _unitOfWork.GetRepositoryByEntity<Tour>().GetAll();
+            return await _unitOfWork.GetRepositoryByEntity<Tour>().GetAll();
         }
 
         public async Task<Tour> GetById(Guid id)
@@ -46,11 +46,11 @@ namespace PRN231.ExploreNow.Services.Services
             return await _unitOfWork.GetRepositoryByEntity<Tour>().GetById(id);
         }
 
-        public async Task<BaseResponse<Tour>> Update(Tour tour)
+        public async Task<Tour> Update(Tour tour)
         {
             _unitOfWork.GetRepositoryByEntity<Tour>().Update(tour);
-            _unitOfWork.SaveChanges();
-            return new BaseResponse<Tour> { IsSucceed = true, Results = null,Message = "Update Successfully" }; 
+            _unitOfWork.SaveChangesAsync();
+            return tour;
         }
     }
 }

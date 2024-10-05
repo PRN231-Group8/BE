@@ -13,7 +13,7 @@ namespace PRN231.ExploreNow.Services.Interfaces
         Task<IList<Tour>> GetAll();
         Task<Tour> GetById(Guid id);
         Task Add(Tour tour);
-        Task<BaseResponse<Tour>> Update(Tour tour);
+        Task<Tour> Update(Tour tour);
         Task Delete(Guid id);
     }
 }

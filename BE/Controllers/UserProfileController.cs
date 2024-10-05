@@ -14,6 +14,5 @@ namespace PRN231.ExploreNow.API.Controllers
         {
             _userService = userService;
         }
-
     }
 }

@@ -24,7 +24,7 @@ namespace PRN231.ExploreNow.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll(string )
         {
             try
             {
@@ -37,7 +37,7 @@ namespace PRN231.ExploreNow.API.Controllers
             }
             catch (Exception ex)
             {
-                throw new Exception( new BaseResponse<Tour> { Message = ex.Message, IsSucceed = false}.ToString() );
+                throw new Exception(new BaseResponse<Tour> { Message = ex.Message, IsSucceed = false }.ToString());
             }
         }
 
@@ -68,31 +68,26 @@ namespace PRN231.ExploreNow.API.Controllers
         {
             try
             {
-                if (model != null)
+                Tour tour = new Tour
                 {
-                    Tour tour = new Tour
-                    {
-                        Id = model.Id,
-                        Code = model.Code,
-                        CreatedBy = model.CreatedBy,
-                        CreatedDate = model.CreatedDate,
-                        StartDate = model.StartDate,
-                        EndDate = model.EndDate,
-                        LastUpdatedBy = model.LastUpdatedBy,
-                        LastUpdatedDate = model.LastUpdatedDate,
-                        IsDeleted = model.IsDeleted,
-                        TotalPrice = model.TotalPrice,
-                        Status = model.Status,
-                        UserId = model.UserId,
-                        User = model.User,
-                        Title = model.Title,
-                        Description = model.Description,
-                    };
-
-                    await _tourService.Add(tour);
-                    return Ok(new BaseResponse<Tour> { IsSucceed = true, Result = tour, Message = "Created successfully" });
-                }
-                return BadRequest(new BaseResponse<Tour> { IsSucceed = false, Message = "Please input correct" });
+                    Id = model.Id,
+                    Code = model.Code,
+                    CreatedBy = model.CreatedBy,
+                    CreatedDate = DateTime.Now,
+                    StartDate = model.StartDate,
+                    EndDate = model.EndDate,
+                    LastUpdatedBy = model.LastUpdatedBy,
+                    LastUpdatedDate = DateTime.Now,
+                    IsDeleted = false,
+                    TotalPrice = model.TotalPrice,
+                    Status = model.Status,
+                    UserId = model.UserId,
+                    User = model.User,
+                    Title = model.Title,
+                    Description = model.Description,
+                };
+                await _tourService.Add(tour);
+                return Ok(new BaseResponse<Tour> { IsSucceed = true, Result = tour, Message = "Created successfully" }); ;
             }
             catch (Exception ex)
             {
@@ -114,12 +109,12 @@ namespace PRN231.ExploreNow.API.Controllers
                             Id = model.Id,
                             Code = model.Code,
                             CreatedBy = model.CreatedBy,
-                            CreatedDate = model.CreatedDate,
+                            CreatedDate = DateTime.Now,
                             StartDate = model.StartDate,
                             EndDate = model.EndDate,
                             LastUpdatedBy = model.LastUpdatedBy,
-                            LastUpdatedDate = model.LastUpdatedDate,
-                            IsDeleted = model.IsDeleted,
+                            LastUpdatedDate = DateTime.Now,
+                            IsDeleted = false,
                             TotalPrice = model.TotalPrice,
                             Status = model.Status,
                             UserId = model.UserId,
@@ -149,9 +144,10 @@ namespace PRN231.ExploreNow.API.Controllers
                     if (await _tourService.GetById(id) != null)
                     {
                         await _tourService.Delete(id);
-                        return Ok(new BaseResponse<Tour> 
-                        { IsSucceed = true, 
-                            Message = "Delete successfully" 
+                        return Ok(new BaseResponse<Tour>
+                        {
+                            IsSucceed = true,
+                            Message = "Delete successfully"
                         });
                     }
                     return NotFound(new BaseResponse<Tour>
@@ -160,9 +156,10 @@ namespace PRN231.ExploreNow.API.Controllers
                         Message = $"Not found tour with id = {id}"
                     });
                 }
-                return BadRequest(new BaseResponse<Tour> { 
-                    IsSucceed = false, 
-                    Message = "Please input correct" 
+                return BadRequest(new BaseResponse<Tour>
+                {
+                    IsSucceed = false,
+                    Message = "Please input correct"
                 });
             }
             catch (Exception ex)
