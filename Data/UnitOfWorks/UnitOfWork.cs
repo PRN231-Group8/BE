@@ -1,6 +1,6 @@
 ﻿using PRN231.ExploreNow.BusinessObject.Contracts.Repositories.Interfaces;
 using PRN231.ExploreNow.Repositories.Context;
-using PRN231.ExploreNow.Repositories.Repositories.Interfaces;
+using PRN231.ExploreNow.Repositories.UnitOfWorks.Interfaces;
 
 namespace PRN231.ExploreNow.Repositories.UnitOfWorks;
 
@@ -10,10 +10,4 @@ public class UnitOfWork : BaseUnitOfWork<ApplicationDbContext>, IUnitOfWork
     {
     }
     public IUserRepository UserRepository => GetRepository<IUserRepository>();
-
-    public ITourRepository tourRepository => GetRepository<ITourRepository>();
-
-    // public ILocationRepository LocationRepository => GetRepository<ILocationRepository>();
-    // public ITourRepository TourRepository => GetRepository<ITourRepository>();
-    // ...
 }
