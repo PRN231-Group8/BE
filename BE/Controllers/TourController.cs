@@ -106,7 +106,7 @@ namespace PRN231.ExploreNow.API.Controllers
             }
         }
 
-        [HttpPut]
+        [HttpPut("{id}")
         public async Task<IActionResult> Update([FromBody] TourRequestModel model)
         {
             try
@@ -138,8 +138,8 @@ namespace PRN231.ExploreNow.API.Controllers
                     }
                     return NotFound(new BaseResponse<Tour> { IsSucceed = false, Message = $"Not found tour with id = {model.Id}" });
                 }
-                return BadRequest(new BaseResponse<Tour> 
-                { 
+                return BadRequest(new BaseResponse<Tour>
+                {
                     IsSucceed = false,
                     Message = ValidateResult.Errors.Select(e => new { e.PropertyName, e.ErrorMessage }).ToString()
                 });
@@ -149,7 +149,7 @@ namespace PRN231.ExploreNow.API.Controllers
                 throw new Exception(new BaseResponse<Tour> { Message = ex.Message, IsSucceed = false }.ToString());
             }
         }
-        [HttpDelete]
+        [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
             try
