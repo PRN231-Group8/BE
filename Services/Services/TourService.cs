@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualBasic;
 using PRN231.ExploreNow.BusinessObject.Entities;
+using PRN231.ExploreNow.BusinessObject.Enums;
 using PRN231.ExploreNow.BusinessObject.Models.Response;
 using PRN231.ExploreNow.Repositories.Repositories.Interfaces;
 using PRN231.ExploreNow.Repositories.UnitOfWorks;
@@ -44,6 +45,11 @@ namespace PRN231.ExploreNow.Services.Services
         public async Task<Tour> GetById(Guid id)
         {
             return await _unitOfWork.GetRepositoryByEntity<Tour>().GetById(id);
+        }
+
+        public async Task<List<Tour>> GetToursAsync(int page, int pageSize, BookingStatus? sortByStatus, string? searchTerm)
+        {
+            return await GetToursAsync(page, pageSize, sortByStatus, searchTerm);
         }
 
         public async Task<Tour> Update(Tour tour)

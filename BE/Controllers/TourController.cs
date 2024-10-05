@@ -7,6 +7,7 @@ using PRN231.ExploreNow.BusinessObject.Models.Response;
 using PRN231.ExploreNow.BusinessObject.Entities;
 using PRN231.ExploreNow.BusinessObject.Models.Request;
 using Microsoft.VisualBasic;
+using PRN231.ExploreNow.BusinessObject.Enums;
 
 namespace PRN231.ExploreNow.API.Controllers
 {
@@ -24,7 +25,7 @@ namespace PRN231.ExploreNow.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll(string )
+        public async Task<IActionResult> GetAll(int page, int pageSize, BookingStatus? sortByStatus, string? searchTerm)
         {
             try
             {
@@ -32,7 +33,7 @@ namespace PRN231.ExploreNow.API.Controllers
                 {
                     return NotFound(new BaseResponse<Tour> { IsSucceed = false, Results = null, Message = "No Tour !!" });
                 }
-                var result = (IList<Tour>)_tourService.GetAll();
+                var result = (IList<Tour>)_tourService.GetToursAsync(page, pageSize, sortByStatus, searchTerm);
                 return Ok(new BaseResponse<Tour> { IsSucceed = true, Results = result.ToList(), Message = "No Tour !!" });
             }
             catch (Exception ex)
