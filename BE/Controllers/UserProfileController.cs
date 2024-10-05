@@ -4,7 +4,7 @@ using PRN231.ExploreNow.Services.Interfaces;
 
 namespace PRN231.ExploreNow.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/user/profile")]
     [ApiController]
     public class UserProfileController : ControllerBase
     {

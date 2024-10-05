@@ -49,7 +49,7 @@ namespace PRN231.ExploreNow.API.Controllers
             {
                 if (id != null)
                 {
-                    if ((await _tourService.GetById(id)) == null)
+                    if ( _tourService.GetById(id) == null)
                     {
                         return NotFound(new BaseResponse<Tour> { IsSucceed = false, Results = null, Message = $"Not found tour with id = {id}" });
                     }
@@ -96,7 +96,7 @@ namespace PRN231.ExploreNow.API.Controllers
             }
         }
 
-        [HttpPatch]
+        [HttpPut]
         public async Task<IActionResult> Update([FromBody] TourRequestModel model)
         {
             try
