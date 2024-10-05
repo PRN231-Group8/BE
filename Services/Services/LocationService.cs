@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using PRN231.ExploreNow.BusinessObject.Contracts.UnitOfWorks;
+using PRN231.ExploreNow.Repositories.UnitOfWorks.Interfaces;
 using PRN231.ExploreNow.BusinessObject.Entities;
 using PRN231.ExploreNow.BusinessObject.Enums;
 using PRN231.ExploreNow.BusinessObject.Models.Request;
