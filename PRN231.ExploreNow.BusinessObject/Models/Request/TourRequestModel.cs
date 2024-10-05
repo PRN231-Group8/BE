@@ -23,7 +23,6 @@ namespace PRN231.ExploreNow.BusinessObject.Models.Request
         public decimal TotalPrice { get; set; }
         public BookingStatus Status { get; set; }
         public string UserId { get; set; }
-        public ApplicationUser User { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
     }

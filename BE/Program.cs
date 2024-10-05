@@ -13,6 +13,8 @@ using PRN231.ExploreNow.BusinessObject.Contracts.Repositories.Interfaces;
 using PRN231.ExploreNow.BusinessObject.Entities;
 using PRN231.ExploreNow.BusinessObject.Utilities;
 using PRN231.ExploreNow.Repositories.Context;
+using PRN231.ExploreNow.Repositories.Repositories;
+using PRN231.ExploreNow.Repositories.Repositories.Interfaces;
 using PRN231.ExploreNow.Repositories.UnitOfWorks;
 using PRN231.ExploreNow.Repositories.UnitOfWorks.Interfaces;
 using PRN231.ExploreNow.Services.Interfaces;
@@ -52,6 +54,8 @@ builder.Services.Configure<IdentityOptions>(options =>
 #region Configure Scoped
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<ITourRepository, TourRepository>();
+builder.Services.AddScoped<ITourService, TourService>();
 builder.Services.AddScoped<EmailVerify>();
 builder.Services.AddScoped<TokenGenerator>();
 builder.Services.AddScoped<ITokenValidator, TokenValidator>();

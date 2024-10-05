@@ -33,7 +33,7 @@ namespace PRN231.ExploreNow.API.Controllers
                 {
                     return NotFound(new BaseResponse<Tour> { IsSucceed = false, Results = null, Message = "No Tour !!" });
                 }
-                var result = (IList<Tour>)_tourService.GetToursAsync(page, pageSize, sortByStatus, searchTerm);
+                var result = await _tourService.GetToursAsync(page, pageSize, sortByStatus, searchTerm);
                 return Ok(new BaseResponse<Tour> { IsSucceed = true, Results = result.ToList(), Message = "No Tour !!" });
             }
             catch (Exception ex)
@@ -42,7 +42,7 @@ namespace PRN231.ExploreNow.API.Controllers
             }
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
             try
@@ -83,7 +83,6 @@ namespace PRN231.ExploreNow.API.Controllers
                     TotalPrice = model.TotalPrice,
                     Status = model.Status,
                     UserId = model.UserId,
-                    User = model.User,
                     Title = model.Title,
                     Description = model.Description,
                 };
@@ -119,7 +118,6 @@ namespace PRN231.ExploreNow.API.Controllers
                             TotalPrice = model.TotalPrice,
                             Status = model.Status,
                             UserId = model.UserId,
-                            User = model.User,
                             Title = model.Title,
                             Description = model.Description,
                         };

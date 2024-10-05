@@ -4,6 +4,7 @@ using PRN231.ExploreNow.BusinessObject.Enums;
 using PRN231.ExploreNow.BusinessObject.Models.Response;
 using PRN231.ExploreNow.Repositories.Repositories.Interfaces;
 using PRN231.ExploreNow.Repositories.UnitOfWorks;
+using PRN231.ExploreNow.Repositories.UnitOfWorks.Interfaces;
 using PRN231.ExploreNow.Services.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -15,36 +16,36 @@ namespace PRN231.ExploreNow.Services.Services
 {
     public class TourService : ITourService
     {
-        private UnitOfWork _unitOfWork;
+        private IUnitOfWork _iUnitOfWork;
         
-        public TourService(UnitOfWork unitOfWork)
+        public TourService(IUnitOfWork iUnitOfWork)
         {
-            _unitOfWork = unitOfWork;
+            _iUnitOfWork = iUnitOfWork;
         }
 
         public async Task Add(Tour tour)
         {
-            _unitOfWork.GetRepositoryByEntity<Tour>().Add(tour);
+            _iUnitOfWork.GetRepositoryByEntity<Tour>().Add(tour);
 
-            _unitOfWork.SaveChangesAsync();
+            _iUnitOfWork.SaveChangesAsync();
         }
 
         public async Task Delete(Guid id)
         {
-            Tour tour = await _unitOfWork.GetRepositoryByEntity<Tour>().GetById(id);
+            Tour tour = await _iUnitOfWork.GetRepositoryByEntity<Tour>().GetById(id);
 
-            _unitOfWork.GetRepositoryByEntity<Tour>().Delete(tour);
-            _unitOfWork.SaveChangesAsync();
+            _iUnitOfWork.GetRepositoryByEntity<Tour>().Delete(tour);
+            _iUnitOfWork.SaveChangesAsync();
         }
 
         public async Task<IList<Tour>> GetAll()
         {
-            return await _unitOfWork.GetRepositoryByEntity<Tour>().GetAll();
+            return await _iUnitOfWork.GetRepositoryByEntity<Tour>().GetAll();
         }
 
         public async Task<Tour> GetById(Guid id)
         {
-            return await _unitOfWork.GetRepositoryByEntity<Tour>().GetById(id);
+            return await _iUnitOfWork.GetRepositoryByEntity<Tour>().GetById(id);
         }
 
         public async Task<List<Tour>> GetToursAsync(int page, int pageSize, BookingStatus? sortByStatus, string? searchTerm)
@@ -54,8 +55,8 @@ namespace PRN231.ExploreNow.Services.Services
 
         public async Task<Tour> Update(Tour tour)
         {
-            _unitOfWork.GetRepositoryByEntity<Tour>().Update(tour);
-            _unitOfWork.SaveChangesAsync();
+            _iUnitOfWork.GetRepositoryByEntity<Tour>().Update(tour);
+            _iUnitOfWork.SaveChangesAsync();
             return tour;
         }
     }

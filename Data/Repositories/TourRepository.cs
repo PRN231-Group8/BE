@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PRN231.ExploreNow.BusinessObject.Entities;
 using PRN231.ExploreNow.BusinessObject.Enums;
+using PRN231.ExploreNow.Repositories.Context;
 using PRN231.ExploreNow.Repositories.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -12,11 +13,11 @@ namespace PRN231.ExploreNow.Repositories.Repositories
 {
     public class TourRepository : BaseRepository<Tour>, ITourRepository
     {
-        private readonly BaseRepository<Tour> _baseRepository;
+        private ApplicationDbContext _dbContext;
 
-        public TourRepository(DbContext dbContext) : base(dbContext)
+        public TourRepository(ApplicationDbContext dbContext) : base(dbContext)
         {
-            _baseRepository = new BaseRepository<Tour>(dbContext);
+            _dbContext = dbContext;
         }
 
         public async Task<List<Tour>> GetToursAsync(int page, int pageSize, BookingStatus? sortByStatus, string? searchTerm)

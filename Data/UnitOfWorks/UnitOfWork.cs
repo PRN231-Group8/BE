@@ -12,5 +12,5 @@ public class UnitOfWork : BaseUnitOfWork<ApplicationDbContext>, IUnitOfWork
     }
     public IUserRepository UserRepository => GetRepository<IUserRepository>();
 
-    public ITourRepository tourRepository => GetRepository<ITourRepository>();
+    public ITourRepository TourRepository => GetRepository<ITourRepository>();
 }
