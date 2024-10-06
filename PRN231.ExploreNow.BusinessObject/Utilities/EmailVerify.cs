@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 
 namespace PRN231.ExploreNow.BusinessObject.Utilities
 {
-    public class EmailVerify    
-    {
+    public class EmailVerify : IEmailVerify
+	{
         private readonly IConfiguration _config;
 
         public EmailVerify(IConfiguration config)

@@ -1,6 +1,6 @@
 ﻿using PRN231.ExploreNow.BusinessObject.Contracts.Repositories.Interfaces;
-using PRN231.ExploreNow.BusinessObject.Contracts.UnitOfWorks;
 using PRN231.ExploreNow.Repositories.Context;
+using PRN231.ExploreNow.Repositories.UnitOfWorks.Interfaces;
 
 namespace PRN231.ExploreNow.Repositories.UnitOfWorks;
 
