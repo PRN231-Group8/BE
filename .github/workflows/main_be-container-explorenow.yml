@@ -1,7 +1,5 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
+name: Build and deploy container app to Azure Web App - be-explore-now
 
-name: Build, Test, Analyze and Deploy
 on:
   push:
     branches:
@@ -9,177 +7,22 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-test-analyze:
-    name: Build, Test, and Analyze
-    runs-on: windows-latest
+  build:
+    runs-on: 'ubuntu-latest'
+
     steps:
     - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis 
-        
-    - name: Setup .NET 8
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: '8.0.x'
-  
-    - name: Cache SonarQube packages
-      uses: actions/cache@v4
-      with:
-        path: ~\.sonar\cache
-        key: ${{ runner.os }}-sonar
-        restore-keys: ${{ runner.os }}-sonar
-        
-    - name: Cache SonarQube scanner
-      id: cache-sonar-scanner
-      uses: actions/cache@v4
-      with:
-        path: .\.sonar\scanner
-        key: ${{ runner.os }}-sonar-scanner
-        restore-keys: ${{ runner.os }}-sonar-scanner
-        
-    - name: Install SonarQube scanner
-      if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
-      shell: powershell
-      run: |
-        New-Item -Path .\.sonar\scanner -ItemType Directory
-        dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
-        dotnet tool install --global dotnet-coverage
-        
-    - name: Check Environment Variables
-      shell: powershell
-      run: |
-        if ([string]::IsNullOrEmpty($env:SONAR_TOKEN)) {
-          Write-Error "SONAR_TOKEN is not set"
-          exit 1
-        }
-        if ([string]::IsNullOrEmpty($env:SONAR_HOST_URL)) {
-          Write-Error "SONAR_HOST_URL is not set"
-          exit 1
-        }
-        Write-Host "SONAR_HOST_URL is set to: $env:SONAR_HOST_URL"
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
-    - name: Verify SonarQube URL
-      shell: powershell
-      run: |
-        $sonarUrl = "${{ secrets.SONAR_HOST_URL }}"
-        Write-Host "SonarQube URL is: $sonarUrl"
-        if ($sonarUrl -like "http://localhost*" -or $sonarUrl -like "http://127.0.0.1*") {
-          Write-Error "SonarQube URL is set to localhost. This will not work in GitHub Actions. Please use a publicly accessible URL."
-          exit 1
-        }
-
-    - name: Check SonarQube Status
-      shell: powershell
-      run: |
-        $sonarUrl = "${{ secrets.SONAR_HOST_URL }}"
-        $statusUrl = "${sonarUrl}/api/system/status"
-        try {
-          $response = Invoke-RestMethod -Uri $statusUrl -Method Get
-          Write-Host "SonarQube Status: $($response.status)"
-          if ($response.status -ne "UP") {
-            Write-Error "SonarQube is not up and running"
-            exit 1
-          }
-        } catch {
-          Write-Error "Failed to get SonarQube status: $_"
-          exit 1
-        }
-
-    - name: Verify SonarQube Token
-      shell: powershell
-      run: |
-        $sonarUrl = "${{ secrets.SONAR_HOST_URL }}"
-        $sonarToken = "${{ secrets.SONAR_TOKEN }}"
-        $authUrl = "${sonarUrl}/api/authentication/validate"
-        try {
-          $response = Invoke-RestMethod -Uri $authUrl -Method Get -Headers @{"Authorization" = "Bearer ${sonarToken}"}
-          Write-Host "SonarQube Token is valid"
-        } catch {
-          Write-Error "Failed to validate SonarQube token: $_"
-          exit 1
-        }
-    
-    - name: Check SonarQube Connection
-      shell: powershell
-      run: |
-        $sonarUrl = "${{ secrets.SONAR_HOST_URL }}"
-        $uri = [System.Uri]$sonarUrl
-        $hostname = $uri.Host
-        $port = if ($uri.Port -eq -1) { if ($uri.Scheme -eq "https") { 443 } else { 80 } } else { $uri.Port }
-    
-        Write-Host "Checking connectivity to $hostname on port $port"
-        $tcp = New-Object Net.Sockets.TcpClient
-        try {
-          $tcp.ConnectAsync($hostname, $port).Wait(5000)
-          if ($tcp.Connected) {
-            Write-Host "Successfully connected to $hostname on port $port"
-          } else {
-            Write-Error "Failed to connect to $hostname on port $port within 5 seconds"
-            exit 1
-          }
-        } catch {
-          Write-Error "Error connecting to $hostname on port $port: $_"
-          exit 1
-        } finally {
-          $tcp.Dispose()
-        }
-    
-    - name: SonarScanner Begin
-      shell: powershell
-      run: |
-        $ErrorActionPreference = 'Stop'
-        .\.sonar\scanner\dotnet-sonarscanner begin /k:"PRN231-Group8_BE_2aea91bd-1187-4286-9bcb-586eaf55fbfb" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
-        if ($LASTEXITCODE -ne 0) {
-          Write-Error "SonarScanner begin command failed"
-          exit 1
-        }
-
-    - name: List SonarQube Directory Contents
-      shell: powershell
-      run: |
-        Get-ChildItem -Path "D:\a\BE\BE\.sonarqube" -Recurse | ForEach-Object {
-          if ($_ -is [System.IO.DirectoryInfo]) {
-            Write-Host "Directory: $($_.FullName)"
-          } else {
-            Write-Host "File: $($_.FullName)"
-          }
-        }
-
-    - name: Build and Test
-      shell: powershell
-      run: |
-        dotnet build --no-incremental
-        dotnet-coverage collect 'dotnet test' -f xml -o 'coverage.xml'
-
-    - name: SonarScanner End
-      shell: powershell
-      run: |
-        $ErrorActionPreference = 'Stop'
-        .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
-        if ($LASTEXITCODE -ne 0) {
-          Write-Error "SonarScanner end command failed"
-          exit 1
-        }
-
-    - name: List directory contents
-      shell: powershell
-      run: |
-        Get-ChildItem -Path . -Recurse
-        Get-ChildItem -Path .\.sonarqube -Recurse -ErrorAction SilentlyContinue
-          
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
-      
+
     - name: Log in to container registry
       uses: docker/login-action@v2
       with:
         registry: https://myexplorenowwebapp.azurecr.io/
         username: ${{ secrets.AzureAppService_ContainerUsername_cc5ae4d2b74842a8a31507fe96d5f9e7 }}
         password: ${{ secrets.AzureAppService_ContainerPassword_f135e1eff13149909acb76130b83d1e2 }}
-        
+
     - name: Build and push container image to registry
       uses: docker/build-push-action@v3
       with:
@@ -188,9 +31,25 @@ jobs:
         tags: myexplorenowwebapp.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_cc5ae4d2b74842a8a31507fe96d5f9e7 }}/prn231explorenowapi:${{ github.sha }}
         file: ./Dockerfile
 
-  deploy:
-    needs: build-test-analyze
+  test:
     runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '8.0.x'
+    - name: Install dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+    - name: Run unit tests
+      run: dotnet test --no-restore --verbosity normal
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: test
     environment:
       name: 'production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
