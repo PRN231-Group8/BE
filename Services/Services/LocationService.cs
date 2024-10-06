@@ -1,4 +1,6 @@
 ﻿using FluentValidation;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using PRN231.ExploreNow.BusinessObject.Contracts.UnitOfWorks;
 using PRN231.ExploreNow.BusinessObject.Entities;
 using PRN231.ExploreNow.BusinessObject.Enums;
@@ -12,12 +14,15 @@ namespace PRN231.ExploreNow.Services.Services
     public class LocationService : ILocationService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IValidator<LocationsRequest> _locationRequestValidator;
+        
+        private readonly IHttpContextAccessor _contextAccessor;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public LocationService(IUnitOfWork unitOfWork, IValidator<LocationsRequest> locationRequestValidator)
+        public LocationService(IUnitOfWork unitOfWork, IHttpContextAccessor contextAccessor, UserManager<ApplicationUser> userManager)
         {
             _unitOfWork = unitOfWork;
-            _locationRequestValidator = locationRequestValidator;
+            _contextAccessor = contextAccessor;
+            _userManager = userManager;
         }
 
         public async Task<List<LocationResponse>> GetAllLocationsAsync(int page, int pageSize, WeatherStatus? sortByStatus, string? searchTerm)
@@ -50,12 +55,14 @@ namespace PRN231.ExploreNow.Services.Services
 
         private Location MapToLocation(LocationsRequest locationsRequest)
         {
+            var currentUser = _userManager.GetUserAsync(_contextAccessor.HttpContext.User).Result;
+            var currentUserName = currentUser?.UserName ?? "Admin";   
             return new Location
             {
                 Code = GenerateUniqueCode(),
-                CreatedBy = "admin",
+                CreatedBy = currentUserName,
                 CreatedDate = DateTime.Now,
-                LastUpdatedBy = "admin",
+                LastUpdatedBy = currentUserName,
                 Name = locationsRequest.Name,
                 Description = locationsRequest.Description,
                 Address = locationsRequest.Address,
@@ -66,9 +73,9 @@ namespace PRN231.ExploreNow.Services.Services
                     Url = p.Url,
                     Alt = p.Alt,
                     Code = GenerateUniqueCode(),
-                    CreatedBy = "admin",
+                    CreatedBy = currentUserName,
                     CreatedDate = DateTime.Now,
-                    LastUpdatedBy = "admin"
+                    LastUpdatedBy = currentUserName
                 }).ToList()
             };
         }

@@ -1,5 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PRN231.ExploreNow.BusinessObject.Entities;
 using PRN231.ExploreNow.BusinessObject.Enums;
@@ -12,10 +14,14 @@ namespace PRN231.ExploreNow.Repositories.Repositories
     public class LocationRepository : BaseRepository<Location>, ILocationRepository
     {
         private readonly ApplicationDbContext _context;
+        private readonly IHttpContextAccessor _contextAccessor;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public LocationRepository(ApplicationDbContext context) : base(context)
+        public LocationRepository(ApplicationDbContext context, IHttpContextAccessor contextAccessor, UserManager<ApplicationUser> userManager) : base(context)
         {
             _context = context;
+            _contextAccessor = contextAccessor;
+            _userManager = userManager;
         }
 
         public async Task<List<LocationResponse>> GetAllLocationsAsync(int page, int pageSize, WeatherStatus? sortByStatus, string? searchTerm)
@@ -69,6 +75,8 @@ namespace PRN231.ExploreNow.Repositories.Repositories
 
         private void UpdateLocationProperties(Location existingLocation, Location newLocation)
         {
+            var currentUser = _userManager.GetUserAsync(_contextAccessor.HttpContext.User).Result;
+            var currentUserName = currentUser?.UserName ?? "Admin";
             existingLocation.Name = newLocation.Name;
             existingLocation.Description = newLocation.Description;
             existingLocation.Address = newLocation.Address;
@@ -80,15 +88,14 @@ namespace PRN231.ExploreNow.Repositories.Repositories
                 {
                     photo.IsDeleted = true;
                 }
-                //_context.Photos.RemoveRange(existingLocation.Photos);
                 existingLocation.Photos = newLocation.Photos.Select(p => new Photo
                 {
                     Url = p.Url,
                     Alt = p.Alt,
                     Code = p.Code ?? GenerateUniqueCode(),
-                    CreatedBy = "admin",
+                    CreatedBy = currentUserName,
                     CreatedDate = DateTime.Now,
-                    LastUpdatedBy = "admin",
+                    LastUpdatedBy = currentUserName,
                     IsDeleted = false
                 }).ToList();
             }
