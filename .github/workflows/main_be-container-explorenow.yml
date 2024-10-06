@@ -21,12 +21,6 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: '8.0.x'
-        
-    - name: Install SonarScanner
-      run: |
-        dotnet tool install --global dotnet-sonarscanner
-        dotnet tool install --global dotnet-coverage
-      shell: pwsh
   
     - name: Cache SonarQube packages
       uses: actions/cache@v4
@@ -49,13 +43,27 @@ jobs:
       run: |
         New-Item -Path .\.sonar\scanner -ItemType Directory
         dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
+        dotnet tool install --global dotnet-coverage
         
-    - name: Build, Test, and Analyze
+    - name: Build and Test
       shell: powershell
       run: |
-        .\.sonar\scanner\dotnet-sonarscanner begin /k:"PRN231-Group8_BE_2aea91bd-1187-4286-9bcb-586eaf55fbfb" /o:"your-organization-key" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}"
-        dotnet build
+        dotnet build --no-incremental
+        dotnet-coverage collect 'dotnet test' -f xml -o 'coverage.xml'
+
+    - name: Run SonarScanner
+      shell: powershell
+      run: |
+        $ErrorActionPreference = 'Stop'
+        .\.sonar\scanner\dotnet-sonarscanner begin /k:"PRN231-Group8_BE_2aea91bd-1187-4286-9bcb-586eaf55fbfb" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
+        dotnet build --no-incremental
         .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+
+    - name: List directory contents
+      shell: powershell
+      run: |
+        Get-ChildItem -Path . -Recurse
+        Get-ChildItem -Path .\.sonarqube -Recurse -ErrorAction SilentlyContinue
           
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
