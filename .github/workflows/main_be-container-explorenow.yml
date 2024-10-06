@@ -15,87 +15,43 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        fetch-depth: 0
-
+        fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis 
+        
     - name: Setup .NET 8
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: '8.0.x'
-
+        
     - name: Cache SonarQube packages
       uses: actions/cache@v4
       with:
         path: ~\.sonar\cache
         key: ${{ runner.os }}-sonar
         restore-keys: ${{ runner.os }}-sonar
-
-    - name: Install SonarScanner
+        
+    - name: Cache SonarQube scanner
+      id: cache-sonar-scanner
+      uses: actions/cache@v4
+      with:
+        path: .\.sonar\scanner
+        key: ${{ runner.os }}-sonar-scanner
+        restore-keys: ${{ runner.os }}-sonar-scanner
+        
+    - name: Install SonarQube scanner
+      if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
+      shell: powershell
       run: |
-        dotnet tool install --global dotnet-sonarscanner
-        dotnet tool install --global coverlet.console
-
-    - name: Debug - List Directory Contents
-      run: Get-ChildItem -Path . -Recurse
-      shell: pwsh
-
-    - name: Restore dependencies
-      run: dotnet restore
-      
-    - name: Check SonarQube Server Connection
+        New-Item -Path .\.sonar\scanner -ItemType Directory
+        dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
+        
+    - name: Build, Test, and Analyze
+      shell: powershell
       run: |
-        $sonarUrl = "${{ secrets.SONAR_HOST_URL }}"
-        Write-Host "Checking connection to SonarQube server at $sonarUrl"
-        try {
-          $response = Invoke-WebRequest -Uri $sonarUrl -UseBasicParsing
-          Write-Host "Connection successful. Status code: $($response.StatusCode)"
-        } catch {
-          Write-Host "Failed to connect to SonarQube server. Error: $_"
-          exit 1
-        }
-      shell: pwsh
-      
-    - name: Begin SonarQube Analysis
-      run: |
-        $sonarUrl = "${{ secrets.SONAR_HOST_URL }}"
-        $sonarToken = "${{ secrets.SONAR_TOKEN }}"
-        Write-Host "Starting SonarQube analysis with URL: $sonarUrl"
-        dotnet sonarscanner begin /k:"PRN231-Group8_BE_2aea91bd-1187-4286-9bcb-586eaf55fbfb" /d:sonar.token="$sonarToken" /d:sonar.host.url="$sonarUrl" /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
-      shell: pwsh
-
-    - name: Build
-      run: dotnet build --configuration Release --no-restore
-
-    - name: Debug - Check Unit Test Project
-      run: |
-        if (Test-Path .\ExploreNow.UnitTests\PRN231.ExploreNow.UnitTests.csproj) {
-          Write-Host "Unit Test project found"
-          Get-Content .\ExploreNow.UnitTests\PRN231.ExploreNow.UnitTests.csproj
-        } else {
-          Write-Host "Unit Test project not found"
-          Get-ChildItem .\ExploreNow.UnitTests -Recurse
-        }
-      shell: pwsh
-
-    - name: Run Tests
-      run: dotnet test --no-build --configuration Release --verbosity normal /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
-
-    - name: End SonarQube Analysis
-      run: |
-        $sonarToken = "${{ secrets.SONAR_TOKEN }}"
-        dotnet sonarscanner end /d:sonar.token="$sonarToken"
-      shell: pwsh
-
-    - name: Debug - Check SonarQube Config
-      run: |
-        $configPath = ".\.sonarqube\conf\SonarQubeAnalysisConfig.xml"
-        if (Test-Path $configPath) {
-          Write-Host "SonarQube config file found"
-          Get-Content $configPath
-        } else {
-          Write-Host "SonarQube config file not found"
-          Get-ChildItem .\.sonarqube -Recurse
-        }
-      shell: pwsh
+        .\.sonar\scanner\dotnet-sonarscanner begin /k:"PRN231-Group8_BE_2aea91bd-1187-4286-9bcb-586eaf55fbfb"
+        /d:sonar.token="${{ secrets.SONAR_TOKEN }}" 
+        /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}"
+        dotnet build
+        .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
           
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
