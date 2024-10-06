@@ -13,6 +13,7 @@ COPY ["ExploreNow.Validations/PRN231.ExploreNow.Validations.csproj", "ExploreNow
 COPY ["Services/PRN231.ExploreNow.Services.csproj", "Services/"]
 COPY ["Data/PRN231.ExploreNow.Repositories.csproj", "Data/"]
 COPY ["PRN231.ExploreNow.BusinessObject/PRN231.ExploreNow.BusinessObject.csproj", "PRN231.ExploreNow.BusinessObject/"]
+COPY ["ExploreNow.UnitTests/PRN231.ExploreNow.UnitTests.csproj", "ExploreNow.UnitTests/"]
 RUN dotnet restore "./BE/PRN231.ExploreNow.API.csproj"
 COPY . .
 WORKDIR "/src/BE"
