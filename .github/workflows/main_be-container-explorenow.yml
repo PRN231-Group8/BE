@@ -45,19 +45,65 @@ jobs:
         dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
         dotnet tool install --global dotnet-coverage
         
+    - name: Check Environment Variables
+      shell: powershell
+      run: |
+        if ([string]::IsNullOrEmpty($env:SONAR_TOKEN)) {
+          Write-Error "SONAR_TOKEN is not set"
+          exit 1
+        }
+        if ([string]::IsNullOrEmpty($env:SONAR_HOST_URL)) {
+          Write-Error "SONAR_HOST_URL is not set"
+          exit 1
+        }
+        Write-Host "SONAR_HOST_URL is set to: $env:SONAR_HOST_URL"
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+    - name: SonarScanner Begin
+      shell: powershell
+      run: |
+        $ErrorActionPreference = 'Stop'
+        .\.sonar\scanner\dotnet-sonarscanner begin /k:"PRN231-Group8_BE_2aea91bd-1187-4286-9bcb-586eaf55fbfb" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
+        if ($LASTEXITCODE -ne 0) {
+          Write-Error "SonarScanner begin command failed"
+          exit 1
+        }
+        $configPath = "D:\a\BE\BE\.sonarqube\conf\SonarQubeAnalysisConfig.xml"
+        if (Test-Path $configPath) {
+          Write-Host "SonarQubeAnalysisConfig.xml was created successfully"
+        } else {
+          Write-Error "SonarQubeAnalysisConfig.xml was not created"
+          exit 1
+        }
+
+    - name: List SonarQube Directory Contents
+      shell: powershell
+      run: |
+        Get-ChildItem -Path "D:\a\BE\BE\.sonarqube" -Recurse | ForEach-Object {
+          if ($_ -is [System.IO.DirectoryInfo]) {
+            Write-Host "Directory: $($_.FullName)"
+          } else {
+            Write-Host "File: $($_.FullName)"
+          }
+        }
+
     - name: Build and Test
       shell: powershell
       run: |
         dotnet build --no-incremental
         dotnet-coverage collect 'dotnet test' -f xml -o 'coverage.xml'
 
-    - name: Run SonarScanner
+    - name: SonarScanner End
       shell: powershell
       run: |
         $ErrorActionPreference = 'Stop'
-        .\.sonar\scanner\dotnet-sonarscanner begin /k:"PRN231-Group8_BE_2aea91bd-1187-4286-9bcb-586eaf55fbfb" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
-        dotnet build --no-incremental
         .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+        if ($LASTEXITCODE -ne 0) {
+          Write-Error "SonarScanner end command failed"
+          exit 1
+        }
 
     - name: List directory contents
       shell: powershell
