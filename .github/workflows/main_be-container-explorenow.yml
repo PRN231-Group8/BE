@@ -40,10 +40,27 @@ jobs:
 
     - name: Restore dependencies
       run: dotnet restore
-
+      
+    - name: Check SonarQube Server Connection
+      run: |
+        $sonarUrl = "${{ secrets.SONAR_HOST_URL }}"
+        Write-Host "Checking connection to SonarQube server at $sonarUrl"
+        try {
+          $response = Invoke-WebRequest -Uri $sonarUrl -UseBasicParsing
+          Write-Host "Connection successful. Status code: $($response.StatusCode)"
+        } catch {
+          Write-Host "Failed to connect to SonarQube server. Error: $_"
+          exit 1
+        }
+      shell: pwsh
+      
     - name: Begin SonarQube Analysis
       run: |
-        dotnet sonarscanner begin /k:"PRN231-Group8_BE_2aea91bd-1187-4286-9bcb-586eaf55fbfb" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
+        $sonarUrl = "${{ secrets.SONAR_HOST_URL }}"
+        $sonarToken = "${{ secrets.SONAR_TOKEN }}"
+        Write-Host "Starting SonarQube analysis with URL: $sonarUrl"
+        dotnet sonarscanner begin /k:"PRN231-Group8_BE_2aea91bd-1187-4286-9bcb-586eaf55fbfb" /d:sonar.token="$sonarToken" /d:sonar.host.url="$sonarUrl" /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
+      shell: pwsh
 
     - name: Build
       run: dotnet build --configuration Release --no-restore
@@ -63,7 +80,10 @@ jobs:
       run: dotnet test --no-build --configuration Release --verbosity normal /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
 
     - name: End SonarQube Analysis
-      run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+      run: |
+        $sonarToken = "${{ secrets.SONAR_TOKEN }}"
+        dotnet sonarscanner end /d:sonar.token="$sonarToken"
+      shell: pwsh
 
     - name: Debug - Check SonarQube Config
       run: |
