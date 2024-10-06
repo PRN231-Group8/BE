@@ -61,6 +61,72 @@ jobs:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
+    - name: Verify SonarQube URL
+      shell: powershell
+      run: |
+        $sonarUrl = "${{ secrets.SONAR_HOST_URL }}"
+        Write-Host "SonarQube URL is: $sonarUrl"
+        if ($sonarUrl -like "http://localhost*" -or $sonarUrl -like "http://127.0.0.1*") {
+          Write-Error "SonarQube URL is set to localhost. This will not work in GitHub Actions. Please use a publicly accessible URL."
+          exit 1
+        }
+
+    - name: Check SonarQube Status
+      shell: powershell
+      run: |
+        $sonarUrl = "${{ secrets.SONAR_HOST_URL }}"
+        $statusUrl = "${sonarUrl}/api/system/status"
+        try {
+          $response = Invoke-RestMethod -Uri $statusUrl -Method Get
+          Write-Host "SonarQube Status: $($response.status)"
+          if ($response.status -ne "UP") {
+            Write-Error "SonarQube is not up and running"
+            exit 1
+          }
+        } catch {
+          Write-Error "Failed to get SonarQube status: $_"
+          exit 1
+        }
+
+    - name: Verify SonarQube Token
+      shell: powershell
+      run: |
+        $sonarUrl = "${{ secrets.SONAR_HOST_URL }}"
+        $sonarToken = "${{ secrets.SONAR_TOKEN }}"
+        $authUrl = "${sonarUrl}/api/authentication/validate"
+        try {
+          $response = Invoke-RestMethod -Uri $authUrl -Method Get -Headers @{"Authorization" = "Bearer ${sonarToken}"}
+          Write-Host "SonarQube Token is valid"
+        } catch {
+          Write-Error "Failed to validate SonarQube token: $_"
+          exit 1
+        }
+    
+    - name: Check SonarQube Connection
+      shell: powershell
+      run: |
+        $sonarUrl = "${{ secrets.SONAR_HOST_URL }}"
+        $uri = [System.Uri]$sonarUrl
+        $hostname = $uri.Host
+        $port = if ($uri.Port -eq -1) { if ($uri.Scheme -eq "https") { 443 } else { 80 } } else { $uri.Port }
+    
+        Write-Host "Checking connectivity to $hostname on port $port"
+        $tcp = New-Object Net.Sockets.TcpClient
+        try {
+          $tcp.ConnectAsync($hostname, $port).Wait(5000)
+          if ($tcp.Connected) {
+            Write-Host "Successfully connected to $hostname on port $port"
+          } else {
+            Write-Error "Failed to connect to $hostname on port $port within 5 seconds"
+            exit 1
+          }
+        } catch {
+          Write-Error "Error connecting to $hostname on port $port: $_"
+          exit 1
+        } finally {
+          $tcp.Dispose()
+        }
+    
     - name: SonarScanner Begin
       shell: powershell
       run: |
@@ -68,13 +134,6 @@ jobs:
         .\.sonar\scanner\dotnet-sonarscanner begin /k:"PRN231-Group8_BE_2aea91bd-1187-4286-9bcb-586eaf55fbfb" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
         if ($LASTEXITCODE -ne 0) {
           Write-Error "SonarScanner begin command failed"
-          exit 1
-        }
-        $configPath = "D:\a\BE\BE\.sonarqube\conf\SonarQubeAnalysisConfig.xml"
-        if (Test-Path $configPath) {
-          Write-Host "SonarQubeAnalysisConfig.xml was created successfully"
-        } else {
-          Write-Error "SonarQubeAnalysisConfig.xml was not created"
           exit 1
         }
 
