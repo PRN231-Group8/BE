@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using FluentValidation.Results;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PRN231.ExploreNow.BusinessObject.Enums;
 using PRN231.ExploreNow.BusinessObject.Models.Request;
@@ -47,7 +48,7 @@ namespace PRN231.ExploreNow.API.Controllers
             };
             return Ok(baseResponse);
         }
-
+        [Authorize(Roles = "ADMIN")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] LocationsRequest locationsRequest)
         {
@@ -69,7 +70,7 @@ namespace PRN231.ExploreNow.API.Controllers
             };
             return CreatedAtAction(nameof(GetById), new { id = data.Id }, baseResponse);
         }
-
+        [Authorize(Roles = "ADMIN")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] LocationsRequest locationsRequest)
         {
@@ -92,7 +93,7 @@ namespace PRN231.ExploreNow.API.Controllers
             };
             return Ok(baseResponse);
         }
-
+        [Authorize(Roles = "ADMIN")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
