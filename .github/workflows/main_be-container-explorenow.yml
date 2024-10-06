@@ -47,9 +47,7 @@ jobs:
     - name: Build, Test, and Analyze
       shell: powershell
       run: |
-        .\.sonar\scanner\dotnet-sonarscanner begin /k:"PRN231-Group8_BE_2aea91bd-1187-4286-9bcb-586eaf55fbfb"
-        /d:sonar.token="${{ secrets.SONAR_TOKEN }}" 
-        /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}"
+        .\.sonar\scanner\dotnet-sonarscanner begin /k:"PRN231-Group8_BE_2aea91bd-1187-4286-9bcb-586eaf55fbfb" /o:"your-organization-key" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}"
         dotnet build
         .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
           
