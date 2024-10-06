@@ -22,6 +22,12 @@ jobs:
       with:
         dotnet-version: '8.0.x'
         
+    - name: Install SonarScanner
+      run: |
+        dotnet tool install --global dotnet-sonarscanner
+        dotnet tool install --global dotnet-coverage
+      shell: pwsh
+  
     - name: Cache SonarQube packages
       uses: actions/cache@v4
       with:
