@@ -12,7 +12,7 @@ on:
 jobs:
   build-test-analyze:
     name: Build, Test, and Analyze
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     
     steps:
     - uses: actions/checkout@v4
@@ -41,25 +41,24 @@ jobs:
         
     - name: Install SonarQube scanner
       if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
-      shell: powershell
       run: |
-        New-Item -Path .\.sonar\scanner -ItemType Directory
-        dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
+        mkdir -p ./.sonar/scanner
+        dotnet tool update dotnet-sonarscanner --tool-path ./.sonar/scanner
         dotnet tool install --global dotnet-coverage
         
     - name: Build and Test
-      shell: powershell
       run: |
         dotnet build --no-incremental
         dotnet-coverage collect 'dotnet test' -f xml -o 'coverage.xml'
 
     - name: Run SonarScanner
-      shell: powershell
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       run: |
-        $ErrorActionPreference = 'Stop'
-        .\.sonar\scanner\dotnet-sonarscanner begin /k:"PRN231-Group8_BE_703524e0-0a01-4f00-95c7-6bf57b168e16" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
+        ./.sonar/scanner/dotnet-sonarscanner begin /k:"PRN231-Group8_BE_703524e0-0a01-4f00-95c7-6bf57b168e16" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
         dotnet build --no-incremental
-        .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+        ./.sonar/scanner/dotnet-sonarscanner end
 
     - name: List directory contents
       shell: powershell
