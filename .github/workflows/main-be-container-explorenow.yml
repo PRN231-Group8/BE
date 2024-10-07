@@ -13,7 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        fetch-depth: 0
+        fetch-depth: 0  
         
     - name: Setup .NET 8
       uses: actions/setup-dotnet@v3
@@ -42,17 +42,6 @@ jobs:
         New-Item -Path .\.sonar\scanner -ItemType Directory
         dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
         dotnet tool install --global dotnet-coverage
-
-    - name: Check SonarQube connection
-      shell: powershell
-      run: |
-        $pingResult = Test-NetConnection -ComputerName ${{ secrets.SONAR_HOST_URL }} -Port 443
-        if ($pingResult.TcpTestSucceeded) {
-          Write-Host "Connection to SonarQube server successful"
-        } else {
-          Write-Host "Failed to connect to SonarQube server"
-          exit 1
-        }
         
     - name: Build and Test
       shell: powershell
