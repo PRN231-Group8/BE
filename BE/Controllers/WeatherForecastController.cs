@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PRN231.ExploreNow.Services.Interfaces;
 
@@ -22,13 +23,11 @@ public class WeatherForecastController : ControllerBase
         _logger = logger;
         _cacheService = cacheService;
     }
-
-    [EndpointSummary("wtf")]
     [HttpGet(Name = "GetWeatherForecast")]
     public async Task<IEnumerable<WeatherForecast>> Get()
     {
-        var cacheData = GetKeyValues();
-        if (cacheData.Any()) return cacheData.Values;
+        var cacheData = GetKeyValues(); // lay key values
+        if (cacheData.Any()) return cacheData.Values; // neu co lay du lieu tren cache
 
         var newData = Enumerable.Range(1, 10).Select(index => new WeatherForecast
         {
@@ -90,15 +89,15 @@ public class WeatherForecastController : ControllerBase
         await _cacheService.ClearAsync();
     }
 
-    private Task<bool> Save(IEnumerable<WeatherForecast> weatherForecasts, double expireAfterMinutes = 50)
+    private Task<bool> Save(IEnumerable<WeatherForecast> weatherForecasts, double expireAfterSeconds = 30)
     {
-        var expirationTime = DateTimeOffset.Now.AddMinutes(expireAfterMinutes);
-        return _cacheService.AddOrUpdateAsync(nameof(WeatherForecast), weatherForecasts, expirationTime);
+        var expirationTime = DateTimeOffset.Now.AddSeconds(expireAfterSeconds); 
+        return _cacheService.AddOrUpdateAsync(nameof(WeatherForecast), weatherForecasts, expirationTime); // khoi tao key hoac luu value trong key trong cache 30 giay
     }
 
     private Dictionary<int, WeatherForecast> GetKeyValues()
     {
-        var data = _cacheService.Get<IEnumerable<WeatherForecast>>(nameof(WeatherForecast));
+        var data = _cacheService.Get<IEnumerable<WeatherForecast>>(nameof(WeatherForecast)); // dat ten key
         return data?.ToDictionary(key => key.Id, val => val) ?? new Dictionary<int, WeatherForecast>();
     }
 }

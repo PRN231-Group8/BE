@@ -20,9 +20,9 @@ public class BaseUnitOfWork<TContext> : IBaseUnitOfWork
         _serviceProvider = serviceProvider;
     }
 
-    public async Task<bool> SaveChanges(CancellationToken cancellationToken = default)
+    public async Task<bool> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        var result = await _context.SaveChangesAsync(cancellationToken);
+        var result = await _context.AsynSaveChangesAsync(cancellationToken);  // Gọi phương thức bất đồng bộ
         return result > 0;
     }
 

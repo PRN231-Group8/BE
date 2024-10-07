@@ -12,8 +12,8 @@ public abstract class BaseDbContext : IdentityDbContext<ApplicationUser, Identit
     {
     }
 
-    public override int SaveChanges()
+    public async Task<int> AsynSaveChangesAsync(CancellationToken cancellationToken)
     {
-        return SaveChangesAsync().Result;
+        return await base.SaveChangesAsync();
     }
 }
