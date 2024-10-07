@@ -38,9 +38,9 @@ jobs:
       id: cache-sonar-scanner
       uses: actions/cache@v4
       with:
-        path: .\.sonar\scanner
-        key: ${{ runner.os }}-sonar-scanner
-        restore-keys: ${{ runner.os }}-sonar-scanner
+        path: ~\.dotnet\tools
+        key: ${{ runner.os }}-sonar-scanner-${{ hashFiles('**/*.csproj') }}
+        restore-keys: ${{ runner.os }}-sonar-scanner-
         
     - name: Install SonarQube scanner
       if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
@@ -50,8 +50,9 @@ jobs:
         dotnet tool install --global dotnet-coverage
 
     - name: Begin SonarQube analysis
+      shell: powershell
       run: |
-        .\.sonar\scanner\dotnet-sonarscanner begin /k:"PRN231-Group8_BE_703524e0-0a01-4f00-95c7-6bf57b168e16" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
+        dotnet sonarscanner begin /k:"PRN231-Group8_BE_703524e0-0a01-4f00-95c7-6bf57b168e16" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
       
     - name: Build and test
       shell: powershell
@@ -60,7 +61,8 @@ jobs:
         dotnet-coverage collect 'dotnet test' -f xml -o 'coverage.xml'
       
     - name: End SonarQube analysis
-      run: .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+      shell: powershell
+      run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
     - name: List directory contents
       shell: powershell
