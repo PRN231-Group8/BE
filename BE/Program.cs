@@ -21,6 +21,7 @@ using PRN231.ExploreNow.Services.Interfaces;
 using PRN231.ExploreNow.Services.Services;
 using PRN231.ExploreNow.Validations;
 using PRN231.ExploreNow.Validations.Interface;
+using PRN231.ExploreNow.Validations.Tour;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -178,8 +179,10 @@ builder.Services.AddCors(p =>
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<ITourRepository, TourRepository>();
 builder.Services.AddScoped<ITourService, TourService>();
+builder.Services.AddScoped<TourValidation>();
 
 var app = builder.Build();
 

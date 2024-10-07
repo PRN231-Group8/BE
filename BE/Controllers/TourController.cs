@@ -1,19 +1,16 @@
-﻿using Azure.Core.Pipeline;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using PRN231.ExploreNow.Services.Interfaces;
-using PRN231.ExploreNow.BusinessObject;
 using PRN231.ExploreNow.BusinessObject.Models.Response;
 using PRN231.ExploreNow.BusinessObject.Entities;
 using PRN231.ExploreNow.BusinessObject.Models.Request;
-using Microsoft.VisualBasic;
 using PRN231.ExploreNow.BusinessObject.Enums;
 using PRN231.ExploreNow.Validations.Tour;
 using FluentValidation.Results;
+using Microsoft.AspNetCore.Authorization;
 
 namespace PRN231.ExploreNow.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/tour")]
     [ApiController]
     public class TourController : ControllerBase
     {
@@ -31,16 +28,12 @@ namespace PRN231.ExploreNow.API.Controllers
         {
             try
             {
-                if (_tourService.GetAll() == null)
-                {
-                    return NotFound(new BaseResponse<Tour> { IsSucceed = false, Results = null, Message = "No Tour !!" });
-                }
                 var result = await _tourService.GetToursAsync(page, pageSize, sortByStatus, searchTerm);
-                return Ok(new BaseResponse<Tour> { IsSucceed = true, Results = result.ToList(), Message = "No Tour !!" });
+                return Ok(new BaseResponse<Tour> { IsSucceed = true, Results = result.ToList(), Message = "Success" });
             }
             catch (Exception ex)
             {
-                throw new Exception(new BaseResponse<Tour> { Message = ex.Message, IsSucceed = false }.ToString());
+                return BadRequest(new BaseResponse<Tour> { Message = ex.Message, IsSucceed = false }.ToString());
             }
         }
 
@@ -66,6 +59,7 @@ namespace PRN231.ExploreNow.API.Controllers
             }
         }
 
+        [Authorize(Roles = "ADMIN")]
         [HttpPost]
         public async Task<IActionResult> AddTour([FromBody] TourRequestModel model)
         {
@@ -74,24 +68,8 @@ namespace PRN231.ExploreNow.API.Controllers
                 ValidationResult ValidateResult = await _tourValidation.ValidateAsync(model);
                 if (ValidateResult.IsValid)
                 {
-                    Tour tour = new Tour
-                    {
-                        Code = model.Code,
-                        CreatedBy = model.CreatedBy,
-                        CreatedDate = DateTime.Now,
-                        StartDate = model.StartDate,
-                        EndDate = model.EndDate,
-                        LastUpdatedBy = model.LastUpdatedBy,
-                        LastUpdatedDate = DateTime.Now,
-                        IsDeleted = false,
-                        TotalPrice = model.TotalPrice,
-                        Status = model.Status,
-                        UserId = model.UserId,
-                        Title = model.Title,
-                        Description = model.Description,
-                    };
-                    await _tourService.Add(tour);
-                    return Ok(new BaseResponse<Tour> { IsSucceed = true, Result = tour, Message = "Created successfully" }); ;
+                    await _tourService.Add(model);
+                    return Ok(new BaseResponse<object> { IsSucceed = true, Result = model, Message = "Created successfully" });
                 }
                 return BadRequest(new BaseResponse<Tour>
                 {
@@ -101,10 +79,11 @@ namespace PRN231.ExploreNow.API.Controllers
             }
             catch (Exception ex)
             {
-                throw new Exception(new BaseResponse<Tour> { Message = ex.Message, IsSucceed = false }.ToString());
+                return BadRequest(new BaseResponse<Tour> { Message = ex.Message, IsSucceed = false }.ToString());
             }
         }
 
+        [Authorize(Roles = "ADMIN")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update([FromBody] TourRequestModel model, Guid id)
         {
@@ -113,28 +92,8 @@ namespace PRN231.ExploreNow.API.Controllers
                 ValidationResult ValidateResult = await _tourValidation.ValidateAsync(model);
                 if (ValidateResult.IsValid)
                 {
-                    if (await _tourService.GetById(id) != null)
-                    {
-                        Tour tour = new Tour
-                        {
-                            Code = model.Code,
-                            CreatedBy = model.CreatedBy,
-                            CreatedDate = DateTime.Now,
-                            StartDate = model.StartDate,
-                            EndDate = model.EndDate,
-                            LastUpdatedBy = model.LastUpdatedBy,
-                            LastUpdatedDate = DateTime.Now,
-                            IsDeleted = false,
-                            TotalPrice = model.TotalPrice,
-                            Status = model.Status,
-                            UserId = model.UserId,
-                            Title = model.Title,
-                            Description = model.Description,
-                        };
-                        await _tourService.Update(tour);
-                        return Ok(new BaseResponse<Tour> { IsSucceed = true, Result = tour, Message = "Update successfully" });
-                    }
-                    return NotFound(new BaseResponse<Tour> { IsSucceed = false, Message = $"Not found tour with id = {id}" });
+                    var tour = await _tourService.Update(model, id);
+                    return Ok(new BaseResponse<object> { IsSucceed = true, Result = tour, Message = "Succesfully" });
                 }
                 return BadRequest(new BaseResponse<Tour>
                 {
@@ -144,9 +103,11 @@ namespace PRN231.ExploreNow.API.Controllers
             }
             catch (Exception ex)
             {
-                throw new Exception(new BaseResponse<Tour> { Message = ex.Message, IsSucceed = false }.ToString());
+                return BadRequest(new BaseResponse<Tour> { Message = ex.Message, IsSucceed = false }.ToString());
             }
         }
+
+        [Authorize(Roles = "ADMIN")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
@@ -177,7 +138,7 @@ namespace PRN231.ExploreNow.API.Controllers
             }
             catch (Exception ex)
             {
-                throw new Exception(new BaseResponse<Tour> { Message = ex.Message, IsSucceed = false }.ToString());
+                return BadRequest(new BaseResponse<Tour> { Message = ex.Message, IsSucceed = false }.ToString());
             }
         }
     }

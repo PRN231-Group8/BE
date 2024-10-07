@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using PRN231.ExploreNow.BusinessObject.Entities;
 using PRN231.ExploreNow.BusinessObject.Enums;
 using PRN231.ExploreNow.Repositories.Context;
@@ -33,6 +34,5 @@ namespace PRN231.ExploreNow.Repositories.Repositories
                                        .ToListAsync();
             return tours.ToList();
         }
-
     }
 }
