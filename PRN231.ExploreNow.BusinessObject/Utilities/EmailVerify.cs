@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 
 namespace PRN231.ExploreNow.BusinessObject.Utilities
 {
-    public class EmailVerify
-    {
+    public class EmailVerify : IEmailVerify
+	{
         private readonly IConfiguration _config;
 
         public EmailVerify(IConfiguration config)
@@ -20,9 +20,9 @@ namespace PRN231.ExploreNow.BusinessObject.Utilities
 
         public bool SendVerifyAccountEmail(string email, string token)
         {
-            var subject = "[Sheriton Hotel] Verify account request";
-            var baseUrl = "https://localhost:7130";
-            var verifyUrl = $"{baseUrl}/api/auth/verify-email?email={Uri.EscapeDataString(email)}&token={Uri.EscapeDataString(token)}";
+            var subject = "[ExploreNow] Verify account request";
+            var baseUrl = "http://localhost:4200";
+            var verifyUrl = $"{baseUrl}/verify-email?email={Uri.EscapeDataString(email)}&token={Uri.EscapeDataString(token)}";
             var message = @"
 <!DOCTYPE html>
 <html dir='ltr' xmlns='http://www.w3.org/1999/xhtml' xmlns:o='urn:schemas-microsoft-com:office:office'>
