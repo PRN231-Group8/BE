@@ -1,0 +1,59 @@
+name: SonarQube Analysis
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  sonarqube:
+    name: SonarQube Analyze
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis 
+        
+    - name: Setup .NET 8
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'
+  
+    - name: Cache SonarQube packages
+      uses: actions/cache@v4
+      with:
+        path: ~\.sonar\cache
+        key: ${{ runner.os }}-sonar
+        restore-keys: ${{ runner.os }}-sonar
+        
+    - name: Cache SonarQube scanner
+      id: cache-sonar-scanner
+      uses: actions/cache@v4
+      with:
+        path: .\.sonar\scanner
+        key: ${{ runner.os }}-sonar-scanner
+        restore-keys: ${{ runner.os }}-sonar-scanner
+        
+    - name: Install SonarQube scanner
+      if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
+      shell: powershell
+      run: |
+        New-Item -Path .\.sonar\scanner -ItemType Directory
+        dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
+        dotnet tool install --global dotnet-coverage
+
+    - name: Run SonarScanner
+      shell: powershell
+      run: |
+        $ErrorActionPreference = 'Stop'
+        .\.sonar\scanner\dotnet-sonarscanner begin /k:"PRN231-Group8_BE_703524e0-0a01-4f00-95c7-6bf57b168e16" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
+        dotnet build --no-incremental
+        .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+
+    - name: List directory contents
+      shell: powershell
+      run: |
+        Get-ChildItem -Path . -Recurse
+        Get-ChildItem -Path .\.sonarqube -Recurse -ErrorAction SilentlyContinue
