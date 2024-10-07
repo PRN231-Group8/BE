@@ -1,5 +1,9 @@
 ﻿using System.Text;
 using System.Text.Json;
+using ExploreNow.Validations.Location;
+using ExploreNow.Validations.Photo;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
@@ -11,6 +15,7 @@ using Microsoft.OpenApi.Models;
 using PRN231.ExploreNow.BusinessObject.Contracts.Repositories;
 using PRN231.ExploreNow.BusinessObject.Contracts.Repositories.Interfaces;
 using PRN231.ExploreNow.BusinessObject.Entities;
+using PRN231.ExploreNow.BusinessObject.Models.Request;
 using PRN231.ExploreNow.BusinessObject.Utilities;
 using PRN231.ExploreNow.Repositories.Context;
 using PRN231.ExploreNow.Repositories.Repositories.Interfaces;
@@ -19,6 +24,7 @@ using PRN231.ExploreNow.Repositories.UnitOfWorks;
 using PRN231.ExploreNow.Repositories.UnitOfWorks.Interfaces;
 using PRN231.ExploreNow.Services.Interfaces;
 using PRN231.ExploreNow.Services.Services;
+using StackExchange.Redis;
 using PRN231.ExploreNow.Validations;
 using PRN231.ExploreNow.Validations.Interface;
 using PRN231.ExploreNow.Validations.Tour;
@@ -39,6 +45,13 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 	.AddEntityFrameworkStores<ApplicationDbContext>()
 	.AddDefaultTokenProviders();
 
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration["Redis"];
+});
+
+builder.Services.AddSingleton<IConnectionMultiplexer>(provider => ConnectionMultiplexer.Connect(builder.Configuration["Redis"]));
+
 // Configure Identity options
 builder.Services.Configure<IdentityOptions>(options =>
 {
@@ -55,6 +68,11 @@ builder.Services.Configure<IdentityOptions>(options =>
 #region Configure Scoped
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<ICacheService, CacheService>();
+builder.Services.AddScoped<ILocationService, LocationService>();
+builder.Services.AddScoped<ILocationRepository, LocationRepository>();
+builder.Services.AddScoped<IValidator<LocationsRequest>, LocationRequestValidator>();
+builder.Services.AddScoped<IValidator<PhotoRequest>, PhotoRequestValidator>();
 builder.Services.AddScoped<EmailVerify>();
 builder.Services.AddScoped<TokenGenerator>();
 builder.Services.AddScoped<ITokenValidator, TokenValidator>();
