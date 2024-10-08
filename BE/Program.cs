@@ -28,6 +28,7 @@ using StackExchange.Redis;
 using PRN231.ExploreNow.Validations;
 using PRN231.ExploreNow.Validations.Interface;
 using PRN231.ExploreNow.Validations.Tour;
+using PRN231.ExploreNow.Repositories.Repositories.Interface;
 
 var builder = WebApplication.CreateBuilder(args);
 

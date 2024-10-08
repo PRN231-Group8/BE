@@ -7,6 +7,7 @@ using PRN231.ExploreNow.BusinessObject.Enums;
 using PRN231.ExploreNow.Validations.Tour;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Authorization;
+using Newtonsoft.Json;
 
 namespace PRN231.ExploreNow.API.Controllers
 {
@@ -24,7 +25,7 @@ namespace PRN231.ExploreNow.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll(int page, int pageSize, BookingStatus? sortByStatus, string? searchTerm)
+        public async Task<IActionResult> GetAll(int page = 1, int pageSize = 10, BookingStatus? sortByStatus = null, string? searchTerm = null)
         {
             try
             {
@@ -42,16 +43,8 @@ namespace PRN231.ExploreNow.API.Controllers
         {
             try
             {
-                if (id != null)
-                {
-                    if (_tourService.GetById(id) == null)
-                    {
-                        return NotFound(new BaseResponse<Tour> { IsSucceed = false, Results = null, Message = $"Not found tour with id = {id}" });
-                    }
-                    var result = await _tourService.GetById(id);
-                    return Ok(new BaseResponse<Tour> { IsSucceed = true, Result = result, Message = "Success" });
-                }
-                return BadRequest(new BaseResponse<Tour> { IsSucceed = false, Message = "Please input id correct" });
+                var result = await _tourService.GetById(id);
+                return Ok(new BaseResponse<object> { IsSucceed = true, Result = result, Message = "Success" });
             }
             catch (Exception ex)
             {
@@ -59,7 +52,6 @@ namespace PRN231.ExploreNow.API.Controllers
             }
         }
 
-        [Authorize(Roles = "ADMIN")]
         [HttpPost]
         public async Task<IActionResult> AddTour([FromBody] TourRequestModel model)
         {
@@ -83,7 +75,6 @@ namespace PRN231.ExploreNow.API.Controllers
             }
         }
 
-        [Authorize(Roles = "ADMIN")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update([FromBody] TourRequestModel model, Guid id)
         {
@@ -92,13 +83,13 @@ namespace PRN231.ExploreNow.API.Controllers
                 ValidationResult ValidateResult = await _tourValidation.ValidateAsync(model);
                 if (ValidateResult.IsValid)
                 {
-                    var tour = await _tourService.Update(model, id);
+                    var tour = await _tourService.UpdateAsync(model, id);
                     return Ok(new BaseResponse<object> { IsSucceed = true, Result = tour, Message = "Succesfully" });
                 }
                 return BadRequest(new BaseResponse<Tour>
                 {
                     IsSucceed = false,
-                    Message = ValidateResult.Errors.Select(e => new { e.PropertyName, e.ErrorMessage }).ToString()
+                    Message = JsonConvert.SerializeObject(ValidateResult.Errors.Select(e => new { e.PropertyName, e.ErrorMessage }).ToList())
                 });
             }
             catch (Exception ex)
@@ -107,7 +98,6 @@ namespace PRN231.ExploreNow.API.Controllers
             }
         }
 
-        [Authorize(Roles = "ADMIN")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {

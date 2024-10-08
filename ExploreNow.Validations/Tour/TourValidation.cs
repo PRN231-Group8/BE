@@ -19,8 +19,8 @@ namespace PRN231.ExploreNow.Validations.Tour
             RuleFor(x => x.Status)
                 .IsInEnum().WithMessage("Invalid status");
 
-            RuleFor(x => x.EndDate)
-                .LessThan(x => x.StartDate).WithMessage("EndDate must less than StartDate ");
+            RuleFor(x => x.StartDate)
+                .LessThan(x => x.EndDate).WithMessage("EndDate must less than StartDate ");
         }
     }
 }
