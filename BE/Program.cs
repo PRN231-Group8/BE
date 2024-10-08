@@ -37,13 +37,15 @@ var connectionString = builder.Configuration.GetConnectionString("local");
 
 if (builder.Environment.IsDevelopment())
 {
+    // Use MySQL in development
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+        options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 }
 else
 {
-    builder.Services.AddDbContext<ApplicationDbContext>(optionsAction =>
-    optionsAction.UseNpgsql(connectionString));
+    // Use PostgreSQL in production
+    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        options.UseNpgsql(connectionString));
 }
 
 #endregion
