@@ -39,8 +39,9 @@ jobs:
       if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
       shell: powershell
       run: |
-        New-Item -Path .\.sonar\scanner -ItemType Directory
-        dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner --version latest
+        New-Item -Path .\.sonar\scanner -ItemType Directory -Force
+        dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
+        dotnet tool install --global dotnet-sonarscanner
         dotnet tool install --global dotnet-coverage
         
     - name: Build and Test
