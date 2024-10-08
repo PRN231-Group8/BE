@@ -1,3 +1,6 @@
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+
 name: Build, Test, Analyze and Deploy
 
 on:
@@ -26,7 +29,7 @@ jobs:
         
     - uses: actions/checkout@v4
       with:
-        fetch-depth: 0  
+        fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
         
     - name: Cache SonarQube packages
       uses: actions/cache@v4
@@ -57,7 +60,7 @@ jobs:
         dotnet build --no-incremental
         dotnet-coverage collect 'dotnet test' -f xml -o 'coverage.xml'
 
-    - name: Build and analyze
+    - name: Analyze with SonarQube
       shell: powershell
       run: |
         .\.sonar\scanner\dotnet-sonarscanner begin /k:"PRN231-Group8_BE_703524e0-0a01-4f00-95c7-6bf57b168e16" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
