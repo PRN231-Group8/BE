@@ -14,6 +14,7 @@ namespace PRN231.ExploreNow.Validations.Tour
                 .NotEmpty().WithMessage("Description is required");
 
             RuleFor(x => x.TotalPrice)
+                .GreaterThan(1).WithMessage("Total price must higher than 1")
                 .NotEmpty().WithMessage("Total price is required");
 
             RuleFor(x => x.Status)

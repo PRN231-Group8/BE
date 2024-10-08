@@ -48,11 +48,12 @@ namespace PRN231.ExploreNow.API.Controllers
             }
             catch (Exception ex)
             {
-                throw new Exception(new BaseResponse<Tour> { Message = ex.Message, IsSucceed = false }.ToString());
+                return BadRequest(new BaseResponse<Tour> { Message = ex.Message, IsSucceed = false }.ToString());
             }
         }
 
         [HttpPost]
+        [Authorize(Roles = StaticUserRoles.ADMIN)]
         public async Task<IActionResult> AddTour([FromBody] TourRequestModel model)
         {
             try
@@ -66,7 +67,7 @@ namespace PRN231.ExploreNow.API.Controllers
                 return BadRequest(new BaseResponse<Tour>
                 {
                     IsSucceed = true,
-                    Message = ValidateResult.Errors.Select(e => new { e.PropertyName, e.ErrorMessage }).ToString()
+                    Message = ValidateResult.ToString()
                 });
             }
             catch (Exception ex)
@@ -76,20 +77,23 @@ namespace PRN231.ExploreNow.API.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = StaticUserRoles.ADMIN)]
         public async Task<IActionResult> Update([FromBody] TourRequestModel model, Guid id)
         {
             try
             {
                 ValidationResult ValidateResult = await _tourValidation.ValidateAsync(model);
+                var error = ValidateResult.Errors.Select(e => new { e.PropertyName, e.ErrorMessage }).ToString();
                 if (ValidateResult.IsValid)
                 {
                     var tour = await _tourService.UpdateAsync(model, id);
                     return Ok(new BaseResponse<object> { IsSucceed = true, Result = tour, Message = "Succesfully" });
                 }
-                return BadRequest(new BaseResponse<Tour>
+
+                return BadRequest(new BaseResponse<object>
                 {
                     IsSucceed = false,
-                    Message = JsonConvert.SerializeObject(ValidateResult.Errors.Select(e => new { e.PropertyName, e.ErrorMessage }).ToList())
+                    Message = error
                 });
             }
             catch (Exception ex)
@@ -99,6 +103,7 @@ namespace PRN231.ExploreNow.API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = StaticUserRoles.ADMIN)]
         public async Task<IActionResult> Delete(Guid id)
         {
             try

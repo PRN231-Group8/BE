@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using PRN231.ExploreNow.BusinessObject.Entities;
 using PRN231.ExploreNow.BusinessObject.Enums;
 using PRN231.ExploreNow.BusinessObject.Models.Request;
@@ -14,15 +15,18 @@ namespace PRN231.ExploreNow.Services.Services
     {
         private IUnitOfWork _iUnitOfWork;
         private IHttpContextAccessor _iContextAccessor;
+        private UserManager<ApplicationUser> _userManager;
 
-        public TourService(IUnitOfWork iUnitOfWork, IHttpContextAccessor IContextAccessor)
+        public TourService(IUnitOfWork iUnitOfWork, IHttpContextAccessor IContextAccessor, UserManager<ApplicationUser> userManager)
         {
             _iUnitOfWork = iUnitOfWork;
             _iContextAccessor = IContextAccessor;
+            _userManager = userManager;
         }
 
         public async Task Add(TourRequestModel tour)
         {
+            var debug = _iContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Name)?.Value;
             var _tour = MapToTour(tour);
             await _iUnitOfWork.TourRepository.CreateAsync(_tour);
         }
@@ -65,20 +69,22 @@ namespace PRN231.ExploreNow.Services.Services
 
         private Tour MapToTour(TourRequestModel tour)
         {
-            var currentUserId = _iContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var debug = _iContextAccessor.HttpContext.User.Identity.AuthenticationType;
+            var currentUser = _iContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var currUserName = _iContextAccessor.HttpContext?.User.Identity.Name;
             return new Tour
             {
                 Code = tour.Code,
-                CreatedBy = /*currentUserId*/"Admin",
+                CreatedBy = currUserName,
                 CreatedDate = DateTime.Now,
                 StartDate = tour.StartDate,
                 EndDate = tour.EndDate,
-                LastUpdatedBy = /*currentUserId*/"Admin",
+                LastUpdatedBy = currUserName,
                 LastUpdatedDate = DateTime.Now,
                 IsDeleted = false,
                 TotalPrice = tour.TotalPrice,
                 Status = tour.Status,
-                UserId = "87c47c39-15ae-4208-8a78-53cf7dc6c480",
+                UserId = currentUser,
                 Title = tour.Title,
                 Description = tour.Description,
             };
