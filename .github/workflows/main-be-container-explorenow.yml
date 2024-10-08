@@ -35,16 +35,16 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ~\.sonar\cache
-        key: ${{ runner.os }}-sonar-${{ hashFiles('**/*.csproj') }}
-        restore-keys: ${{ runner.os }}-sonar-
-
+        key: ${{ runner.os }}-sonar
+        restore-keys: ${{ runner.os }}-sonar
+        
     - name: Cache SonarQube scanner
       id: cache-sonar-scanner
       uses: actions/cache@v4
       with:
         path: .\.sonar\scanner
-        key: ${{ runner.os }}-sonar-scanner-${{ hashFiles('**/*.csproj') }}-${{ github.sha }}
-        restore-keys: ${{ runner.os }}-sonar-scanner-
+        key: ${{ runner.os }}-sonar-scanner-${{ github.run_id }}
+        restore-keys: ${{ runner.os }}-sonar-scanner
         
     - name: Install SonarQube scanner
       shell: powershell
@@ -52,42 +52,19 @@ jobs:
         New-Item -Path .\.sonar\scanner -ItemType Directory -Force
         dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
         dotnet tool install --global dotnet-coverage
-        dotnet tool list --global
         
-    - name: Check SonarQube scanner installation
-      shell: powershell
-      run: |
-        if (Test-Path ".\.sonar\scanner\dotnet-sonarscanner.exe") {
-          Write-Host "SonarQube scanner is installed."
-        } else {
-          Write-Host "SonarQube scanner is not installed."
-          exit 1
-        }
-
-    - name: Begin SonarQube Analysis
-      shell: powershell
-      run: |
-        .\.sonar\scanner\dotnet-sonarscanner begin /k:"PRN231-Group8_BE_703524e0-0a01-4f00-95c7-6bf57b168e16" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
-
     - name: Build and Test
       shell: powershell
       run: |
         dotnet build --no-incremental
-        dotnet dotnet-coverage collect 'dotnet test' -f xml -o 'coverage.xml'
+        dotnet-coverage collect 'dotnet test' -f xml -o 'coverage.xml'
 
-    - name: Check SonarQube config file
+    - name: Build and analyze
       shell: powershell
       run: |
-        if (Test-Path D:\a\BE\BE\.sonarqube\conf\SonarQubeAnalysisConfig.xml) {
-          Write-Host "SonarQubeAnalysisConfig.xml exists"
-        } else {
-          Write-Host "SonarQubeAnalysisConfig.xml does not exist"
-          exit 1
-        }
-
-    - name: End SonarQube Analysis
-      shell: powershell
-      run: |
+        .\.sonar\scanner\dotnet-sonarscanner begin /k:"PRN231-Group8_BE_703524e0-0a01-4f00-95c7-6bf57b168e16" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
+        dotnet build --no-incremental
+        dotnet-coverage collect 'dotnet test' -f xml -o 'coverage.xml'
         .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
   build-and-push-image:
