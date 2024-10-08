@@ -62,7 +62,6 @@ jobs:
       run: |
         .\.sonar\scanner\dotnet-sonarscanner begin /k:"PRN231-Group8_BE_703524e0-0a01-4f00-95c7-6bf57b168e16" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
         dotnet build --no-incremental
-        dotnet-coverage collect 'dotnet test' -f xml -o 'coverage.xml'
         .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
   build-and-push-image:
