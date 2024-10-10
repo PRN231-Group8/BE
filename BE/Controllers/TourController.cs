@@ -44,6 +44,10 @@ namespace PRN231.ExploreNow.API.Controllers
             try
             {
                 var result = await _tourService.GetById(id);
+                if (result == null)
+                {
+                    return NotFound(new BaseResponse<object> { IsSucceed = false, Message = $"Not found tour with Id {id}" });
+                }
                 return Ok(new BaseResponse<object> { IsSucceed = true, Result = result, Message = "Success" });
             }
             catch (Exception ex)
@@ -83,7 +87,7 @@ namespace PRN231.ExploreNow.API.Controllers
             try
             {
                 ValidationResult ValidateResult = await _tourValidation.ValidateAsync(model);
-                var error = ValidateResult.Errors.Select(e => new { e.PropertyName, e.ErrorMessage }).ToString();
+                var error = ValidateResult.ToString();
                 if (ValidateResult.IsValid)
                 {
                     var tour = await _tourService.UpdateAsync(model, id);

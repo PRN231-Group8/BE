@@ -26,7 +26,6 @@ namespace PRN231.ExploreNow.Services.Services
 
         public async Task Add(TourRequestModel tour)
         {
-            var debug = _iContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Name)?.Value;
             var _tour = MapToTour(tour);
             await _iUnitOfWork.TourRepository.CreateAsync(_tour);
         }
