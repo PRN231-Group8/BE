@@ -13,7 +13,6 @@ public class UnitOfWork : BaseUnitOfWork<ApplicationDbContext>, IUnitOfWork
     {
     }
     public IUserRepository UserRepository => GetRepository<IUserRepository>();
-
     public ITourRepository TourRepository => GetRepository<ITourRepository>();
     public ILocationRepository LocationRepository => GetRepository<ILocationRepository>();
 }
