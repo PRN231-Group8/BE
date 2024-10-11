@@ -8,11 +8,11 @@ namespace PRN231.ExploreNow.BusinessObject.Models.Request
 {
     public class UserRequestModel
     {
-        public string? FirstName { get; set; }
-        public string? LastName { get; set; }
-        public DateTime? Dob { get; set; }
-        public string? Gender { get; set; }
-        public string? Address { get; set; }
+            public string? FirstName { get; set; }
+            public string? LastName { get; set; }
+            public DateTime? Dob { get; set; }
+            public string? Gender { get; set; }
+            public string? Address { get; set; }
         public DateTime CreatedDate { get; set; }
         public string? CreatedBy { get; set; }
         public string? LastUpdatedBy { get; set; }

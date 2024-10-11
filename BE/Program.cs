@@ -29,6 +29,8 @@ using PRN231.ExploreNow.Validations;
 using PRN231.ExploreNow.Validations.Interface;
 using PRN231.ExploreNow.Validations.Tour;
 using PRN231.ExploreNow.Repositories.Repositories.Interface;
+using PRN231.ExploreNow.Validations.User;
+using PRN231.ExploreNow.Validations.Profile;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -214,6 +216,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<ITourRepository, TourRepository>();
 builder.Services.AddScoped<ITourService, TourService>();
 builder.Services.AddScoped<TourValidation>();
+builder.Services.AddScoped<ProfileValidation>();
 
 var app = builder.Build();
 
