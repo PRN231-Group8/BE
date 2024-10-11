@@ -11,7 +11,7 @@ namespace PRN231.ExploreNow.Services.Interfaces
         Task<IList<Tour>> GetAll();
         Task<TourResponse> GetById(Guid id);
         Task Add(TourRequestModel tour);
-        Task<TourResponse> UpdateAsync(TourRequestModel tour,Guid id);
+        Task<TourResponse> UpdateAsync(TourRequestModel tour, Guid id);
         Task Delete(Guid id);
     }
 }

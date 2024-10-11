@@ -42,16 +42,7 @@ namespace PRN231.ExploreNow.Services.Services
 
         public async Task<List<Tour>> GetToursAsync(int page, int pageSize, BookingStatus? sortByStatus, string? searchTerm)
         {
-            return await _iUnitOfWork.TourRepository.GetToursAsync(page, pageSize, sortByStatus, searchTerm);   
-        }
-
-        public async Task<Tour> Update(TourRequestModel tour, Guid id)
-        {
-            var _tour = MapToTour(tour);
-            _tour.Id = id;
-            _iUnitOfWork.GetRepositoryByEntity<Tour>().Update(_tour);
-            await _iUnitOfWork.SaveChangesAsync();
-            return _tour;
+            return await _iUnitOfWork.TourRepository.GetToursAsync(page, pageSize, sortByStatus, searchTerm);
         }
 
         public async Task<TourResponse> UpdateAsync(TourRequestModel tour, Guid id)
@@ -68,7 +59,6 @@ namespace PRN231.ExploreNow.Services.Services
 
         private Tour MapToTour(TourRequestModel tour)
         {
-            var debug = _iContextAccessor.HttpContext.User.Identity.AuthenticationType;
             var currentUser = _iContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var currUserName = _iContextAccessor.HttpContext?.User.Identity.Name;
             return new Tour
