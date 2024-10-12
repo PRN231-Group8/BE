@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using PRN231.ExploreNow.Services.Interfaces;
 using PRN231.ExploreNow.BusinessObject.Models.Response;
 using CloudinaryDotNet;
+using Microsoft.AspNetCore.Authorization;
+using PRN231.ExploreNow.BusinessObject.Enums;
 
 namespace PRN231.ExploreNow.API.Controllers
 {
@@ -18,6 +20,7 @@ namespace PRN231.ExploreNow.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = StaticUserRoles.CUSTOMER)]
         public async Task<IActionResult> UploadImage(IFormFile file)
         {
             try

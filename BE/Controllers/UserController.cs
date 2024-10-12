@@ -6,10 +6,12 @@ using PRN231.ExploreNow.Services.Interfaces;
 using PRN231.ExploreNow.Validations.Profile;
 using PRN231.ExploreNow.Validations.User;
 using PRN231.ExploreNow.BusinessObject.Models.Response;
+using Microsoft.AspNetCore.Authorization;
+using PRN231.ExploreNow.BusinessObject.Enums;
 
 namespace PRN231.ExploreNow.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/Profile")]
     [ApiController]
     public class UserController : ControllerBase
     {
@@ -22,6 +24,7 @@ namespace PRN231.ExploreNow.API.Controllers
             _validation = validation;
         }
 
+        [Authorize(Roles = StaticUserRoles.CUSTOMER)]
         [HttpPut("/{id}")]
         public async Task<IActionResult> UpdateUserProfile(UserProfileRequestModel model, string id)
         {
