@@ -41,25 +41,22 @@ var credential = new DefaultAzureCredential();
 // Create SecretClient with DefaultAzureCredential
 var client = new SecretClient(new Uri(keyVaultUrl), credential);
 
-// Fetch SMTP and JWT settings from Key Vault
-var smtpSecretValue = client.GetSecret("SMTPSecret").Value.Value;
-var jwtSecretValue = client.GetSecret("SecretJWT").Value.Value;
-var smtpUsernameValue = client.GetSecret("SMTPUsername").Value.Value;
-var smtpPasswordValue = client.GetSecret("SMTPPassword").Value.Value;
-
-// Fetch Google Auth settings from Key Vault
-var googleClientIdSecret = client.GetSecret("ClientId");
-var googleClientSecretSecret = client.GetSecret("ClientSecret");
-
-// Update configuration with secrets from Key Vault
-builder.Configuration["SMTP:Secret"] = smtpSecretValue;
-builder.Configuration["SMTP:Username"] = smtpUsernameValue;
-builder.Configuration["SMTP:Password"] = smtpPasswordValue;
-builder.Configuration["JWT:Secret"] = jwtSecretValue;
+// Fetch secrets from Key Vault
+var secrets = new Dictionary<string, string>
+	{
+		{"SMTP:Secret", client.GetSecret("SMTPSecret").Value.Value},
+		{"JWT:Secret", client.GetSecret("SecretJWT").Value.Value},
+		{"SMTP:Username", client.GetSecret("SMTPUsername").Value.Value},
+		{"SMTP:Password", client.GetSecret("SMTPPassword").Value.Value},
+		{"GoogleAuthSettings:Google:ClientId", client.GetSecret("ClientId").Value.Value},
+		{"GoogleAuthSettings:Google:ClientSecret", client.GetSecret("ClientSecret").Value.Value},
+	};
 
 // Update configuration with secrets from Key Vault
-builder.Configuration["GoogleAuthSettings:Google:ClientId"] = googleClientIdSecret.Value.Value;
-builder.Configuration["GoogleAuthSettings:Google:ClientSecret"] = googleClientSecretSecret.Value.Value;
+foreach (var secret in secrets)
+{
+	builder.Configuration[secret.Key] = secret.Value;
+}
 
 // Add Azure Key Vault as a configuration provider
 builder.Configuration.AddAzureKeyVault(client, new AzureKeyVaultConfigurationOptions());
@@ -156,14 +153,16 @@ builder.Services
 			ValidateIssuerSigningKey = true,
 			ValidIssuer = jwtSettings["ValidIssuer"],
 			ValidAudience = jwtSettings["ValidAudience"],
-			IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Secret"])),
+			IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secret"])),
 		};
 	})
 	.AddGoogle(googleOptions =>
 	{
-		IConfigurationSection googleAuthNSection = builder.Configuration.GetSection("GoogleAuthSettings:Google");
-		googleOptions.ClientId = googleAuthNSection["ClientId"];
-		googleOptions.ClientSecret = googleAuthNSection["ClientSecret"];
+		//IConfigurationSection googleAuthNSection = builder.Configuration.GetSection("GoogleAuthSettings:Google");
+		//googleOptions.ClientId = googleAuthNSection["ClientId"];
+		//googleOptions.ClientSecret = googleAuthNSection["ClientSecret"];
+		googleOptions.ClientId = builder.Configuration["GoogleAuthSettings:Google:ClientId"];
+		googleOptions.ClientSecret = builder.Configuration["GoogleAuthSettings:Google:ClientSecret"];
 	});
 
 builder.Services.Configure<JwtBearerOptions>(options =>
@@ -176,7 +175,7 @@ builder.Services.Configure<JwtBearerOptions>(options =>
 		ValidateIssuerSigningKey = true,
 		ValidIssuer = jwtSettings["ValidIssuer"],
 		ValidAudience = jwtSettings["ValidAudience"],
-		IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Secret"])),
+		IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secret"])),
 	};
 });
 
