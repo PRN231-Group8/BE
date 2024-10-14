@@ -17,9 +17,5 @@ namespace PRN231.ExploreNow.Repositories.Repositories.Interfaces
         Task<MoodResponse> GetByIdAsync(Guid id);
 
         Task<MoodResponse> CreateAsync(Moods mood);
-
-        Task<MoodResponse> UpdateAsync(Moods mood);
-
-        Task DeleteAsync(Guid id);
     }
 }

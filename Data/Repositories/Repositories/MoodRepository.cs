@@ -56,51 +56,6 @@ namespace PRN231.ExploreNow.Repositories.Repositories.Repositories
             return mood == null ? null : MapToResponse(mood);
         }
 
-        public async Task<MoodResponse> UpdateAsync(Moods mood)
-        {
-            var existMood = await GetQueryable(m => m.Id == mood.Id && m.IsDeleted == false)
-                .Include(m => m.TourMoods)
-                .FirstOrDefaultAsync();
-            if(existMood == null)
-            {
-                return null;
-            }
-            UpdateMoodsPropertise(existMood, mood);
-            Update(existMood);
-            await _context.SaveChangesAsync();
-            return MapToResponse(existMood);
-        }
-
-        Task IMoodRepository.DeleteAsync(Guid id)
-        {
-            throw new NotImplementedException();
-        }
-
-        private void UpdateMoodsPropertise(Moods mood , Moods newMood)
-        {
-            var currUser = _userManager.GetUserAsync(_contextAccessor.HttpContext.User).Result;
-            var currUserName = currUser?.UserName ?? "Admin";
-            mood.MoodTag = newMood.MoodTag;
-            if (mood.TourMoods.Any() || mood.TourMoods != null) 
-            {
-                foreach (var tours in mood.TourMoods)
-                {
-                    tours.IsDeleted = true;
-                }
-                mood.TourMoods = newMood.TourMoods.Select(p => new TourMood
-                {
-                    TourId = p.TourId,
-                    MoodId = p.MoodId,
-                    Code = p.Code ?? GenerateUniqueCode(),
-                    CreatedBy = currUserName,
-                    CreatedDate = DateTime.Now,
-                    LastUpdatedBy = currUserName,
-                    IsDeleted = false
-                }).ToList();
-            }
-
-        }
-
         private MoodResponse MapToResponse (Moods mood)
         {
             return new MoodResponse

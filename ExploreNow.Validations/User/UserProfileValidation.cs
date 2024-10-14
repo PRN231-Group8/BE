@@ -18,7 +18,7 @@ namespace PRN231.ExploreNow.Validations.User
                 .MaximumLength(50).WithMessage("Maximum lenght must be lower than 50 character");
             RuleFor(x => x.LastName)
                 .NotEmpty().WithMessage("LastName is required")
-                .MaximumLength(50).WithMessage("Maximum lenght must be lower than 50 character");
+                .MaximumLength(50).WithMessage("Maximum length must be lower than 50 character");
             RuleFor(x => x.Gender)
                 .NotEmpty().WithMessage("Gender is required");
             RuleFor(x => x.Address)

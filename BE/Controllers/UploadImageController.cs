@@ -8,7 +8,7 @@ using PRN231.ExploreNow.BusinessObject.Enums;
 
 namespace PRN231.ExploreNow.API.Controllers
 {
-    [Route("api/UploadImage")]
+    [Route("api/user/avatar")]
     [ApiController]
     public class UploadImageController : ControllerBase
     {

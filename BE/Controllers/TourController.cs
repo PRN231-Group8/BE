@@ -34,7 +34,7 @@ namespace PRN231.ExploreNow.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new BaseResponse<Tour> { Message = ex.Message, IsSucceed = false }.ToString());
+                return BadRequest(new BaseResponse<object> { IsSucceed = false, Result = ex.Message, Message = "There is something wrong" });
             }
         }
 
@@ -52,7 +52,7 @@ namespace PRN231.ExploreNow.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new BaseResponse<Tour> { Message = ex.Message, IsSucceed = false }.ToString());
+                return BadRequest(new BaseResponse<object> { IsSucceed = false, Result = ex.Message, Message = "There is something wrong" });
             }
         }
 
@@ -76,7 +76,7 @@ namespace PRN231.ExploreNow.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new BaseResponse<Tour> { Message = ex.Message, IsSucceed = false }.ToString());
+                return BadRequest(new BaseResponse<object> { IsSucceed = false, Result = ex.Message, Message = "There is something wrong" });
             }
         }
 
@@ -102,7 +102,7 @@ namespace PRN231.ExploreNow.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new BaseResponse<Tour> { Message = ex.Message, IsSucceed = false }.ToString());
+                return BadRequest(new BaseResponse<object> { IsSucceed = false, Result = ex.Message, Message = "There is something wrong" });
             }
         }
 
@@ -137,7 +137,7 @@ namespace PRN231.ExploreNow.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new BaseResponse<Tour> { Message = ex.Message, IsSucceed = false }.ToString());
+                return BadRequest(new BaseResponse<object> { IsSucceed = false, Result = ex.Message, Message = "There is something wrong" });
             }
         }
     }

@@ -12,7 +12,6 @@ namespace PRN231.ExploreNow.BusinessObject.Contracts.Repositories.Interfaces
     {
         Task<ApplicationUser> GetUserByEmailAsync(string email);
         Task Update(ApplicationUser applicationUser);
-
         Task<UserProfileResponseModel> UpdateProfileAsync(ApplicationUser applicationUser);
     }
 }

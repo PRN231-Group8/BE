@@ -11,7 +11,7 @@ using PRN231.ExploreNow.BusinessObject.Enums;
 
 namespace PRN231.ExploreNow.API.Controllers
 {
-    [Route("api/Profile")]
+    [Route("api/user")]
     [ApiController]
     public class UserController : ControllerBase
     {
@@ -25,7 +25,7 @@ namespace PRN231.ExploreNow.API.Controllers
         }
 
         [Authorize(Roles = StaticUserRoles.CUSTOMER)]
-        [HttpPut("/{id}")]
+        [HttpPut("/{id}/profile")]
         public async Task<IActionResult> UpdateUserProfile(UserProfileRequestModel model, string id)
         {
             try

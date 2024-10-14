@@ -18,6 +18,6 @@ namespace PRN231.ExploreNow.Repositories.Repositories.Interfaces
 
         Task<TourResponse> GetByIdAsync(Guid id);
 
-        Task<TourResponse> UpdateAsync(Tour tour);
+        Task<TourResponse> UpdateTourAsync(Tour tour);
     }
 }

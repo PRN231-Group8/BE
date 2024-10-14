@@ -47,7 +47,7 @@ namespace PRN231.ExploreNow.BusinessObject.Contracts.Repositories
             return MapToResponse(existUser);
         }
 
-        public void UpdateProfileProperty(ApplicationUser existUser, ApplicationUser newUser) 
+        private void UpdateProfileProperty(ApplicationUser existUser, ApplicationUser newUser) 
         {
             existUser.Gender = newUser.Gender;
             existUser.FirstName = newUser.FirstName;
@@ -56,7 +56,7 @@ namespace PRN231.ExploreNow.BusinessObject.Contracts.Repositories
             existUser.AvatarPath = newUser.AvatarPath;
         }
 
-        public UserProfileResponseModel MapToResponse(ApplicationUser applicationUser)
+        private UserProfileResponseModel MapToResponse(ApplicationUser applicationUser)
         {
             return new UserProfileResponseModel
             {

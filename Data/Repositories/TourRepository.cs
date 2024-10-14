@@ -49,7 +49,7 @@ namespace PRN231.ExploreNow.Repositories.Repositories
             return tours.ToList();
         }
 
-        async Task<TourResponse> ITourRepository.UpdateAsync(Tour tour)
+        async Task<TourResponse> ITourRepository.UpdateTourAsync(Tour tour)
         {
             var _tour = await GetQueryable(t => t.Id == tour.Id && !t.IsDeleted)
                 .FirstOrDefaultAsync();
