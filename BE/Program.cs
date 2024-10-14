@@ -3,14 +3,12 @@ using System.Text.Json;
 using ExploreNow.Validations.Location;
 using ExploreNow.Validations.Photo;
 using FluentValidation;
-using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using PRN231.ExploreNow.BusinessObject.Contracts.Repositories;
 using PRN231.ExploreNow.BusinessObject.Contracts.Repositories.Interfaces;
@@ -27,38 +25,73 @@ using PRN231.ExploreNow.Services.Services;
 using StackExchange.Redis;
 using PRN231.ExploreNow.Validations;
 using PRN231.ExploreNow.Validations.Interface;
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
+using Azure.Extensions.AspNetCore.Configuration.Secrets;
 
 var builder = WebApplication.CreateBuilder(args);
+
+#region Configure Key Vault and Secrets
+// Configure key vault in Azure Portal
+var keyVaultUrl = builder.Configuration["KeyVault:KeyVaultUrl"];
+
+// Use DefaultAzureCredential
+var credential = new DefaultAzureCredential();
+
+// Create SecretClient with DefaultAzureCredential
+var client = new SecretClient(new Uri(keyVaultUrl), credential);
+
+// Fetch SMTP and JWT settings from Key Vault
+var smtpSecretValue = client.GetSecret("SMTPSecret").Value.Value;
+var jwtSecretValue = client.GetSecret("SecretJWT").Value.Value;
+var smtpUsernameValue = client.GetSecret("SMTPUsername").Value.Value;
+var smtpPasswordValue = client.GetSecret("SMTPPassword").Value.Value;
+
+// Fetch Google Auth settings from Key Vault
+var googleClientIdSecret = client.GetSecret("ClientId");
+var googleClientSecretSecret = client.GetSecret("ClientSecret");
+
+// Update configuration with secrets from Key Vault
+builder.Configuration["SMTP:Secret"] = smtpSecretValue;
+builder.Configuration["SMTP:Username"] = smtpUsernameValue;
+builder.Configuration["SMTP:Password"] = smtpPasswordValue;
+builder.Configuration["JWT:Secret"] = jwtSecretValue;
+
+// Update configuration with secrets from Key Vault
+builder.Configuration["GoogleAuthSettings:Google:ClientId"] = googleClientIdSecret.Value.Value;
+builder.Configuration["GoogleAuthSettings:Google:ClientSecret"] = googleClientSecretSecret.Value.Value;
+
+// Add Azure Key Vault as a configuration provider
+builder.Configuration.AddAzureKeyVault(client, new AzureKeyVaultConfigurationOptions());
+#endregion
 
 #region Configure DbContext
 var connectionString = builder.Configuration.GetConnectionString("local");
 
 // Add DbContext and MySQL configuration
-
 if (builder.Environment.IsDevelopment())
 {
-    // Use MySQL in development
-    builder.Services.AddDbContext<ApplicationDbContext>(options =>
-        options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+	// Use MySQL in development
+	builder.Services.AddDbContext<ApplicationDbContext>(options =>
+		options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 }
 else
 {
-    // Use PostgreSQL in production
-    builder.Services.AddDbContext<ApplicationDbContext>(options =>
-        options.UseNpgsql(connectionString));
+	// Use PostgreSQL in production
+	builder.Services.AddDbContext<ApplicationDbContext>(options =>
+		options.UseNpgsql(connectionString));
 }
-
 #endregion
 
 #region Configure Identity Options
 // Add Identity and configure Identity options
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders();
+	.AddEntityFrameworkStores<ApplicationDbContext>()
+	.AddDefaultTokenProviders();
 
 builder.Services.AddStackExchangeRedisCache(options =>
 {
-    options.Configuration = builder.Configuration["Redis"];
+	options.Configuration = builder.Configuration["Redis"];
 });
 
 builder.Services.AddSingleton<IConnectionMultiplexer>(provider => ConnectionMultiplexer.Connect(builder.Configuration["Redis"]));
@@ -66,13 +99,13 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(provider => ConnectionMult
 // Configure Identity options
 builder.Services.Configure<IdentityOptions>(options =>
 {
-    options.Password.RequiredLength = 3;
-    options.Password.RequireDigit = false;
-    options.Password.RequireLowercase = false;
-    options.Password.RequireUppercase = false;
-    options.Password.RequireNonAlphanumeric = false;
-    options.SignIn.RequireConfirmedEmail = false;
-    options.User.RequireUniqueEmail = true;
+	options.Password.RequiredLength = 3;
+	options.Password.RequireDigit = false;
+	options.Password.RequireLowercase = false;
+	options.Password.RequireUppercase = false;
+	options.Password.RequireNonAlphanumeric = false;
+	options.SignIn.RequireConfirmedEmail = false;
+	options.User.RequireUniqueEmail = true;
 });
 #endregion
 
@@ -94,7 +127,7 @@ builder.Services.AddScoped<IEmailVerify, EmailVerify>();
 
 #region Configure Health Checks For Azure Server
 builder.Services.AddHealthChecks()
-    .AddCheck("self", () => HealthCheckResult.Healthy());
+	.AddCheck("self", () => HealthCheckResult.Healthy());
 #endregion
 
 #region JwtBear and Authentication, Swagger API
@@ -105,77 +138,77 @@ var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 var jwtSettings = builder.Configuration.GetSection("JWT");
 
 builder.Services
-    .AddAuthentication(options =>
-    {
-        // options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    })
-    .AddJwtBearer(options =>
-    {
-        options.SaveToken = true;
-        options.RequireHttpsMetadata = false;
-        options.TokenValidationParameters = new TokenValidationParameters()
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtSettings["ValidIssuer"],
-            ValidAudience = jwtSettings["ValidAudience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Secret"])),
-        };
-    })
-    .AddGoogle(googleOptions =>
-    {
-        IConfigurationSection googleAuthNSection = builder.Configuration.GetSection("GoogleAuthSettings:Google");
-        googleOptions.ClientId = googleAuthNSection["ClientId"];
-        googleOptions.ClientSecret = googleAuthNSection["ClientSecret"];
-    });
+	.AddAuthentication(options =>
+	{
+		// options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+		options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+		options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+	})
+	.AddJwtBearer(options =>
+	{
+		options.SaveToken = true;
+		options.RequireHttpsMetadata = false;
+		options.TokenValidationParameters = new TokenValidationParameters()
+		{
+			ValidateIssuer = true,
+			ValidateAudience = true,
+			ValidateLifetime = true,
+			ValidateIssuerSigningKey = true,
+			ValidIssuer = jwtSettings["ValidIssuer"],
+			ValidAudience = jwtSettings["ValidAudience"],
+			IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Secret"])),
+		};
+	})
+	.AddGoogle(googleOptions =>
+	{
+		IConfigurationSection googleAuthNSection = builder.Configuration.GetSection("GoogleAuthSettings:Google");
+		googleOptions.ClientId = googleAuthNSection["ClientId"];
+		googleOptions.ClientSecret = googleAuthNSection["ClientSecret"];
+	});
 
 builder.Services.Configure<JwtBearerOptions>(options =>
 {
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtSettings["ValidIssuer"],
-        ValidAudience = jwtSettings["ValidAudience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Secret"])),
-    };
+	options.TokenValidationParameters = new TokenValidationParameters
+	{
+		ValidateIssuer = true,
+		ValidateAudience = true,
+		ValidateLifetime = true,
+		ValidateIssuerSigningKey = true,
+		ValidIssuer = jwtSettings["ValidIssuer"],
+		ValidAudience = jwtSettings["ValidAudience"],
+		IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Secret"])),
+	};
 });
 
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(options =>
 {
-    options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-    {
-        Name = "Authorization",
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-        Description = "Please enter your token with this format: ''Bearer YOUR_TOKEN''",
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
-        BearerFormat = "JWT",
-        Scheme = "bearer"
-    });
-    options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Name = "Bearer",
-                In = ParameterLocation.Header,
-                Reference = new OpenApiReference
-                {
-                    Id = "Bearer",
-                    Type = ReferenceType.SecurityScheme
-                }
-            },
-            new List<string>()
-        }
-    });
+	options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+	{
+		Name = "Authorization",
+		In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+		Description = "Please enter your token with this format: ''Bearer YOUR_TOKEN''",
+		Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+		BearerFormat = "JWT",
+		Scheme = "bearer"
+	});
+	options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+	{
+		{
+			new OpenApiSecurityScheme
+			{
+				Name = "Bearer",
+				In = ParameterLocation.Header,
+				Reference = new OpenApiReference
+				{
+					Id = "Bearer",
+					Type = ReferenceType.SecurityScheme
+				}
+			},
+			new List<string>()
+		}
+	});
 });
 #endregion
 
@@ -192,16 +225,16 @@ builder.Services.AddSwaggerGen(options =>
 
 #region Config Cors
 builder.Services.AddCors(p =>
-    p.AddPolicy(
-        "corspolicy",
-        build =>
-        {
-            build
-                .WithOrigins("http://localhost:4200")
-                .AllowAnyMethod()
-                .AllowAnyHeader();
-        }
-    )
+	p.AddPolicy(
+		"corspolicy",
+		build =>
+		{
+			build
+				.WithOrigins("http://localhost:4200")
+				.AllowAnyMethod()
+				.AllowAnyHeader();
+		}
+	)
 );
 #endregion
 
@@ -230,29 +263,29 @@ app.UseAuthorization();
 
 app.UseEndpoints(endpoints =>
 {
-    endpoints.MapControllers();
+	endpoints.MapControllers();
 });
 
 // Cấu hình Swagger cho các môi trường
 if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "PRN231.ExploreNow.API V1"); });
+	app.UseSwagger();
+	app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "PRN231.ExploreNow.API V1"); });
 }
 
 app.MapHealthChecks("/health", new HealthCheckOptions
 {
-    ResponseWriter = async (context, report) =>
-    {
-        context.Response.ContentType = "application/json";
-        var result = JsonSerializer.Serialize(
-            new
-            {
-                status = report.Status.ToString(),
-                checks = report.Entries.Select(e => new { key = e.Key, value = e.Value.Status.ToString() })
-            });
-        await context.Response.WriteAsync(result);
-    }
+	ResponseWriter = async (context, report) =>
+	{
+		context.Response.ContentType = "application/json";
+		var result = JsonSerializer.Serialize(
+			new
+			{
+				status = report.Status.ToString(),
+				checks = report.Entries.Select(e => new { key = e.Key, value = e.Value.Status.ToString() })
+			});
+		await context.Response.WriteAsync(result);
+	}
 });
 
 //app.MapControllers();
