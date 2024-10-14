@@ -49,7 +49,7 @@ namespace PRN231.ExploreNow.Services.Services
         {
             var _tour = MapToTour(tour);
             _tour.Id = id;
-            return await _iUnitOfWork.TourRepository.UpdateAsync(_tour);
+            return await _iUnitOfWork.TourRepository.UpdateTourAsync(_tour);
         }
 
         async Task<TourResponse> ITourService.GetById(Guid id)
