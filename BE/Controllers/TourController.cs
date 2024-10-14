@@ -11,7 +11,7 @@ using Newtonsoft.Json;
 
 namespace PRN231.ExploreNow.API.Controllers
 {
-    [Route("api/tour")]
+    [Route("api/tours")]
     [ApiController]
     public class TourController : ControllerBase
     {
