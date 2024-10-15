@@ -6,4 +6,6 @@ public class Photo : BaseEntity
     public string Alt { get; set; }
     public Guid LocationId { get; set; }
     public Location Location { get; set; }
+	public Guid PostId { get; set; }
+	public Posts Post { get; set; }
 }

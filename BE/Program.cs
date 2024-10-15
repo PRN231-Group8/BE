@@ -3,14 +3,12 @@ using System.Text.Json;
 using ExploreNow.Validations.Location;
 using ExploreNow.Validations.Photo;
 using FluentValidation;
-using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using PRN231.ExploreNow.BusinessObject.Contracts.Repositories;
 using PRN231.ExploreNow.BusinessObject.Contracts.Repositories.Interfaces;
@@ -27,6 +25,12 @@ using PRN231.ExploreNow.Services.Services;
 using StackExchange.Redis;
 using PRN231.ExploreNow.Validations;
 using PRN231.ExploreNow.Validations.Interface;
+using PRN231.ExploreNow.Validations.Posts;
+using PRN231.ExploreNow.Repositories.Repositories.Interfaces;
+using PRN231.ExploreNow.Repositories.Repositories.Repositories;
+using System.Text.Json.Serialization;
+using Microsoft.OpenApi.Any;
+using PRN231.ExploreNow.BusinessObject.OtherObjects;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,7 +50,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 
 builder.Services.AddStackExchangeRedisCache(options =>
 {
-    options.Configuration = builder.Configuration["Redis"];
+	options.Configuration = builder.Configuration["Redis"];
 });
 
 builder.Services.AddSingleton<IConnectionMultiplexer>(provider => ConnectionMultiplexer.Connect(builder.Configuration["Redis"]));
@@ -70,14 +74,24 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<ICacheService, CacheService>();
 builder.Services.AddScoped<ILocationService, LocationService>();
 builder.Services.AddScoped<ILocationRepository, LocationRepository>();
-builder.Services.AddScoped<IValidator<LocationsRequest>, LocationRequestValidator>();
-builder.Services.AddScoped<IValidator<PhotoRequest>, PhotoRequestValidator>();
 builder.Services.AddScoped<EmailVerify>();
 builder.Services.AddScoped<TokenGenerator>();
-builder.Services.AddScoped<ITokenValidator, TokenValidator>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmailVerify, EmailVerify>();
+builder.Services.AddScoped<IPostsService, PostsService>();
+builder.Services.AddScoped<IPostsRepository, PostsRepository>();
+#endregion
+
+#region Configure FluentValidator
+builder.Services.AddScoped<IValidator<LocationsRequest>, LocationRequestValidator>();
+builder.Services.AddScoped<IValidator<PhotoRequest>, PhotoRequestValidator>();
+builder.Services.AddScoped<IValidator<PostsRequest>, PostsRequestValidator>();
+builder.Services.AddScoped<ITokenValidator, TokenValidator>();
+#endregion
+
+#region Configure AutoMapper
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 #endregion
 
 #region Configure Health Checks For Azure Server
@@ -164,7 +178,27 @@ builder.Services.AddSwaggerGen(options =>
 			new List<string>()
 		}
 	});
+	options.MapType<TimeSpan>(() => new OpenApiSchema
+	{
+		Type = "string",
+		Example = new OpenApiString("00:00:00")
+	});
 });
+
+builder.Services.AddControllers()
+	.AddJsonOptions(options =>
+	{
+		options.JsonSerializerOptions.ReferenceHandler = System
+			.Text
+			.Json
+			.Serialization
+			.ReferenceHandler
+			.IgnoreCycles;
+		options.JsonSerializerOptions.MaxDepth = 32;
+		options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+		options.JsonSerializerOptions.Converters.Add(new TimeSpanConverter());
+		options.JsonSerializerOptions.Converters.Add(new PostsStatusConverter());
+	});
 #endregion
 
 //builder.Services.AddCors(options =>
