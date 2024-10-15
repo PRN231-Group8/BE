@@ -72,11 +72,11 @@ public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : 
         if (entities.Any()) DbSet.AddRange(entities);
     }
 
-    #endregion
+	#endregion
 
-    #region Update(TEntity) + UpdateRange(IEnumerable<TEntity>)
+	#region Update(TEntity) + UpdateRange(IEnumerable<TEntity>)
 
-    public void Update(TEntity entity)
+	public void Update(TEntity entity)
     {
         DbSet.Update(entity);
     }
