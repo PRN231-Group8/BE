@@ -1,6 +1,4 @@
-﻿using PRN231.ExploreNow.BusinessObject.Enums;
-
-namespace PRN231.ExploreNow.BusinessObject.Models.Response
+﻿namespace PRN231.ExploreNow.BusinessObject.Models.Response
 {
 	public class PostsResponse
 	{
