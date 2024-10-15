@@ -31,15 +31,59 @@ using PRN231.ExploreNow.Repositories.Repositories.Repositories;
 using System.Text.Json.Serialization;
 using Microsoft.OpenApi.Any;
 using PRN231.ExploreNow.BusinessObject.OtherObjects;
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
+using Azure.Extensions.AspNetCore.Configuration.Secrets;
 
 var builder = WebApplication.CreateBuilder(args);
+
+#region Configure Key Vault and Secrets
+// Configure key vault in Azure Portal
+var keyVaultUrl = builder.Configuration["KeyVault:KeyVaultUrl"];
+
+// Use DefaultAzureCredential
+var credential = new DefaultAzureCredential();
+
+// Create SecretClient with DefaultAzureCredential
+var client = new SecretClient(new Uri(keyVaultUrl), credential);
+
+// Fetch secrets from Key Vault
+var secrets = new Dictionary<string, string>
+	{
+		{"SMTP:Secret", client.GetSecret("SMTPSecret").Value.Value},
+		{"JWT:Secret", client.GetSecret("SecretJWT").Value.Value},
+		{"SMTP:Username", client.GetSecret("SMTPUsername").Value.Value},
+		{"SMTP:Password", client.GetSecret("SMTPPassword").Value.Value},
+		{"GoogleAuthSettings:Google:ClientId", client.GetSecret("ClientId").Value.Value},
+		{"GoogleAuthSettings:Google:ClientSecret", client.GetSecret("ClientSecret").Value.Value},
+	};
+
+// Update configuration with secrets from Key Vault
+foreach (var secret in secrets)
+{
+	builder.Configuration[secret.Key] = secret.Value;
+}
+
+// Add Azure Key Vault as a configuration provider
+builder.Configuration.AddAzureKeyVault(client, new AzureKeyVaultConfigurationOptions());
+#endregion
 
 #region Configure DbContext
 var connectionString = builder.Configuration.GetConnectionString("local");
 
 // Add DbContext and MySQL configuration
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-	options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+if (builder.Environment.IsDevelopment())
+{
+	// Use MySQL in development
+	builder.Services.AddDbContext<ApplicationDbContext>(options =>
+		options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+}
+else
+{
+	// Use PostgreSQL in production
+	builder.Services.AddDbContext<ApplicationDbContext>(options =>
+		options.UseNpgsql(connectionString));
+}
 #endregion
 
 #region Configure Identity Options
@@ -125,14 +169,16 @@ builder.Services
 			ValidateIssuerSigningKey = true,
 			ValidIssuer = jwtSettings["ValidIssuer"],
 			ValidAudience = jwtSettings["ValidAudience"],
-			IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Secret"])),
+			IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secret"])),
 		};
 	})
 	.AddGoogle(googleOptions =>
 	{
-		IConfigurationSection googleAuthNSection = builder.Configuration.GetSection("GoogleAuthSettings:Google");
-		googleOptions.ClientId = googleAuthNSection["ClientId"];
-		googleOptions.ClientSecret = googleAuthNSection["ClientSecret"];
+		//IConfigurationSection googleAuthNSection = builder.Configuration.GetSection("GoogleAuthSettings:Google");
+		//googleOptions.ClientId = googleAuthNSection["ClientId"];
+		//googleOptions.ClientSecret = googleAuthNSection["ClientSecret"];
+		googleOptions.ClientId = builder.Configuration["GoogleAuthSettings:Google:ClientId"];
+		googleOptions.ClientSecret = builder.Configuration["GoogleAuthSettings:Google:ClientSecret"];
 	});
 
 builder.Services.Configure<JwtBearerOptions>(options =>
@@ -145,7 +191,7 @@ builder.Services.Configure<JwtBearerOptions>(options =>
 		ValidateIssuerSigningKey = true,
 		ValidIssuer = jwtSettings["ValidIssuer"],
 		ValidAudience = jwtSettings["ValidAudience"],
-		IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Secret"])),
+		IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secret"])),
 	};
 });
 
