@@ -41,7 +41,7 @@ namespace PRN231.ExploreNow.Repositories.Repositories
             }
             if (sortByStatus.HasValue)
             {
-                query = query.OrderBy( t => t.Status == sortByStatus.Value);
+                query = query.OrderBy(t => t.Status == sortByStatus.Value);
             }
             var tours = await query.Skip((page - 1) * pageSize)
                                        .Take(pageSize)
@@ -57,7 +57,7 @@ namespace PRN231.ExploreNow.Repositories.Repositories
             {
                 return null;
             }
-            UpdateTourProperties(_tour,tour);
+            UpdateTourProperties(_tour, tour);
             Update(_tour);
             await _dbContext.SaveChangesAsync();
             return MapToDto(_tour);

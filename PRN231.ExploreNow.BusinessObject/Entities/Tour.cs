@@ -1,4 +1,5 @@
 ﻿using PRN231.ExploreNow.BusinessObject.Enums;
+using PRN231.ExploreNow.BusinessObject.Models.Request;
 
 namespace PRN231.ExploreNow.BusinessObject.Entities;
 
@@ -15,4 +16,9 @@ public class Tour : BaseEntity
     public ICollection<LocationInTour> LocationInTours { get; set; }
     public ICollection<TourMood> TourMoods { get; set; }
     public ICollection<TourTrip> TourTrips { get; set; }
+
+    public static implicit operator Tour(TourRequestModel v)
+    {
+        throw new NotImplementedException();
+    }
 }

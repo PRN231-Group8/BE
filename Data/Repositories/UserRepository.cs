@@ -37,17 +37,17 @@ namespace PRN231.ExploreNow.BusinessObject.Contracts.Repositories
         public async Task<UserProfileResponseModel> UpdateProfileAsync(ApplicationUser applicationUser)
         {
             var existUser = _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User).Result;
-            if (existUser == null) 
+            if (existUser == null)
             {
                 return null;
             }
             UpdateProfileProperty(existUser, applicationUser);
-            Update(existUser);
+            await Update(existUser);
             await _context.SaveChangesAsync();
             return MapToResponse(existUser);
         }
 
-        private void UpdateProfileProperty(ApplicationUser existUser, ApplicationUser newUser) 
+        private void UpdateProfileProperty(ApplicationUser existUser, ApplicationUser newUser)
         {
             existUser.Gender = newUser.Gender;
             existUser.FirstName = newUser.FirstName;

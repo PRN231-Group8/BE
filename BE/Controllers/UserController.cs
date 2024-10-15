@@ -11,12 +11,12 @@ using PRN231.ExploreNow.BusinessObject.Enums;
 
 namespace PRN231.ExploreNow.API.Controllers
 {
-    [Route("api/user")]
+    [Route("api/users")]
     [ApiController]
     public class UserController : ControllerBase
     {
-        private IUserService _userService;
-        private ProfileValidation _validation;
+        private readonly IUserService _userService;
+        private readonly ProfileValidation _validation;
 
         public UserController(IUserService userService, ProfileValidation validation)
         {
@@ -24,7 +24,7 @@ namespace PRN231.ExploreNow.API.Controllers
             _validation = validation;
         }
 
-        [Authorize(Roles = StaticUserRoles.CUSTOMER)]
+        [Authorize]
         [HttpPut("/{id}/profile")]
         public async Task<IActionResult> UpdateUserProfile(UserProfileRequestModel model, string id)
         {
@@ -57,6 +57,21 @@ namespace PRN231.ExploreNow.API.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new BaseResponse<object> {IsSucceed = false ,Result = ex.Message, Message = "There is something wrong" });
+            }
+        }
+
+        [HttpPost("/image")]
+        [Authorize]
+        public async Task<IActionResult> UploadImage(IFormFile file)
+        {
+            try
+            {
+                var imageUrl = new { Url = _userService.SaveImage(file).Result };
+                return Ok(new BaseResponse<object> { IsSucceed = true, Message = "Update image successfully", Result = imageUrl });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
             }
         }
     }
