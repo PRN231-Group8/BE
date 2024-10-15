@@ -50,16 +50,18 @@ namespace PRN231.ExploreNow.Services.Services
 		{
 			var tourTimeStamp = _mapper.Map<TourTimestamp>(tourTimeStampRequest);
 			tourTimeStamp.Id = tourTimeStampId;
-			return await _unitOfWork.TourTimeStampRepository.UpdateAsync(tourTimeStamp);
+			return await _unitOfWork.TourTimeStampRepository.UpdateAsync(tourTimeStamp, tourTimeStampRequest);
 		}
 
 		public async Task<bool> DeleteAsync(Guid tourTimeStampId)
 		{
 			var existingTourTimeStamp = await _unitOfWork.TourTimeStampRepository.GetByIdAsync(tourTimeStampId);
+
 			if (existingTourTimeStamp == null)
 			{
 				throw new InvalidOperationException("Existing tour timestamp not found.");
 			}
+
 			return await _unitOfWork.TourTimeStampRepository.DeleteAsync(tourTimeStampId);
 		}
 

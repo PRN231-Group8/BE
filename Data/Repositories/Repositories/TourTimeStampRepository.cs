@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PRN231.ExploreNow.BusinessObject.Entities;
 using PRN231.ExploreNow.BusinessObject.Enums;
+using PRN231.ExploreNow.BusinessObject.Models.Request;
 using PRN231.ExploreNow.BusinessObject.Models.Response;
 using PRN231.ExploreNow.Repositories.Context;
 using PRN231.ExploreNow.Repositories.Repositories.Interfaces;
@@ -15,17 +16,15 @@ namespace PRN231.ExploreNow.Repositories.Repositories.Repositories
 		private readonly ApplicationDbContext _context;
 		private readonly IHttpContextAccessor _httpContextAccessor;
 		private readonly UserManager<ApplicationUser> _userManager;
-		private readonly TourRepository _tourRepository;
 		private readonly IMapper _mapper;
 
 		public TourTimeStampRepository(ApplicationDbContext context, IHttpContextAccessor httpContextAccessor
-			, UserManager<ApplicationUser> userManager, IMapper mapper, TourRepository tourRepository) : base(context)
+			 , UserManager<ApplicationUser> userManager, IMapper mapper) : base(context)
 		{
 			_context = context;
 			_httpContextAccessor = httpContextAccessor;
 			_userManager = userManager;
 			_mapper = mapper;
-			_tourRepository = tourRepository;
 		}
 
 		public async Task<List<TourTimeStampResponse>> GetAllTourTimestampsAsync(int page, int pageSize, TimeSpan? sortByTime, string? searchTerm)
@@ -59,9 +58,16 @@ namespace PRN231.ExploreNow.Repositories.Repositories.Repositories
 
 		public async Task<TourTimeStampResponse> GetByIdAsync(Guid id)
 		{
+			var user = await GetAuthenticatedUserAsync();
+
 			var tourtimestamps = await GetQueryable(l => l.Id == id && !l.IsDeleted && !l.Tour.IsDeleted)
 									  .Include(t => t.Tour)
 									  .FirstOrDefaultAsync();
+
+			if (tourtimestamps == null)
+			{
+				throw new InvalidOperationException($"TourTimestamp with ID {id} not found or has been deleted.");
+			}
 
 			return _mapper.Map<TourTimeStampResponse>(tourtimestamps);
 		}
@@ -69,21 +75,51 @@ namespace PRN231.ExploreNow.Repositories.Repositories.Repositories
 		public async Task<List<TourTimeStampResponse>> CreateMultipleAsync(List<TourTimestamp> tourTimestamps)
 		{
 			var user = await GetAuthenticatedUserAsync();
+
+			if (tourTimestamps == null || !tourTimestamps.Any())
+			{
+				throw new ArgumentException("The list of tour timestamps is empty or null.");
+			}
+
 			var today = DateTime.Today;
 
-			foreach (var timestamp in tourTimestamps)
+			// Group timestamps by TourId
+			var groupedTimestamps = tourTimestamps.GroupBy(t => t.TourId);
+
+			foreach (var group in groupedTimestamps)
 			{
-				//Check for time overlap
-				if (await IsTimeOverlapping(timestamp.TourId, timestamp.PreferredTimeSlot.StartTime, timestamp.PreferredTimeSlot.EndTime))
+				var tourId = group.Key;
+
+				// Validate TourId
+				if (!await TourExistsAsync(tourId))
 				{
-					throw new InvalidOperationException($"Time slot from {timestamp.PreferredTimeSlot.StartTime} to {timestamp.PreferredTimeSlot.EndTime} overlaps with an existing timestamp.");
+					throw new InvalidOperationException($"Tour with ID {tourId} does not exist.");
 				}
 
-				timestamp.Code = GenerateUniqueCode();
-				timestamp.CreatedBy = user.UserName;
-				timestamp.CreatedDate = DateTime.Now;
-				timestamp.LastUpdatedDate = DateTime.Now;
-				timestamp.LastUpdatedBy = user.UserName;
+				var timestampsForTour = group.ToList();
+
+				// Get existing timestamps for this tour
+				var existingTimestamps = await GetQueryable(t => t.TourId == tourId && !t.IsDeleted).ToListAsync();
+
+				// Check for overlaps within new timestamps and with existing timestamps
+				var allTimestamps = existingTimestamps.Concat(timestampsForTour).ToList();
+
+				var overlaps = FindOverlaps(allTimestamps);
+				if (overlaps.Any())
+				{
+					var overlapDescriptions = overlaps.Select(o =>
+						$"Overlap detected: {o.Item1.PreferredTimeSlot.StartTime} - {o.Item1.PreferredTimeSlot.EndTime} conflicts with {o.Item2.PreferredTimeSlot.StartTime} - {o.Item2.PreferredTimeSlot.EndTime}");
+					throw new InvalidOperationException($"Time slot overlaps detected: {string.Join(", ", overlapDescriptions)}");
+				}
+
+				foreach (var timestamp in timestampsForTour)
+				{
+					timestamp.Code = GenerateUniqueCode();
+					timestamp.CreatedBy = user.UserName;
+					timestamp.CreatedDate = DateTime.Now;
+					timestamp.LastUpdatedDate = DateTime.Now;
+					timestamp.LastUpdatedBy = user.UserName;
+				}
 			}
 
 			AddRange(tourTimestamps);
@@ -92,7 +128,7 @@ namespace PRN231.ExploreNow.Repositories.Repositories.Repositories
 			return _mapper.Map<List<TourTimeStampResponse>>(tourTimestamps);
 		}
 
-		public async Task<TourTimeStampResponse> UpdateAsync(TourTimestamp tourTimestamp)
+		public async Task<TourTimeStampResponse> UpdateAsync(TourTimestamp tourTimestamp, TourTimeStampRequest tourTimeStampRequest)
 		{
 			var user = await GetAuthenticatedUserAsync();
 
@@ -105,8 +141,30 @@ namespace PRN231.ExploreNow.Repositories.Repositories.Repositories
 				throw new InvalidOperationException("Existing tour timestamp not found.");
 			}
 
-			existingTourTimestamp.Description = tourTimestamp.Description;
-			existingTourTimestamp.Title = tourTimestamp.Title;
+			// Validate TourId
+			if (!await TourExistsAsync(tourTimestamp.TourId))
+			{
+				throw new InvalidOperationException($"Tour with ID {tourTimestamp.TourId} does not exist.");
+			}
+
+			// Get all other timestamps for the same tour
+			var allTimestamps = await GetQueryable(tt => tt.TourId == existingTourTimestamp.TourId && tt.Id != existingTourTimestamp.Id && !tt.IsDeleted)
+										.ToListAsync();
+
+			// Add the updated timestamp to the list for overlap check
+			allTimestamps.Add(tourTimestamp);
+
+			// Check for overlaps
+			var overlaps = FindOverlaps(allTimestamps);
+			if (overlaps.Any())
+			{
+				var overlapDescriptions = overlaps.Select(o =>
+					$"Overlap detected: {o.Item1.PreferredTimeSlot.StartTime} - {o.Item1.PreferredTimeSlot.EndTime} conflicts with {o.Item2.PreferredTimeSlot.StartTime} - {o.Item2.PreferredTimeSlot.EndTime}");
+				throw new InvalidOperationException($"Time slot overlaps detected: {string.Join(", ", overlapDescriptions)}");
+			}
+
+			existingTourTimestamp.Title = string.IsNullOrWhiteSpace(tourTimeStampRequest.Title) ? existingTourTimestamp.Title : tourTimeStampRequest.Title;
+			existingTourTimestamp.Description = string.IsNullOrWhiteSpace(tourTimeStampRequest.Description) ? existingTourTimestamp.Description : tourTimeStampRequest.Description;
 			existingTourTimestamp.PreferredTimeSlot = tourTimestamp.PreferredTimeSlot;
 			existingTourTimestamp.LastUpdatedBy = user.UserName;
 			existingTourTimestamp.LastUpdatedDate = DateTime.Now;
@@ -131,32 +189,32 @@ namespace PRN231.ExploreNow.Repositories.Repositories.Repositories
 			return user;
 		}
 
-		// Check for time overlap
-		private async Task<bool> IsTimeOverlapping(Guid tourId, TimeSpan startTime, TimeSpan endTime)
+		// Check if a tour exists
+		private async Task<bool> TourExistsAsync(Guid tourId)
 		{
-			var existingTimestamps = await GetQueryable(t => t.TourId == tourId && !t.IsDeleted).ToListAsync();
+			return await _context.Tours.AnyAsync(t => t.Id == tourId && !t.IsDeleted);
+		}
 
-			foreach (var existing in existingTimestamps)
+		// Check for time overlap
+		private List<(TourTimestamp, TourTimestamp)> FindOverlaps(List<TourTimestamp> timestamps)
+		{
+			var overlaps = new List<(TourTimestamp, TourTimestamp)>();
+			for (int i = 0; i < timestamps.Count; i++)
 			{
-				if (existing.PreferredTimeSlot.StartTime < endTime &&
-					existing.PreferredTimeSlot.EndTime > startTime)
+				for (int j = i + 1; j < timestamps.Count; j++)
 				{
-					return true; // Overlapping found
+					if (IsTimeOverlapping(timestamps[i].PreferredTimeSlot, timestamps[j].PreferredTimeSlot))
+					{
+						overlaps.Add((timestamps[i], timestamps[j]));
+					}
 				}
 			}
-
-			return false; // No overlap
+			return overlaps;
 		}
 
 		private bool IsTimeOverlapping(TimeSlot slot1, TimeSlot slot2)
 		{
 			return slot1.StartTime < slot2.EndTime && slot2.StartTime < slot1.EndTime;
-		}
-
-		private async Task<List<TourTimestamp>> GetExistingTimestampsForTour(Guid tourId)
-		{
-			return await GetQueryable(t => t.TourId == tourId && !t.IsDeleted)
-				.ToListAsync();
 		}
 	}
 }

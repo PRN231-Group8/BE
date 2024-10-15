@@ -12,8 +12,9 @@ namespace PRN231.ExploreNow.BusinessObject.Configs.Mapping
 			CreateMap<TourTimestamp, TourTimeStampResponse>().ReverseMap()
 				.ForMember(dest => dest.PreferredTimeSlot, opt => opt.MapFrom(src => src.PreferredTimeSlot));
 
-			CreateMap<TourTimeStampRequest, TourTimestamp>().ReverseMap()
+			CreateMap<TourTimeStampRequest, TourTimestamp>()
 				.ForMember(dest => dest.PreferredTimeSlot, opt => opt.MapFrom(src => src.PreferredTimeSlot));
+			CreateMap<TourTimestamp, TourTimeStampRequest>();
 		}
 	}
 }
