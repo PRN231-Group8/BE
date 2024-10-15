@@ -188,18 +188,6 @@ namespace PRN231.ExploreNow.API.Controllers
 			}
 		}
 
-		[HttpDelete("ClearAll")]
-		public async Task<IActionResult> DeleteAll()
-		{
-			await _cacheService.ClearAsync();
-			return Ok(new BaseResponse<bool>
-			{
-				IsSucceed = true,
-				Result = true,
-				Message = "All cache cleared successfully."
-			});
-		}
-
 		private Task<bool> Save(IEnumerable<PostsResponse> posts, string cacheKey = "Posts", double expireAfterSeconds = 300)
 		{
 			// Set expiration time for the cache (default is 5 minutes)

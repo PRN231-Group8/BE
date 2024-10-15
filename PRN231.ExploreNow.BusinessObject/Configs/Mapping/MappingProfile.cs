@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using PRN231.ExploreNow.BusinessObject.Entities;
-using PRN231.ExploreNow.BusinessObject.Enums;
 using PRN231.ExploreNow.BusinessObject.Models.Request;
 using PRN231.ExploreNow.BusinessObject.Models.Response;
 
@@ -17,8 +16,6 @@ namespace PRN231.ExploreNow.BusinessObject.Configs.Mapping
 
 			// Mapping between PostsRequest and Posts
 			CreateMap<PostsRequest, Posts>()
-				//.ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status ?? PostsStatus.Pending))
-				//.ForMember(dest => dest.Content, opt => opt.MapFrom(src => src.Content))
 				.ForMember(dest => dest.Comments, opt => opt.Ignore()) // Assuming comments are handled separately
 				.ForMember(dest => dest.Photos, opt => opt.Ignore());  // Same for photos
 			CreateMap<Posts, PostsRequest>();

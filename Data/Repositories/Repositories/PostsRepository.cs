@@ -62,6 +62,11 @@ namespace PRN231.ExploreNow.Repositories.Repositories.Repositories
 							.Include(p => p.User)
 							.FirstOrDefaultAsync();
 
+			if (post == null)
+			{
+				throw new InvalidOperationException($"Posts with ID {postsId} not found or has been deleted.");
+			}
+
 			return post == null ? null : _mapper.Map<PostsResponse>(post);
 		}
 
