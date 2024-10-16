@@ -27,7 +27,7 @@ namespace PRN231.ExploreNow.Services.Services
         public async Task Add(TourRequestModel tour)
         {
             var _tour = MapToTour(tour);
-            await _iUnitOfWork.TourRepository.CreateAsync(_tour);
+            await _iUnitOfWork.GetRepositoryByEntity<Tour>().AddAsync(_tour);
         }
 
         public async Task Delete(Guid id)
@@ -40,21 +40,21 @@ namespace PRN231.ExploreNow.Services.Services
             return await _iUnitOfWork.GetRepositoryByEntity<Tour>().GetAll();
         }
 
+        public async Task<Tour> GetById(Guid id)
+        {
+            return await _iUnitOfWork.GetRepositoryByEntity<Tour>().GetById(id);
+        }
+
         public async Task<List<Tour>> GetToursAsync(int page, int pageSize, BookingStatus? sortByStatus, string? searchTerm)
         {
             return await _iUnitOfWork.TourRepository.GetToursAsync(page, pageSize, sortByStatus, searchTerm);
         }
 
-        public async Task<TourResponse> UpdateAsync(TourRequestModel tour, Guid id)
+        public async Task UpdateAsync(TourRequestModel tour, Guid id)
         {
             var _tour = MapToTour(tour);
             _tour.Id = id;
-            return await _iUnitOfWork.TourRepository.UpdateTourAsync(_tour);
-        }
-
-        async Task<TourResponse> ITourService.GetById(Guid id)
-        {
-            return await _iUnitOfWork.TourRepository.GetByIdAsync(id);
+            await _iUnitOfWork.GetRepositoryByEntity<Tour>().UpdateAsync(_tour);
         }
 
         private Tour MapToTour(TourRequestModel tour)

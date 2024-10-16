@@ -110,8 +110,8 @@ namespace PRN231.ExploreNow.API.Controllers
 
                 if (ValidateResult.IsValid)
                 {
-                    var tour = await _tourService.UpdateAsync(model, id);
-                    return Ok(new BaseResponse<object> { IsSucceed = true, Result = tour, Message = "Succesfully" });
+                    await _tourService.UpdateAsync(model, id);
+                    return Ok(new BaseResponse<object> { IsSucceed = true, Result = model, Message = "Succesfully" });
                 }
 
                 var error = ValidateResult.Errors.Select(e => (object)new

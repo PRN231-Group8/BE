@@ -13,11 +13,5 @@ namespace PRN231.ExploreNow.Repositories.Repositories.Interfaces
     public interface ITourRepository : IBaseRepository<Tour>
     {
         Task<List<Tour>> GetToursAsync(int page, int pageSize, BookingStatus? sortByStatus, string? searchTerm);
-
-        Task<TourResponse> CreateAsync(Tour tour);
-
-        Task<TourResponse> GetByIdAsync(Guid id);
-
-        Task<TourResponse> UpdateTourAsync(Tour tour);
     }
 }

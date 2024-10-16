@@ -17,20 +17,6 @@ namespace PRN231.ExploreNow.Repositories.Repositories
             _dbContext = dbContext;
         }
 
-        public async Task<TourResponse> CreateAsync(Tour tour)
-        {
-            Add(tour);
-            await _dbContext.SaveChangesAsync();
-            return MapToDto(tour);
-        }
-
-        public async Task<TourResponse> GetByIdAsync(Guid id)
-        {
-            var tour = await GetQueryable(t => t.Id == id && !t.IsDeleted)
-                                .FirstOrDefaultAsync();
-            return tour == null ? null : MapToDto(tour);
-        }
-
         public async Task<List<Tour>> GetToursAsync(int page, int pageSize, BookingStatus? sortByStatus, string? searchTerm)
         {
             var query = GetQueryable()
@@ -47,46 +33,6 @@ namespace PRN231.ExploreNow.Repositories.Repositories
                                        .Take(pageSize)
                                        .ToListAsync();
             return tours.ToList();
-        }
-
-        async Task<TourResponse> ITourRepository.UpdateTourAsync(Tour tour)
-        {
-            var _tour = await GetQueryable(t => t.Id == tour.Id && !t.IsDeleted)
-                .FirstOrDefaultAsync();
-            if (_tour == null)
-            {
-                return null;
-            }
-            UpdateTourProperties(_tour, tour);
-            Update(_tour);
-            await _dbContext.SaveChangesAsync();
-            return MapToDto(_tour);
-        }
-
-        private void UpdateTourProperties(Tour oldTour, Tour newTour)
-        {
-            oldTour.Code = newTour.Code;
-            oldTour.StartDate = newTour.StartDate;
-            oldTour.EndDate = newTour.EndDate;
-            oldTour.TotalPrice = newTour.TotalPrice;
-            oldTour.Status = newTour.Status;
-            oldTour.Title = newTour.Title;
-            oldTour.Description = newTour.Description;
-        }
-
-        private TourResponse MapToDto(Tour tour)
-        {
-            return new TourResponse
-            {
-                Id = tour.Id,
-                Code = tour.Code,
-                StartDate = tour.StartDate,
-                EndDate = tour.EndDate,
-                TotalPrice = tour.TotalPrice,
-                Status = tour.Status,
-                Title = tour.Title,
-                Description = tour.Description
-            };
         }
     }
 }
