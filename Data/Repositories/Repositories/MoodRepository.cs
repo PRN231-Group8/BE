@@ -25,13 +25,7 @@ namespace PRN231.ExploreNow.Repositories.Repositories.Repositories
             _context = dbContext;
             _contextAccessor = contextAccessor;
             _userManager = userManager;
-        }
 
-        public async Task<MoodResponse> CreateAsync(Moods mood)
-        {
-            Add(mood);
-            await _context.SaveChangesAsync();
-            return MapToResponse(mood);
         }
 
         public async Task<List<Moods>> GetAllAsync(int page, int pageSize, string? searchTerm)
@@ -47,31 +41,5 @@ namespace PRN231.ExploreNow.Repositories.Repositories.Repositories
                                        .ToListAsync();
             return moods.ToList();
         }
-
-        public async Task<MoodResponse> GetByIdAsync(Guid id)
-        {
-            var mood = await GetQueryable(m => m.Id == id && !m.IsDeleted)
-                                .Include(m => m.TourMoods)
-                                .FirstOrDefaultAsync();
-            return mood == null ? null : MapToResponse(mood);
-        }
-
-        private MoodResponse MapToResponse (Moods mood)
-        {
-            return new MoodResponse
-            {
-                Id = mood.Id,
-                MoodTag = mood.MoodTag,
-                TourMoods = mood.TourMoods
-                .Where(m => !m.IsDeleted)
-                .Select(m => new TourMood
-                {
-                    Id = m.Id,
-                    Tour = m.Tour,
-                }).ToList()
-            };
-        }
-
-        private string GenerateUniqueCode() => Guid.NewGuid().ToString("N").Substring(0, 10).ToUpper();
     }
 }
