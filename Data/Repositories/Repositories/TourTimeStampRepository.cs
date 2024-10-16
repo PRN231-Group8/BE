@@ -149,7 +149,7 @@ namespace PRN231.ExploreNow.Repositories.Repositories.Repositories
 
 			// Get all other timestamps for the same tour
 			var allTimestamps = await GetQueryable(tt => tt.TourId == existingTourTimestamp.TourId && tt.Id != existingTourTimestamp.Id && !tt.IsDeleted)
-										.ToListAsync();
+									 .ToListAsync();
 
 			// Add the updated timestamp to the list for overlap check
 			allTimestamps.Add(tourTimestamp);
