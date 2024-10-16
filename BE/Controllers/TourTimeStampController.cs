@@ -34,31 +34,48 @@ namespace PRN231.ExploreNow.API.Controllers
 		{
 			try
 			{
-				// Create a unique cache key based on query parameters
-				var cacheKey = $"TourTimeStamps_{page}_{pageSize}_{sortByTime}_{searchTerm}";
-
 				// Attempt to retrieve data from Redis cache
-				var cacheData = GetKeyValues(cacheKey);
+				var cacheData = GetKeyValues();
+				List<TourTimeStampResponse> result;
 
-				// If data is found in cache, return it immediately
-				if (cacheData.Any()) return Ok(new BaseResponse<List<TourTimeStampResponse>>
+				// If data is found in cache, filter and return it
+				if (cacheData.Count > 0)
 				{
-					IsSucceed = true,
-					Result = cacheData.Values.ToList(),
-					Message = "Tour timestamps retrieved from cache successfully."
-				});
+					var filteredData = cacheData.Values.AsQueryable();
 
-				// If not in cache, query from TourTimeStampService
-				var tourTimeStamps = await _tourTimeStampService.GetAllTourTimeStampAsync(page, pageSize, sortByTime, searchTerm);
+					if (!string.IsNullOrEmpty(searchTerm))
+					{
+						filteredData = filteredData.Where(t => t.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+					}
 
-				// Save the result to cache for future requests
-				await Save(tourTimeStamps, cacheKey).ConfigureAwait(false);
+					if (sortByTime.HasValue)
+					{
+						filteredData = filteredData.OrderBy(t => Math.Abs((t.PreferredTimeSlot.StartTime - sortByTime.Value).TotalMinutes));
+					}
+					else
+					{
+						filteredData = filteredData.OrderBy(t => t.PreferredTimeSlot.StartTime);
+					}
+
+					result = filteredData
+						.Skip((page - 1) * pageSize)
+						.Take(pageSize)
+						.ToList();
+				}
+				else
+				{
+					// If not in cache, query from TourTimeStampService
+					result = await _tourTimeStampService.GetAllTourTimeStampAsync(page, pageSize, sortByTime, searchTerm);
+
+					// Save the result to cache for future requests
+					await Save(result).ConfigureAwait(false);
+				}
 
 				return Ok(new BaseResponse<TourTimeStampResponse>
 				{
 					IsSucceed = true,
-					Results = tourTimeStamps,
-					Message = "Tour timestamps retrieved successfully."
+					Results = result,
+					Message = result.Count > 0 ? "Tour timestamps retrieved successfully." : "No tour timestamps found."
 				});
 			}
 			catch (Exception ex)
@@ -76,11 +93,8 @@ namespace PRN231.ExploreNow.API.Controllers
 		{
 			try
 			{
-				// Create a cache key for the specific post
-				var cacheKey = $"TourTimeStamps_{id}";
-
 				// Attempt to retrieve data from Redis cache
-				var cacheData = GetKeyValues(cacheKey);
+				var cacheData = GetKeyValues();
 
 				// If the post is found in cache, return it immediately
 				if (cacheData.TryGetValue(id, out var cachedTourtimestamp))
@@ -95,9 +109,17 @@ namespace PRN231.ExploreNow.API.Controllers
 
 				// If not in cache, query from TourTimeStampService
 				var tourTimeStamp = await _tourTimeStampService.GetTourTimeStampByIdAsync(id);
+				if (tourTimeStamp == null)
+				{
+					return NotFound(new BaseResponse<TourTimeStampResponse>
+					{
+						IsSucceed = false,
+						Message = $"TourTimestamp with ID {id} not found or has been deleted."
+					});
+				}
 
 				// Save the result to cache for future requests
-				await Save(new List<TourTimeStampResponse> { tourTimeStamp }, cacheKey).ConfigureAwait(false);
+				await Save(new List<TourTimeStampResponse> { tourTimeStamp }).ConfigureAwait(false);
 
 				return Ok(new BaseResponse<object>
 				{
@@ -116,8 +138,8 @@ namespace PRN231.ExploreNow.API.Controllers
 			}
 		}
 
-		[HttpPost]
-		public async Task<IActionResult> CreateMultipleTourTimeStamps([FromBody] List<TourTimeStampRequest> requests)
+		[HttpPost("{durationMinutes}")]
+		public async Task<IActionResult> CreateMultipleTourTimeStamps([FromBody] List<TourTimeStampRequest> requests, int durationMinutes)
 		{
 			try
 			{
@@ -136,6 +158,14 @@ namespace PRN231.ExploreNow.API.Controllers
 				}
 
 				var results = await _tourTimeStampService.CreateMultipleTourTimeStampsAsync(requests);
+
+				var cacheData = GetKeyValues();
+				foreach (var result in results)
+				{
+					cacheData[result.Id] = result;
+				}
+				await Save(cacheData.Values, durationMinutes).ConfigureAwait(false);
+
 				return CreatedAtAction(nameof(GetAllTourTimeStamps), new BaseResponse<TourTimeStampResponse>
 				{
 					IsSucceed = true,
@@ -173,7 +203,7 @@ namespace PRN231.ExploreNow.API.Controllers
 				var updatedTourTimeStamp = await _tourTimeStampService.UpdateTourTimeStampAsync(id, request);
 
 				// Update the cache with the new post data
-				var cacheData = GetKeyValues("TourTimeStamps");
+				var cacheData = GetKeyValues();
 				cacheData[id] = updatedTourTimeStamp;
 				await Save(cacheData.Values).ConfigureAwait(false);
 
@@ -202,7 +232,7 @@ namespace PRN231.ExploreNow.API.Controllers
 				var result = await _tourTimeStampService.DeleteAsync(id);
 
 				// Remove the post from the list cache
-				var cacheData = GetKeyValues("TourTimeStamps");
+				var cacheData = GetKeyValues();
 				cacheData.Remove(id);
 				await Save(cacheData.Values).ConfigureAwait(false);
 
@@ -223,19 +253,19 @@ namespace PRN231.ExploreNow.API.Controllers
 			}
 		}
 
-		private Task<bool> Save(IEnumerable<TourTimeStampResponse> tourTimeStamps, string cacheKey = "TourTimeStamps", double expireAfterSeconds = 300)
+		private Task<bool> Save(IEnumerable<TourTimeStampResponse> tourTimeStamps, double expireAfterSeconds = 30)
 		{
-			// Set expiration time for the cache (default is 5 minutes)
+			// Set expiration time for the cache (default is 30 seconds)
 			var expirationTime = DateTimeOffset.Now.AddSeconds(expireAfterSeconds);
 
 			// Save data to Redis cache
-			return _cacheService.AddOrUpdateAsync(cacheKey, tourTimeStamps, expirationTime);
+			return _cacheService.AddOrUpdateAsync(nameof(TourTimeStampResponse), tourTimeStamps, expirationTime);
 		}
 
-		private Dictionary<Guid, TourTimeStampResponse> GetKeyValues(string cacheKey = "TourTimeStamps")
+		private Dictionary<Guid, TourTimeStampResponse> GetKeyValues()
 		{
 			// Attempt to retrieve data from Redis cache
-			var data = _cacheService.Get<IEnumerable<TourTimeStampResponse>>(cacheKey);
+			var data = _cacheService.Get<IEnumerable<TourTimeStampResponse>>(nameof(TourTimeStampResponse));
 
 			// Convert data to Dictionary or return empty Dictionary if no data
 			return data?.ToDictionary(key => key.Id, val => val) ?? new Dictionary<Guid, TourTimeStampResponse>();

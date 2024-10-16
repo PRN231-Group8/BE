@@ -40,26 +40,32 @@ namespace PRN231.ExploreNow.Repositories.Repositories.Repositories
 					tt.Description.Contains(searchTerm));
 			}
 
-			if (sortByTime.HasValue)
-			{
-				query = query.OrderBy(tt => Math.Abs((tt.PreferredTimeSlot.StartTime - sortByTime.Value).TotalMinutes));
-			}
-			else
-			{
-				query = query.OrderBy(tt => tt.PreferredTimeSlot.StartTime);
-			}
-
 			var tourTimestamps = await query.Skip((page - 1) * pageSize)
 											.Take(pageSize)
 											.ToListAsync();
+
+			// If sortByTime is provided, sort by the absolute difference between start time and sortByTime
+			// If the request you send is 12:00:00, the function will return the times before and after and the closest distance, the function will take that value.
+			if (sortByTime.HasValue)
+			{
+				// Sort the tour list based on the difference between each tour's start time and sortByTime
+				tourTimestamps = tourTimestamps
+								 .OrderBy(tt => Math.Abs((tt.PreferredTimeSlot.StartTime - sortByTime.Value).TotalMinutes))
+								 .ToList();
+			}
+			else
+			{
+				// Without sortByTime, sort by starting time in ascending order
+				tourTimestamps = tourTimestamps
+								 .OrderBy(tt => tt.PreferredTimeSlot.StartTime)
+								 .ToList();
+			}
 
 			return _mapper.Map<List<TourTimeStampResponse>>(tourTimestamps);
 		}
 
 		public async Task<TourTimeStampResponse> GetByIdAsync(Guid id)
 		{
-			var user = await GetAuthenticatedUserAsync();
-
 			var tourtimestamps = await GetQueryable(l => l.Id == id && !l.IsDeleted && !l.Tour.IsDeleted)
 									  .Include(t => t.Tour)
 									  .FirstOrDefaultAsync();
@@ -76,12 +82,10 @@ namespace PRN231.ExploreNow.Repositories.Repositories.Repositories
 		{
 			var user = await GetAuthenticatedUserAsync();
 
-			if (tourTimestamps == null || !tourTimestamps.Any())
+			if (tourTimestamps == null || tourTimestamps.Count == 0)
 			{
 				throw new ArgumentException("The list of tour timestamps is empty or null.");
 			}
-
-			var today = DateTime.Today;
 
 			// Group timestamps by TourId
 			var groupedTimestamps = tourTimestamps.GroupBy(t => t.TourId);
@@ -105,7 +109,7 @@ namespace PRN231.ExploreNow.Repositories.Repositories.Repositories
 				var allTimestamps = existingTimestamps.Concat(timestampsForTour).ToList();
 
 				var overlaps = FindOverlaps(allTimestamps);
-				if (overlaps.Any())
+				if (overlaps.Count > 0)
 				{
 					var overlapDescriptions = overlaps.Select(o =>
 						$"Overlap detected: {o.Item1.PreferredTimeSlot.StartTime} - {o.Item1.PreferredTimeSlot.EndTime} conflicts with {o.Item2.PreferredTimeSlot.StartTime} - {o.Item2.PreferredTimeSlot.EndTime}");
@@ -156,7 +160,7 @@ namespace PRN231.ExploreNow.Repositories.Repositories.Repositories
 
 			// Check for overlaps
 			var overlaps = FindOverlaps(allTimestamps);
-			if (overlaps.Any())
+			if (overlaps.Count > 0)
 			{
 				var overlapDescriptions = overlaps.Select(o =>
 					$"Overlap detected: {o.Item1.PreferredTimeSlot.StartTime} - {o.Item1.PreferredTimeSlot.EndTime} conflicts with {o.Item2.PreferredTimeSlot.StartTime} - {o.Item2.PreferredTimeSlot.EndTime}");
@@ -169,14 +173,14 @@ namespace PRN231.ExploreNow.Repositories.Repositories.Repositories
 			existingTourTimestamp.LastUpdatedBy = user.UserName;
 			existingTourTimestamp.LastUpdatedDate = DateTime.Now;
 
-			Update(existingTourTimestamp);
+			await UpdateAsync(existingTourTimestamp);
 			await _context.SaveChangesAsync();
 
 			return _mapper.Map<TourTimeStampResponse>(existingTourTimestamp);
 		}
 
 		// Generate random Code
-		private string GenerateUniqueCode() => Guid.NewGuid().ToString("N").Substring(0, 10).ToUpper();
+		private static string GenerateUniqueCode() => Guid.NewGuid().ToString("N").Substring(0, 10).ToUpper();
 
 		// Check the user is authenticated
 		private async Task<ApplicationUser> GetAuthenticatedUserAsync()
@@ -196,7 +200,7 @@ namespace PRN231.ExploreNow.Repositories.Repositories.Repositories
 		}
 
 		// Check for time overlap
-		private List<(TourTimestamp, TourTimestamp)> FindOverlaps(List<TourTimestamp> timestamps)
+		private static List<(TourTimestamp, TourTimestamp)> FindOverlaps(List<TourTimestamp> timestamps)
 		{
 			var overlaps = new List<(TourTimestamp, TourTimestamp)>();
 			for (int i = 0; i < timestamps.Count; i++)
@@ -212,7 +216,7 @@ namespace PRN231.ExploreNow.Repositories.Repositories.Repositories
 			return overlaps;
 		}
 
-		private bool IsTimeOverlapping(TimeSlot slot1, TimeSlot slot2)
+		private static bool IsTimeOverlapping(TimeSlot slot1, TimeSlot slot2)
 		{
 			return slot1.StartTime < slot2.EndTime && slot2.StartTime < slot1.EndTime;
 		}

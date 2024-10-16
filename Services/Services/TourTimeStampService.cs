@@ -1,6 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using PRN231.ExploreNow.BusinessObject.Entities;
 using PRN231.ExploreNow.BusinessObject.Models.Request;
 using PRN231.ExploreNow.BusinessObject.Models.Response;
@@ -13,14 +11,10 @@ namespace PRN231.ExploreNow.Services.Services
 	{
 		private readonly IUnitOfWork _unitOfWork;
 		private readonly IMapper _mapper;
-		private readonly IHttpContextAccessor _httpContextAccessor;
-		private readonly UserManager<ApplicationUser> _userManager;
 
-		public TourTimeStampService(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor, UserManager<ApplicationUser> userManager, IMapper mapper)
+		public TourTimeStampService(IUnitOfWork unitOfWork, IMapper mapper)
 		{
 			_unitOfWork = unitOfWork;
-			_httpContextAccessor = httpContextAccessor;
-			_userManager = userManager;
 			_mapper = mapper;
 		}
 
@@ -66,6 +60,6 @@ namespace PRN231.ExploreNow.Services.Services
 		}
 
 		// Generate random Code
-		private string GenerateUniqueCode() => Guid.NewGuid().ToString("N").Substring(0, 10).ToUpper();
+		private static string GenerateUniqueCode() => Guid.NewGuid().ToString("N").Substring(0, 10).ToUpper();
 	}
 }
