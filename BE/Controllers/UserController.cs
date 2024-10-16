@@ -71,7 +71,7 @@ namespace PRN231.ExploreNow.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new BaseResponse<object> { IsSucceed = false, Result = ex.Message, Message = "There is something wrong" }); return BadRequest(ex.Message);
             }
         }
     }
