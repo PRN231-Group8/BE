@@ -81,16 +81,16 @@ namespace PRN231.ExploreNow.API.Controllers
                 if (ValidateResult.IsValid)
                 {
                     await _tourService.Add(model);
-                    return Ok(new BaseResponse<object> { IsSucceed = true, Result = model, Message = "Created successfully" });
+                    return Ok(new BaseResponse<object> { IsSucceed = true, Message = "Created successfully" });
                 }
-                var errors = ValidateResult.Errors.Select(e => (object)new
+                var errors = ValidateResult.Errors.Select(e => (object) new
                 {
                     e.PropertyName,
                     e.ErrorMessage
                 }).ToList();
                 return BadRequest(new BaseResponse<object>
                 {
-                    IsSucceed = true,
+                    IsSucceed = false,
                     Results = errors
                 });
             }
@@ -111,7 +111,7 @@ namespace PRN231.ExploreNow.API.Controllers
                 if (ValidateResult.IsValid)
                 {
                     await _tourService.UpdateAsync(model, id);
-                    return Ok(new BaseResponse<object> { IsSucceed = true, Result = model, Message = "Succesfully" });
+                    return Ok(new BaseResponse<object> { IsSucceed = true, Message = "Succesfully" });
                 }
 
                 var error = ValidateResult.Errors.Select(e => (object)new

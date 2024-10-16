@@ -28,6 +28,7 @@ namespace PRN231.ExploreNow.Services.Services
         {
             var _tour = MapToTour(tour);
             await _iUnitOfWork.GetRepositoryByEntity<Tour>().AddAsync(_tour);
+            await _iUnitOfWork.SaveChangesAsync();
         }
 
         public async Task Delete(Guid id)
@@ -55,6 +56,7 @@ namespace PRN231.ExploreNow.Services.Services
             var _tour = MapToTour(tour);
             _tour.Id = id;
             await _iUnitOfWork.GetRepositoryByEntity<Tour>().UpdateAsync(_tour);
+            await _iUnitOfWork.SaveChangesAsync();
         }
 
         private Tour MapToTour(TourRequestModel tour)
