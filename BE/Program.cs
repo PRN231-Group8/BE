@@ -16,8 +16,8 @@ using PRN231.ExploreNow.BusinessObject.Entities;
 using PRN231.ExploreNow.BusinessObject.Models.Request;
 using PRN231.ExploreNow.BusinessObject.Utilities;
 using PRN231.ExploreNow.Repositories.Context;
+using PRN231.ExploreNow.Repositories.Repositories.Interfaces;
 using PRN231.ExploreNow.Repositories.Repositories;
-using PRN231.ExploreNow.Repositories.Repositories.Interface;
 using PRN231.ExploreNow.Repositories.UnitOfWorks;
 using PRN231.ExploreNow.Repositories.UnitOfWorks.Interfaces;
 using PRN231.ExploreNow.Services.Interfaces;
@@ -25,6 +25,10 @@ using PRN231.ExploreNow.Services.Services;
 using StackExchange.Redis;
 using PRN231.ExploreNow.Validations;
 using PRN231.ExploreNow.Validations.Interface;
+using PRN231.ExploreNow.Validations.Tour;
+using PRN231.ExploreNow.Repositories.Repositories.Interface;
+using PRN231.ExploreNow.Validations.User;
+using PRN231.ExploreNow.Validations.Profile;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Extensions.AspNetCore.Configuration.Secrets;
@@ -240,6 +244,11 @@ builder.Services.AddCors(p =>
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<ITourRepository, TourRepository>();
+builder.Services.AddScoped<ITourService, TourService>();
+builder.Services.AddScoped<TourValidation>();
+builder.Services.AddScoped<ProfileValidation>();
 
 var app = builder.Build();
 
