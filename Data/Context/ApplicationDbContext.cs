@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PRN231.ExploreNow.BusinessObject.Entities;
+using PRN231.ExploreNow.BusinessObject.Enums;
 
 namespace PRN231.ExploreNow.Repositories.Context;
 
@@ -69,6 +71,26 @@ public class ApplicationDbContext : BaseDbContext
 			.HasForeignKey(lit => lit.TourId)
 			.OnDelete(DeleteBehavior.Cascade);  // Define cascade delete behavior
 
+		// Configure TourTimeStamp relationship 
+		modelBuilder.Entity<TourTimestamp>(entity =>
+		{
+			entity.OwnsOne(ar => ar.PreferredTimeSlot, ts =>
+			{
+				ts.Property(p => p.StartTime).HasColumnName("PreferredStartTime");
+				ts.Property(p => p.EndTime).HasColumnName("PreferredEndTime");
+			});
+
+			entity.HasOne(tt => tt.Tour)
+				.WithMany(t => t.TourTimestamps)
+				.HasForeignKey(tt => tt.TourId)
+				.OnDelete(DeleteBehavior.Cascade);
+
+			entity.HasOne(tt => tt.Location)
+			   .WithMany(l => l.TourTimestamps)
+			   .HasForeignKey(tt => tt.LocationId)
+			   .OnDelete(DeleteBehavior.Cascade);
+		});
+
 		modelBuilder.Entity<TourMood>()
 		.HasKey(tm => new { tm.TourId, tm.MoodId });
 
@@ -81,6 +103,10 @@ public class ApplicationDbContext : BaseDbContext
 			.HasOne(tm => tm.Mood)
 			.WithMany(m => m.TourMoods)
 			.HasForeignKey(tm => tm.MoodId);
+
+		modelBuilder.Entity<Tour>()
+			.Property(d => d.Status)
+			.HasConversion(new EnumToStringConverter<BookingStatus>());
 
 		// Configure Posts relationship 
 		modelBuilder.Entity<Posts>(entity =>
@@ -98,7 +124,7 @@ public class ApplicationDbContext : BaseDbContext
 			entity.HasOne(p => p.User)
 				  .WithMany(u => u.Posts)
 				  .HasForeignKey(p => p.UserId)
-				  .OnDelete(DeleteBehavior.Cascade); 
+				  .OnDelete(DeleteBehavior.Cascade);
 
 			// Configure enums Status
 			entity.Property(ar => ar.Status)
@@ -115,6 +141,5 @@ public class ApplicationDbContext : BaseDbContext
 				  .HasForeignKey(c => c.PostId)
 				  .OnDelete(DeleteBehavior.Cascade);
 		});
-
 	}
 }

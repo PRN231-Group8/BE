@@ -16,8 +16,8 @@ using PRN231.ExploreNow.BusinessObject.Entities;
 using PRN231.ExploreNow.BusinessObject.Models.Request;
 using PRN231.ExploreNow.BusinessObject.Utilities;
 using PRN231.ExploreNow.Repositories.Context;
+using PRN231.ExploreNow.Repositories.Repositories.Interfaces;
 using PRN231.ExploreNow.Repositories.Repositories;
-using PRN231.ExploreNow.Repositories.Repositories.Interface;
 using PRN231.ExploreNow.Repositories.UnitOfWorks;
 using PRN231.ExploreNow.Repositories.UnitOfWorks.Interfaces;
 using PRN231.ExploreNow.Services.Interfaces;
@@ -25,12 +25,17 @@ using PRN231.ExploreNow.Services.Services;
 using StackExchange.Redis;
 using PRN231.ExploreNow.Validations;
 using PRN231.ExploreNow.Validations.Interface;
-using PRN231.ExploreNow.Validations.Posts;
+using PRN231.ExploreNow.Validations.Tour;
+using PRN231.ExploreNow.Repositories.Repositories.Interface;
+using PRN231.ExploreNow.Validations.User;
+using PRN231.ExploreNow.Validations.Profile;
 using PRN231.ExploreNow.Repositories.Repositories.Interfaces;
 using PRN231.ExploreNow.Repositories.Repositories.Repositories;
-using System.Text.Json.Serialization;
+using PRN231.ExploreNow.Validations.TourTimeStamp;
 using Microsoft.OpenApi.Any;
+using System.Text.Json.Serialization;
 using PRN231.ExploreNow.BusinessObject.OtherObjects;
+using PRN231.ExploreNow.Validations.Posts;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Extensions.AspNetCore.Configuration.Secrets;
@@ -123,6 +128,10 @@ builder.Services.AddScoped<TokenGenerator>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmailVerify, EmailVerify>();
+builder.Services.AddScoped<ITourTimeStampRepository, TourTimeStampRepository>();
+builder.Services.AddScoped<ITourTimeStampService, TourTimeStampService>();
+builder.Services.AddScoped<ITourRepository, TourRepository>();
+builder.Services.AddScoped<ITourService, TourService>();
 builder.Services.AddScoped<IPostsService, PostsService>();
 builder.Services.AddScoped<IPostsRepository, PostsRepository>();
 #endregion
@@ -130,8 +139,11 @@ builder.Services.AddScoped<IPostsRepository, PostsRepository>();
 #region Configure FluentValidator
 builder.Services.AddScoped<IValidator<LocationsRequest>, LocationRequestValidator>();
 builder.Services.AddScoped<IValidator<PhotoRequest>, PhotoRequestValidator>();
-builder.Services.AddScoped<IValidator<PostsRequest>, PostsRequestValidator>();
+builder.Services.AddScoped<IValidator<TourTimeStampRequest>, TourTimeStampValidator>();
 builder.Services.AddScoped<ITokenValidator, TokenValidator>();
+builder.Services.AddScoped<TourValidation>();
+builder.Services.AddScoped<ProfileValidation>();
+builder.Services.AddScoped<IValidator<PostsRequest>, PostsRequestValidator>();
 #endregion
 
 #region Configure AutoMapper
@@ -230,21 +242,6 @@ builder.Services.AddSwaggerGen(options =>
 		Example = new OpenApiString("00:00:00")
 	});
 });
-
-builder.Services.AddControllers()
-	.AddJsonOptions(options =>
-	{
-		options.JsonSerializerOptions.ReferenceHandler = System
-			.Text
-			.Json
-			.Serialization
-			.ReferenceHandler
-			.IgnoreCycles;
-		options.JsonSerializerOptions.MaxDepth = 32;
-		options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-		options.JsonSerializerOptions.Converters.Add(new TimeSpanConverter());
-		options.JsonSerializerOptions.Converters.Add(new PostsStatusConverter());
-	});
 #endregion
 
 //builder.Services.AddCors(options =>
@@ -273,7 +270,21 @@ builder.Services.AddCors(p =>
 );
 #endregion
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+	.AddJsonOptions(options =>
+	{
+		options.JsonSerializerOptions.ReferenceHandler = System
+			.Text
+			.Json
+			.Serialization
+			.ReferenceHandler
+			.IgnoreCycles;
+		options.JsonSerializerOptions.MaxDepth = 32;
+		options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+		options.JsonSerializerOptions.Converters.Add(new TimeSpanConverter());
+		options.JsonSerializerOptions.Converters.Add(new PostsStatusConverter());
+	});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
