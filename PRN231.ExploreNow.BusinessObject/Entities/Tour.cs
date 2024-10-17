@@ -1,4 +1,5 @@
 ﻿using PRN231.ExploreNow.BusinessObject.Enums;
+using PRN231.ExploreNow.BusinessObject.Models.Request;
 
 namespace PRN231.ExploreNow.BusinessObject.Entities;
 

@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PRN231.ExploreNow.BusinessObject.Entities;
+using PRN231.ExploreNow.BusinessObject.Enums;
 
 namespace PRN231.ExploreNow.Repositories.Context;
 
@@ -10,21 +12,21 @@ public class ApplicationDbContext : BaseDbContext
 	{
 	}
 
-	// Define DbSets for all your entities
-	public DbSet<ApplicationUser> Users { get; set; }
-	public DbSet<Comments> Comments { get; set; }
-	public DbSet<Location> Locations { get; set; }
-	public DbSet<LocationInTour> LocationInTours { get; set; }
-	public DbSet<Moods> Moods { get; set; }
-	public DbSet<Photo> Photos { get; set; }
-	public DbSet<Posts> Posts { get; set; }
-	public DbSet<Tour> Tours { get; set; }
-	public DbSet<TourTimestamp> TourTimestamps { get; set; }
-	public DbSet<Transaction> Transactions { get; set; }
-	public DbSet<Transportation> Transportations { get; set; }
-	public DbSet<TourTrip> TourTrips { get; set; }
-	public DbSet<TourMood> TourMoods { get; set; }
-	public DbSet<Payment> Payments { get; set; }
+    // Define DbSets for all your entities
+    public DbSet<ApplicationUser> Users { get; set; }
+    public DbSet<Comments> Comments { get; set; }
+    public DbSet<Location> Locations { get; set; }
+    public DbSet<LocationInTour> LocationInTours { get; set; }
+    public DbSet<Moods> Moods { get; set; }
+    public DbSet<Photo> Photos { get; set; }
+    public DbSet<Posts> Posts { get; set; }
+    public DbSet<Tour> Tours { get; set; }
+    public DbSet<TourTimestamp> TourTimestamps { get; set; }
+    public DbSet<Transaction> Transactions { get; set; }
+    public DbSet<Transportation> Transportations { get; set; }
+    public DbSet<TourTrip> TourTrips { get; set; }
+    public DbSet<TourMood> TourMoods { get; set; }
+    public DbSet<Payment> Payments { get; set; }
 
 	// Configure relationships using Fluent API
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -89,9 +91,13 @@ public class ApplicationDbContext : BaseDbContext
 			.WithMany(t => t.TourMoods)
 			.HasForeignKey(tm => tm.TourId);
 
-		modelBuilder.Entity<TourMood>()
-			.HasOne(tm => tm.Mood)
-			.WithMany(m => m.TourMoods)
-			.HasForeignKey(tm => tm.MoodId);
-	}
+        modelBuilder.Entity<TourMood>()
+            .HasOne(tm => tm.Mood)
+            .WithMany(m => m.TourMoods)
+            .HasForeignKey(tm => tm.MoodId);
+
+        modelBuilder.Entity<Tour>()
+            .Property(d => d.Status)
+            .HasConversion(new EnumToStringConverter<BookingStatus>());
+    }
 }

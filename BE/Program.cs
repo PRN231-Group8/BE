@@ -16,8 +16,8 @@ using PRN231.ExploreNow.BusinessObject.Entities;
 using PRN231.ExploreNow.BusinessObject.Models.Request;
 using PRN231.ExploreNow.BusinessObject.Utilities;
 using PRN231.ExploreNow.Repositories.Context;
+using PRN231.ExploreNow.Repositories.Repositories.Interfaces;
 using PRN231.ExploreNow.Repositories.Repositories;
-using PRN231.ExploreNow.Repositories.Repositories.Interface;
 using PRN231.ExploreNow.Repositories.UnitOfWorks;
 using PRN231.ExploreNow.Repositories.UnitOfWorks.Interfaces;
 using PRN231.ExploreNow.Services.Interfaces;
@@ -25,6 +25,10 @@ using PRN231.ExploreNow.Services.Services;
 using StackExchange.Redis;
 using PRN231.ExploreNow.Validations;
 using PRN231.ExploreNow.Validations.Interface;
+using PRN231.ExploreNow.Validations.Tour;
+using PRN231.ExploreNow.Repositories.Repositories.Interface;
+using PRN231.ExploreNow.Validations.User;
+using PRN231.ExploreNow.Validations.Profile;
 using PRN231.ExploreNow.Repositories.Repositories.Interfaces;
 using PRN231.ExploreNow.Repositories.Repositories.Repositories;
 using PRN231.ExploreNow.Validations.TourTimeStamp;
@@ -126,6 +130,8 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmailVerify, EmailVerify>();
 builder.Services.AddScoped<ITourTimeStampRepository, TourTimeStampRepository>();
 builder.Services.AddScoped<ITourTimeStampService, TourTimeStampService>();
+builder.Services.AddScoped<ITourRepository, TourRepository>();
+builder.Services.AddScoped<ITourService, TourService>();
 #endregion
 
 #region Configure FluentValidator
@@ -133,6 +139,8 @@ builder.Services.AddScoped<IValidator<LocationsRequest>, LocationRequestValidato
 builder.Services.AddScoped<IValidator<PhotoRequest>, PhotoRequestValidator>();
 builder.Services.AddScoped<IValidator<TourTimeStampRequest>, TourTimeStampValidator>();
 builder.Services.AddScoped<ITokenValidator, TokenValidator>();
+builder.Services.AddScoped<TourValidation>();
+builder.Services.AddScoped<ProfileValidation>();
 #endregion
 
 #region Configure AutoMapper
