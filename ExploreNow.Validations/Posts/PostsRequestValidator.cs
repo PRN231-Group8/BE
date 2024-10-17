@@ -8,13 +8,14 @@ namespace PRN231.ExploreNow.Validations.Posts
 		public PostsRequestValidator()
 		{
 			RuleFor(x => x.Content)
+				.NotEmpty().WithMessage("Content is required.")
 				.MaximumLength(200).WithMessage("Content must not exceed 200 characters.");
 
 			// If RemoveAllComments is true, CommentsToRemove must be null.
 			When(x => x.RemoveAllComments == true, () =>
 			{
 				RuleFor(x => x.CommentsToRemove)
-					.Null().WithMessage("CommentsToRemove must be null when RemoveAllComments is true.");
+					.Empty().WithMessage("CommentsToRemove must be null when RemoveAllComments is true.");
 			});
 
 			When(x => x.CommentsToRemove != null && x.CommentsToRemove.Any(), () =>
@@ -31,7 +32,7 @@ namespace PRN231.ExploreNow.Validations.Posts
 			When(x => x.RemoveAllPhotos == true, () =>
 			{
 				RuleFor(x => x.PhotosToRemove)
-					.Null().WithMessage("PhotosToRemove must be null when RemoveAllPhotos is true.");
+					.Empty().WithMessage("PhotosToRemove must be null when RemoveAllPhotos is true.");
 			});
 
 			When(x => x.PhotosToRemove != null && x.PhotosToRemove.Any(), () =>

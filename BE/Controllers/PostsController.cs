@@ -34,36 +34,52 @@ namespace PRN231.ExploreNow.API.Controllers
 		{
 			try
 			{
-				// Create a unique cache key based on query parameters
-				var cacheKey = $"Posts_{sortPostsStatus}_{searchTerm}_{page}_{pageSize}";
-
 				// Attempt to retrieve data from Redis cache
-				var cacheData = GetKeyValues(cacheKey);
+				var cacheData = GetKeyValues();
+				List<PostsResponse> result;
 
-				// If data is found in cache, return it immediately
-				if (cacheData.Any()) return Ok(new BaseResponse<List<PostsResponse>>
+				// If data is found in cache, filter and return it
+				if (cacheData.Count > 0)
 				{
-					IsSucceed = true,
-					Result = cacheData.Values.ToList(),
-					Message = "Posts retrieved from cache successfully."
-				});
+					var filteredData = cacheData.Values.AsQueryable();
 
-				// If no data in cache, query from PostsService
-				var posts = await _postsService.GetAllPostsAsync(page, pageSize, sortPostsStatus, searchTerm);
+					// Search by content or rating
+					if (!string.IsNullOrEmpty(searchTerm))
+					{
+						filteredData = filteredData.Where(p => p.Content.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+															   p.Rating.ToString().Contains(searchTerm));
+					}
 
-				// Save the result to cache for future requests
-				await Save(posts, cacheKey).ConfigureAwait(false);
+					// Sort by post status
+					if (sortPostsStatus.HasValue)
+					{
+						filteredData = filteredData.Where(p => p.Status == sortPostsStatus.Value.ToString());
+					}
+
+					result = filteredData
+						.Skip((page - 1) * pageSize)
+						.Take(pageSize)
+						.ToList();
+				}
+				else
+				{
+					// If not in cache, query from PostsService
+					result = await _postsService.GetAllPostsAsync(page, pageSize, sortPostsStatus, searchTerm);
+
+					// Save the result to cache for future requests
+					await Save(result).ConfigureAwait(false);
+				}
 
 				return Ok(new BaseResponse<List<PostsResponse>>
 				{
 					IsSucceed = true,
-					Result = posts,
-					Message = "Posts retrieved successfully."
+					Result = result,
+					Message = result.Count > 0 ? "Posts retrieved successfully." : "No posts found."
 				});
 			}
 			catch (Exception ex)
 			{
-				return StatusCode((int)HttpStatusCode.InternalServerError, new BaseResponse<List<PostsResponse>>
+				return StatusCode((int) HttpStatusCode.InternalServerError, new BaseResponse<List<PostsResponse>>
 				{
 					IsSucceed = false,
 					Message = $"An error occurred while retrieving posts: {ex.Message}"
@@ -76,11 +92,8 @@ namespace PRN231.ExploreNow.API.Controllers
 		{
 			try
 			{
-				// Create a cache key for the specific post
-				var cacheKey = $"Post_{id}";
-
 				// Attempt to retrieve data from Redis cache
-				var cacheData = GetKeyValues(cacheKey);
+				var cacheData = GetKeyValues();
 
 				// If the post is found in cache, return it immediately
 				if (cacheData.TryGetValue(id, out var cachedPost))
@@ -97,7 +110,7 @@ namespace PRN231.ExploreNow.API.Controllers
 				var post = await _postsService.GetPostsByIdAsync(id);
 
 				// Save the result to cache for future requests
-				await Save(new List<PostsResponse> { post }, cacheKey).ConfigureAwait(false);
+				await Save(new List<PostsResponse> { post }).ConfigureAwait(false);
 
 				return Ok(new BaseResponse<object>
 				{
@@ -108,7 +121,7 @@ namespace PRN231.ExploreNow.API.Controllers
 			}
 			catch (Exception ex)
 			{
-				return StatusCode((int)HttpStatusCode.InternalServerError, new BaseResponse<object>
+				return StatusCode((int) HttpStatusCode.InternalServerError, new BaseResponse<object>
 				{
 					IsSucceed = false,
 					Result = null,
@@ -138,20 +151,20 @@ namespace PRN231.ExploreNow.API.Controllers
 				var updatedPost = await _postsService.UpdatePostsAsync(id, postsRequest);
 
 				// Update the cache with the new post data
-				var cacheData = GetKeyValues("Posts");
+				var cacheData = GetKeyValues();
 				cacheData[id] = updatedPost;
 				await Save(cacheData.Values).ConfigureAwait(false);
 
 				return Ok(new BaseResponse<object>
 				{
 					IsSucceed = true,
-					Result = updatedPost,
+					Result = null,
 					Message = "Posts updated successfully."
 				});
 			}
 			catch (Exception ex)
 			{
-				return StatusCode((int)HttpStatusCode.InternalServerError, new BaseResponse<object>
+				return StatusCode((int) HttpStatusCode.InternalServerError, new BaseResponse<object>
 				{
 					IsSucceed = false,
 					Message = $"An error occurred while updating the posts: {ex.Message}"
@@ -167,7 +180,7 @@ namespace PRN231.ExploreNow.API.Controllers
 				var result = await _postsService.DeletePostAsync(id);
 
 				// Remove the post from the list cache
-				var cacheData = GetKeyValues("Posts");
+				var cacheData = GetKeyValues();
 				cacheData.Remove(id);
 				await Save(cacheData.Values).ConfigureAwait(false);
 
@@ -180,7 +193,7 @@ namespace PRN231.ExploreNow.API.Controllers
 			}
 			catch (Exception ex)
 			{
-				return StatusCode((int)HttpStatusCode.InternalServerError, new BaseResponse<bool>
+				return StatusCode((int) HttpStatusCode.InternalServerError, new BaseResponse<bool>
 				{
 					IsSucceed = false,
 					Message = $"An error occurred while deleting the post: {ex.Message}"
@@ -188,19 +201,19 @@ namespace PRN231.ExploreNow.API.Controllers
 			}
 		}
 
-		private Task<bool> Save(IEnumerable<PostsResponse> posts, string cacheKey = "Posts", double expireAfterSeconds = 300)
+		private Task<bool> Save(IEnumerable<PostsResponse> posts, double expireAfterSeconds = 30)
 		{
-			// Set expiration time for the cache (default is 5 minutes)
+			// Set expiration time for the cache (default is 30 seconds)
 			var expirationTime = DateTimeOffset.Now.AddSeconds(expireAfterSeconds);
 
 			// Save data to Redis cache
-			return _cacheService.AddOrUpdateAsync(cacheKey, posts, expirationTime);
+			return _cacheService.AddOrUpdateAsync(nameof(PostsResponse), posts, expirationTime);
 		}
 
-		private Dictionary<Guid, PostsResponse> GetKeyValues(string cacheKey = "Posts")
+		private Dictionary<Guid, PostsResponse> GetKeyValues()
 		{
 			// Attempt to retrieve data from Redis cache
-			var data = _cacheService.Get<IEnumerable<PostsResponse>>(cacheKey);
+			var data = _cacheService.Get<IEnumerable<PostsResponse>>(nameof(PostsResponse));
 
 			// Convert data to Dictionary or return empty Dictionary if no data
 			return data?.ToDictionary(key => key.PostsId, val => val) ?? new Dictionary<Guid, PostsResponse>();
