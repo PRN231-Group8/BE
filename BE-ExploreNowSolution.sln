@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PRN231.ExploreNow.Validatio
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PRN231.ExploreNow.UnitTests", "ExploreNow.UnitTests\PRN231.ExploreNow.UnitTests.csproj", "{ED0453DF-C595-4FA2-9841-9946D7181A2B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PRN231.ExploreNow.BusinessObject", "PRN231.ExploreNow.BusinessObject\PRN231.ExploreNow.BusinessObject.csproj", "{17931F2C-959B-4CAF-86BD-70BBF1DA8D0D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PRN231.ExploreNow.BusinessObject", "PRN231.ExploreNow.BusinessObject\PRN231.ExploreNow.BusinessObject.csproj", "{17931F2C-959B-4CAF-86BD-70BBF1DA8D0D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
