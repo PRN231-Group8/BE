@@ -49,11 +49,6 @@ namespace PRN231.ExploreNow.Services.Services
 		{
 			var user = await GetAuthenticatedUserAsync();
 
-			if (tourTimeStampRequests == null || tourTimeStampRequests.Count == 0)
-			{
-				throw new ArgumentException("The list of tour timestamps is empty or null.");
-			}
-
 			var tourTimestamps = _mapper.Map<List<TourTimestamp>>(tourTimeStampRequests);
 
 			// Group timestamps by TourId and LocationId
