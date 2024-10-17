@@ -10,7 +10,7 @@ using System.Net;
 namespace PRN231.ExploreNow.API.Controllers
 {
 	[ApiController]
-	[Route("api/tourtimestamps")]
+	[Route("api/tour-timestamps")]
 	[Authorize(Roles = "ADMIN")]
 	public class TourTimeStampController : ControllerBase
 	{
@@ -80,7 +80,7 @@ namespace PRN231.ExploreNow.API.Controllers
 			}
 			catch (Exception ex)
 			{
-				return StatusCode((int)HttpStatusCode.InternalServerError, new BaseResponse<List<object>>
+				return StatusCode((int) HttpStatusCode.InternalServerError, new BaseResponse<List<object>>
 				{
 					IsSucceed = false,
 					Message = $"An error occurred while retrieving tour timestamps: {ex.Message}"
@@ -130,7 +130,7 @@ namespace PRN231.ExploreNow.API.Controllers
 			}
 			catch (Exception ex)
 			{
-				return StatusCode((int)HttpStatusCode.InternalServerError, new BaseResponse<object>
+				return StatusCode((int) HttpStatusCode.InternalServerError, new BaseResponse<object>
 				{
 					IsSucceed = false,
 					Message = $"An error occurred while retrieving the tour timestamp: {ex.Message}"
@@ -139,7 +139,7 @@ namespace PRN231.ExploreNow.API.Controllers
 		}
 
 		[HttpPost("{durationMinutes}")]
-		public async Task<IActionResult> CreateMultipleTourTimeStamps([FromBody] List<TourTimeStampRequest> requests, int durationMinutes)
+		public async Task<IActionResult> CreateBatchTourTimeStamps([FromBody] List<TourTimeStampRequest> requests, int durationMinutes)
 		{
 			try
 			{
@@ -149,7 +149,7 @@ namespace PRN231.ExploreNow.API.Controllers
 					ValidationResult validationResult = await _validator.ValidateAsync(request);
 					if (!validationResult.IsValid)
 					{
-						return Ok(new BaseResponse<object>
+						return BadRequest(new BaseResponse<object>
 						{
 							IsSucceed = false,
 							Message = string.Join(", ", validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"))
@@ -157,7 +157,7 @@ namespace PRN231.ExploreNow.API.Controllers
 					}
 				}
 
-				var results = await _tourTimeStampService.CreateMultipleTourTimeStampsAsync(requests);
+				var results = await _tourTimeStampService.CreateBatchTourTimeStampsAsync(requests);
 
 				var cacheData = GetKeyValues();
 				foreach (var result in results)
@@ -169,20 +169,19 @@ namespace PRN231.ExploreNow.API.Controllers
 				return CreatedAtAction(nameof(GetAllTourTimeStamps), new BaseResponse<TourTimeStampResponse>
 				{
 					IsSucceed = true,
-					Results = results,
+					Result = null,
 					Message = "Tour timestamps created successfully."
 				});
 			}
 			catch (Exception ex)
 			{
-				return StatusCode((int)HttpStatusCode.InternalServerError, new BaseResponse<object>
+				return StatusCode((int) HttpStatusCode.InternalServerError, new BaseResponse<object>
 				{
 					IsSucceed = false,
 					Message = $"An error occurred while creating the tour timestamps: {ex.Message}"
 				});
 			}
 		}
-
 
 		[HttpPut("{id}")]
 		public async Task<IActionResult> UpdateTourTimeStamp(Guid id, [FromBody] TourTimeStampRequest request)
@@ -193,7 +192,7 @@ namespace PRN231.ExploreNow.API.Controllers
 				ValidationResult validationResult = await _validator.ValidateAsync(request);
 				if (!validationResult.IsValid)
 				{
-					return Ok(new BaseResponse<object>
+					return BadRequest(new BaseResponse<object>
 					{
 						IsSucceed = false,
 						Message = string.Join(", ", validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"))
@@ -201,6 +200,15 @@ namespace PRN231.ExploreNow.API.Controllers
 				}
 
 				var updatedTourTimeStamp = await _tourTimeStampService.UpdateTourTimeStampAsync(id, request);
+
+				if (updatedTourTimeStamp == null)
+				{
+					return NotFound(new BaseResponse<TourTimeStampResponse>
+					{
+						IsSucceed = false,
+						Message = $"TourTimestamp with ID {id} not found or has been deleted."
+					});
+				}
 
 				// Update the cache with the new post data
 				var cacheData = GetKeyValues();
@@ -210,13 +218,13 @@ namespace PRN231.ExploreNow.API.Controllers
 				return Ok(new BaseResponse<object>
 				{
 					IsSucceed = true,
-					Result = updatedTourTimeStamp,
+					Result = null,
 					Message = "Tour timestamp updated successfully."
 				});
 			}
 			catch (Exception ex)
 			{
-				return StatusCode((int)HttpStatusCode.InternalServerError, new BaseResponse<object>
+				return StatusCode((int) HttpStatusCode.InternalServerError, new BaseResponse<object>
 				{
 					IsSucceed = false,
 					Message = $"An error occurred while updating the tour timestamp: {ex.Message}"
@@ -245,7 +253,7 @@ namespace PRN231.ExploreNow.API.Controllers
 			}
 			catch (Exception ex)
 			{
-				return StatusCode((int)HttpStatusCode.InternalServerError, new BaseResponse<bool>
+				return StatusCode((int) HttpStatusCode.InternalServerError, new BaseResponse<bool>
 				{
 					IsSucceed = false,
 					Message = $"An error occurred while deleting the tour timestamp: {ex.Message}"

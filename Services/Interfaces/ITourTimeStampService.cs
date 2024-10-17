@@ -7,7 +7,7 @@ namespace PRN231.ExploreNow.Services.Interfaces
 	{
 		Task<List<TourTimeStampResponse>> GetAllTourTimeStampAsync(int page, int pageSize, TimeSpan? sortByTime, string? searchTerm);
 		Task<TourTimeStampResponse> GetTourTimeStampByIdAsync(Guid tourTimeStampId);
-		Task<List<TourTimeStampResponse>> CreateMultipleTourTimeStampsAsync(List<TourTimeStampRequest> tourTimeStampRequests);
+		Task<List<TourTimeStampResponse>> CreateBatchTourTimeStampsAsync(List<TourTimeStampRequest> tourTimeStampRequests);
 		Task<TourTimeStampResponse> UpdateTourTimeStampAsync(Guid tourTimeStampId, TourTimeStampRequest tourTimeStampRequest);
 		Task<bool> DeleteAsync(Guid tourTimeStampId);
 	}

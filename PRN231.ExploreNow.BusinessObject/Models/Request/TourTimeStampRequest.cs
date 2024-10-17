@@ -8,5 +8,6 @@ namespace PRN231.ExploreNow.BusinessObject.Models.Request
 		public string? Description { get; set; }
 		public TimeSlot PreferredTimeSlot { get; set; }
 		public Guid TourId { get; set; }
+		public Guid LocationId { get; set; }
 	}
 }

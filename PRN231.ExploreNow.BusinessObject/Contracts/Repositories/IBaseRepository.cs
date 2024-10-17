@@ -25,6 +25,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository
     Task UpdateAsync(TEntity entity);
     void Add(TEntity entity);
     void AddRange(IEnumerable<TEntity> entities);
+    Task AddRangeAsync(IEnumerable<TEntity> entities);
 	void Update(TEntity entity);
     void UpdateRange(IEnumerable<TEntity> entities);
     void Delete(TEntity entity);

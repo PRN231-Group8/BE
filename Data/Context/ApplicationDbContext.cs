@@ -74,6 +74,11 @@ public class ApplicationDbContext : BaseDbContext
 				.WithMany(t => t.TourTimestamps)
 				.HasForeignKey(tt => tt.TourId)
 				.OnDelete(DeleteBehavior.Cascade);
+
+			entity.HasOne(tt => tt.Location)
+			   .WithMany(l => l.TourTimestamps)
+			   .HasForeignKey(tt => tt.LocationId)
+			   .OnDelete(DeleteBehavior.Cascade);
 		});
 
 		modelBuilder.Entity<TourMood>()

@@ -9,4 +9,6 @@ public class TourTimestamp : BaseEntity
     public Guid TourId { get; set; }
 	public TimeSlot PreferredTimeSlot { get; set; }
 	public Tour Tour { get; set; }
+	public Guid LocationId { get; set; }
+	public Location Location { get; set; }
 }

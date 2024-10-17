@@ -10,11 +10,17 @@ namespace PRN231.ExploreNow.BusinessObject.Configs.Mapping
 		public MappingProfile()
 		{
 			CreateMap<TourTimestamp, TourTimeStampResponse>().ReverseMap()
-				.ForMember(dest => dest.PreferredTimeSlot, opt => opt.MapFrom(src => src.PreferredTimeSlot));
+				.ForMember(dest => dest.PreferredTimeSlot, opt => opt.MapFrom(src => src.PreferredTimeSlot))
+				.ForMember(dest => dest.Location, opt => opt.MapFrom(src => src.Location));
 
 			CreateMap<TourTimeStampRequest, TourTimestamp>()
 				.ForMember(dest => dest.PreferredTimeSlot, opt => opt.MapFrom(src => src.PreferredTimeSlot));
 			CreateMap<TourTimestamp, TourTimeStampRequest>();
+
+			CreateMap<Location, LocationResponse>()
+				.ForMember(dest => dest.Photos, opt => opt.MapFrom(src => src.Photos != null ? src.Photos.ToList() : null));
+
+			CreateMap<Photo, PhotoResponse>();
 		}
 	}
 }

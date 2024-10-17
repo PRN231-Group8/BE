@@ -10,4 +10,5 @@ public class Location : BaseEntity
     public WeatherStatus Status { get; set; }
     public double Temperature { get; set; }
     public ICollection<Photo> Photos { get; set; }
+	public ICollection<TourTimestamp> TourTimestamps { get; set; }
 }
