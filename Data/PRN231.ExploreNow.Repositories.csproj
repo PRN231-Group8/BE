@@ -7,6 +7,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
 		<PackageReference Include="AutoMapper" Version="12.0.1" />
 		<PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.3.2" />
 		<PackageReference Include="Azure.Identity" Version="1.12.1" />
@@ -34,7 +35,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\PRN231.ExploreNow.BusinessObject\PRN231.ExploreNow.BusinessObject.csproj" />
+		<ProjectReference Include="..\PRN231.ExploreNow.BusinessObject\PRN231.ExploreNow.BusinessObject.csproj" />
 	</ItemGroup>
 
 </Project>

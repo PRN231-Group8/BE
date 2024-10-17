@@ -29,6 +29,12 @@ using PRN231.ExploreNow.Validations.Tour;
 using PRN231.ExploreNow.Repositories.Repositories.Interface;
 using PRN231.ExploreNow.Validations.User;
 using PRN231.ExploreNow.Validations.Profile;
+using PRN231.ExploreNow.Repositories.Repositories.Interfaces;
+using PRN231.ExploreNow.Repositories.Repositories.Repositories;
+using PRN231.ExploreNow.Validations.TourTimeStamp;
+using Microsoft.OpenApi.Any;
+using System.Text.Json.Serialization;
+using PRN231.ExploreNow.BusinessObject.OtherObjects;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Extensions.AspNetCore.Configuration.Secrets;
@@ -116,14 +122,29 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<ICacheService, CacheService>();
 builder.Services.AddScoped<ILocationService, LocationService>();
 builder.Services.AddScoped<ILocationRepository, LocationRepository>();
-builder.Services.AddScoped<IValidator<LocationsRequest>, LocationRequestValidator>();
-builder.Services.AddScoped<IValidator<PhotoRequest>, PhotoRequestValidator>();
 builder.Services.AddScoped<EmailVerify>();
 builder.Services.AddScoped<TokenGenerator>();
 builder.Services.AddScoped<ITokenValidator, TokenValidator>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmailVerify, EmailVerify>();
+builder.Services.AddScoped<ITourTimeStampRepository, TourTimeStampRepository>();
+builder.Services.AddScoped<ITourTimeStampService, TourTimeStampService>();
+builder.Services.AddScoped<ITourRepository, TourRepository>();
+builder.Services.AddScoped<ITourService, TourService>();
+#endregion
+
+#region Configure FluentValidator
+builder.Services.AddScoped<IValidator<LocationsRequest>, LocationRequestValidator>();
+builder.Services.AddScoped<IValidator<PhotoRequest>, PhotoRequestValidator>();
+builder.Services.AddScoped<IValidator<TourTimeStampRequest>, TourTimeStampValidator>();
+builder.Services.AddScoped<ITokenValidator, TokenValidator>();
+builder.Services.AddScoped<TourValidation>();
+builder.Services.AddScoped<ProfileValidation>();
+#endregion
+
+#region Configure AutoMapper
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 #endregion
 
 #region Configure Health Checks For Azure Server
@@ -212,6 +233,11 @@ builder.Services.AddSwaggerGen(options =>
 			new List<string>()
 		}
 	});
+	options.MapType<TimeSpan>(() => new OpenApiSchema
+	{
+		Type = "string",
+		Example = new OpenApiString("00:00:00")
+	});
 });
 #endregion
 
@@ -241,14 +267,22 @@ builder.Services.AddCors(p =>
 );
 #endregion
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+	.AddJsonOptions(options =>
+	{
+		options.JsonSerializerOptions.ReferenceHandler = System
+			.Text
+			.Json
+			.Serialization
+			.ReferenceHandler
+			.IgnoreCycles;
+		options.JsonSerializerOptions.MaxDepth = 32;
+		options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+		options.JsonSerializerOptions.Converters.Add(new TimeSpanConverter());
+	});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<ITourRepository, TourRepository>();
-builder.Services.AddScoped<ITourService, TourService>();
-builder.Services.AddScoped<TourValidation>();
-builder.Services.AddScoped<ProfileValidation>();
 
 var app = builder.Build();
 
