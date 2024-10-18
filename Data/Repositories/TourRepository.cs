@@ -17,7 +17,7 @@ namespace PRN231.ExploreNow.Repositories.Repositories
             _dbContext = dbContext;
         }
 
-        public async Task<List<Tour>> GetToursAsync(int page, int pageSize, BookingStatus? sortByStatus, string? searchTerm)
+        public async Task<List<Tour>> GetToursAsync(int page, int pageSize, TourStatus? sortByStatus, string? searchTerm)
         {
             var query = GetQueryable()
                         .Where(t => !t.IsDeleted);
