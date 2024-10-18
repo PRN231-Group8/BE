@@ -25,7 +25,7 @@ namespace PRN231.ExploreNow.API.Controllers
         }
 
         [Authorize]
-        [HttpPut("/{id}/profile")]
+        [HttpPut("profile/{id}")]
         public async Task<IActionResult> UpdateUserProfile(UserProfileRequestModel model, string id)
         {
             try
@@ -60,7 +60,7 @@ namespace PRN231.ExploreNow.API.Controllers
             }
         }
 
-        [HttpPost("/image")]
+        [HttpPost("image")]
         [Authorize]
         public async Task<IActionResult> UploadImage(IFormFile file)
         {
