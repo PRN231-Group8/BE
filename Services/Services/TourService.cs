@@ -48,7 +48,7 @@ namespace PRN231.ExploreNow.Services.Services
 
         public async Task<List<Tour>> GetToursAsync(int page, int pageSize, BookingStatus? sortByStatus, string? searchTerm)
         {
-            return await _iUnitOfWork.TourRepository.GetToursAsync(page, pageSize, sortByStatus, searchTerm);
+            return await _iUnitOfWork.GetRepository<ITourRepository>().GetToursAsync(page, pageSize, sortByStatus, searchTerm);
         }
 
         public async Task UpdateAsync(TourRequestModel tour, Guid id)

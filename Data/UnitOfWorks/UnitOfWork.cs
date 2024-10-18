@@ -13,6 +13,7 @@ public class UnitOfWork : BaseUnitOfWork<ApplicationDbContext>, IUnitOfWork
     }
     public IUserRepository UserRepository => GetRepository<IUserRepository>();
     public ITourRepository TourRepository => GetRepository<ITourRepository>();
+    public IMoodRepository MoodRepository => GetRepository<IMoodRepository>();
     public ILocationRepository LocationRepository => GetRepository<ILocationRepository>();
     public ITourTimeStampRepository TourTimeStampRepository => GetRepository<ITourTimeStampRepository>();
 }

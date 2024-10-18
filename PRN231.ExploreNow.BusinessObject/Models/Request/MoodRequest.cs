@@ -9,6 +9,5 @@ namespace PRN231.ExploreNow.BusinessObject.Models.Request
     public class MoodRequest
     {
         public string MoodTag { get; set; }
-        public string Code { get; set; }
     }
 }

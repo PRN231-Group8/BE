@@ -7,8 +7,9 @@ namespace PRN231.ExploreNow.Repositories.UnitOfWorks.Interfaces;
 
 public interface IUnitOfWork : IBaseUnitOfWork
 {
-	IUserRepository UserRepository { get; }
-	ILocationRepository LocationRepository { get; }
-	ITourTimeStampRepository TourTimeStampRepository { get; }
+    IUserRepository UserRepository { get; }
+    ILocationRepository LocationRepository { get; }
+    ITourTimeStampRepository TourTimeStampRepository { get; }
     ITourRepository TourRepository { get; }
+    IMoodRepository MoodRepository { get; }
 }
