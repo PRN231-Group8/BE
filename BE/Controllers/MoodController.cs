@@ -10,7 +10,7 @@ using PRN231.ExploreNow.Validations.Mood;
 
 namespace PRN231.ExploreNow.API.Controllers
 {
-    [Route("api/mood")]
+    [Route("api/moods")]
     [ApiController]
     public class MoodController : ControllerBase
     {
