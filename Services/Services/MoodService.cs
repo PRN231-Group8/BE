@@ -37,7 +37,6 @@ namespace PRN231.ExploreNow.Services.Services
         public async Task Delete(Guid id)
         {
             await _unitOfWork.GetRepositoryByEntity<Moods>().DeleteAsync(id);
-            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task<List<Moods>> GetAllAsync(int page, int pageSize, List<string>? searchTerm)
