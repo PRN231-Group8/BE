@@ -1,14 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using PRN231.ExploreNow.BusinessObject.Enums;
 
 namespace PRN231.ExploreNow.BusinessObject.Entities
 {
-    public class TourTrip : BaseEntity
-    {
-        public Guid TourId { get; set; }
-        public Tour Tour { get; set; }
-    }
+	public class TourTrip : BaseEntity
+	{
+		public Guid TourId { get; set; }
+		public Tour Tour { get; set; }
+		public DateTime TripDate { get; set; }
+		public decimal Price { get; set; }
+		public int TotalSeats { get; set; }
+		public int BookedSeats { get; set; }
+		public TripStatus TripStatus { get; set; }
+		public ICollection<Payment> Payments { get; set; }
+	}
 }

@@ -96,12 +96,32 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 	.AddEntityFrameworkStores<ApplicationDbContext>()
 	.AddDefaultTokenProviders();
 
+//builder.Services.AddStackExchangeRedisCache(options =>
+//{
+//	options.Configuration = builder.Configuration["Redis"];
+//});
+
+//builder.Services.AddSingleton<IConnectionMultiplexer>(provider => ConnectionMultiplexer.Connect(builder.Configuration["Redis"]));
+
+// Configure Redis Server
+var redisServerConfig = builder.Configuration["RedisServer"];
+
 builder.Services.AddStackExchangeRedisCache(options =>
 {
-	options.Configuration = builder.Configuration["Redis"];
+	options.Configuration = redisServerConfig;
 });
 
-builder.Services.AddSingleton<IConnectionMultiplexer>(provider => ConnectionMultiplexer.Connect(builder.Configuration["Redis"]));
+builder.Services.AddSingleton<IConnectionMultiplexer>(provider =>
+{
+	var options = ConfigurationOptions.Parse(redisServerConfig);
+	options.AbortOnConnectFail = false;
+	options.ConnectTimeout = 60000;
+	options.ResponseTimeout = 60000;
+	options.SyncTimeout = 60000;
+	options.ConnectRetry = 10;
+	options.ReconnectRetryPolicy = new ExponentialRetry(5000, 60000);
+	return ConnectionMultiplexer.Connect(options);
+});
 
 // Configure Identity options
 builder.Services.Configure<IdentityOptions>(options =>
@@ -132,6 +152,9 @@ builder.Services.AddScoped<ITourTimeStampRepository, TourTimeStampRepository>();
 builder.Services.AddScoped<ITourTimeStampService, TourTimeStampService>();
 builder.Services.AddScoped<ITourRepository, TourRepository>();
 builder.Services.AddScoped<ITourService, TourService>();
+builder.Services.AddScoped<ITourTripRepository, TourTripRepository>();
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+builder.Services.AddScoped<IVNPayService, VNPayService>();
 #endregion
 
 #region Configure FluentValidator
@@ -329,7 +352,5 @@ app.MapHealthChecks("/health", new HealthCheckOptions
 		await context.Response.WriteAsync(result);
 	}
 });
-
-//app.MapControllers();
 
 app.Run();
