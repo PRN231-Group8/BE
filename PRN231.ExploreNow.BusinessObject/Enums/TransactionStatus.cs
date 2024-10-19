@@ -1,9 +1,9 @@
-﻿namespace PRN231.ExploreNow.BusinessObject.Enums
+﻿namespace PRN231.ExploreNow.BusinessObject.Enums;
+
+public enum PaymentTransactionStatus
 {
-	public enum PaymentTransactionStatus
-	{
-		PENDING,
-		SUCCESSFUL,
-		FAILED
-	}
+	PENDING,
+	SUCCESSFUL,
+	FAILED
+}
 }

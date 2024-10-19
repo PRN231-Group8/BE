@@ -1,10 +1,10 @@
-﻿namespace PRN231.ExploreNow.BusinessObject.Enums
+﻿namespace PRN231.ExploreNow.BusinessObject.Enums;
+
+public enum TripStatus
 {
-	public enum TripStatus
-	{
-		OPEN,        // Chuyến đi đang mở để đặt chỗ
-		FULLYBOOKED, // Tất cả các chỗ đã được đặt
-		COMPLETED,   // Chuyến đi đã kết thúc
-		CANCELLED    // Chuyến đi đã bị hủy
-	}
+	OPEN,        // Chuyến đi đang mở để đặt chỗ
+	FULLYBOOKED, // Tất cả các chỗ đã được đặt
+	COMPLETED,   // Chuyến đi đã kết thúc
+	CANCELLED    // Chuyến đi đã bị hủy
+}
 }

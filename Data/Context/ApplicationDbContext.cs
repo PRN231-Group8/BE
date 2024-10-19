@@ -42,6 +42,10 @@ public class ApplicationDbContext : BaseDbContext
 			.HasForeignKey(t => t.UserId)
 			.OnDelete(DeleteBehavior.Cascade);  // Define cascade delete behavior
 
+		modelBuilder.Entity<Tour>()
+			.Property(d => d.Status)
+			.HasConversion(new EnumToStringConverter<TourStatus>());
+
 		// ApplicationUser -> Transaction (1-to-Many)
 		modelBuilder.Entity<Transaction>()
 			.HasOne(tr => tr.User)
@@ -63,7 +67,7 @@ public class ApplicationDbContext : BaseDbContext
 			.HasForeignKey(lit => lit.TourId)
 			.OnDelete(DeleteBehavior.Cascade);  // Define cascade delete behavior
 
-		// Configure TourTimeStamp relationship 
+		// TourTimeStamp configurations
 		modelBuilder.Entity<TourTimestamp>(entity =>
 		{
 			entity.OwnsOne(ar => ar.PreferredTimeSlot, ts =>
@@ -83,6 +87,7 @@ public class ApplicationDbContext : BaseDbContext
 			   .OnDelete(DeleteBehavior.Cascade);
 		});
 
+		// TourMood configurations
 		modelBuilder.Entity<TourMood>()
 		.HasKey(tm => new { tm.TourId, tm.MoodId });
 
@@ -95,10 +100,6 @@ public class ApplicationDbContext : BaseDbContext
 			.HasOne(tm => tm.Mood)
 			.WithMany(m => m.TourMoods)
 			.HasForeignKey(tm => tm.MoodId);
-
-		modelBuilder.Entity<Tour>()
-			.Property(d => d.Status)
-			.HasConversion(new EnumToStringConverter<BookingStatus>());
 
 		// TourTrip configurations
 		modelBuilder.Entity<TourTrip>(entity =>
