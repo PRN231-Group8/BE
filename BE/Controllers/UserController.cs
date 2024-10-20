@@ -25,7 +25,7 @@ namespace PRN231.ExploreNow.API.Controllers
         }
 
         [Authorize]
-        [HttpPut("/{id}/profile")]
+        [HttpPut("profile/{id}")]
         public async Task<IActionResult> UpdateUserProfile(UserProfileRequestModel model, string id)
         {
             try
@@ -60,7 +60,7 @@ namespace PRN231.ExploreNow.API.Controllers
             }
         }
 
-        [HttpPost("/image")]
+        [HttpPost("image")]
         [Authorize]
         public async Task<IActionResult> UploadImage(IFormFile file)
         {
@@ -74,5 +74,37 @@ namespace PRN231.ExploreNow.API.Controllers
                 return BadRequest(new BaseResponse<object> { IsSucceed = false, Result = ex.Message, Message = "There is something wrong" }); return BadRequest(ex.Message);
             }
         }
-    }
+		[HttpGet("by-email")]
+		[Authorize]
+		public async Task<IActionResult> GetUserByEmail(string email)
+		{
+			try
+			{
+				var user = await _userService.GetUserByEmailAsync(email);
+				if (user == null)
+				{
+					return NotFound(new BaseResponse<object>
+					{
+						IsSucceed = false,
+						Message = "User not found"
+					});
+				}
+				return Ok(new BaseResponse<UserProfileResponseModel>
+				{
+					IsSucceed = true,
+					Result = user,
+					Message = "User retrieved successfully"
+				});
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(new BaseResponse<object>
+				{
+					IsSucceed = false,
+					Result = ex.Message,
+					Message = "There is something wrong"
+				});
+			}
+		}
+	}
 }

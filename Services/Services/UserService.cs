@@ -101,5 +101,21 @@ namespace PRN231.ExploreNow.Services.Services
 
             return true;
         }
-    }
+		public async Task<UserProfileResponseModel> GetUserByEmailAsync(string email)
+		{
+			var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
+			if (user == null)
+			{
+				return null;
+			}
+			return new UserProfileResponseModel
+			{
+				FirstName = user.FirstName,
+				LastName = user.LastName,
+				Dob = user.Dob,
+				Gender = user.Gender,
+				AvatarPath = user.AvatarPath
+			};
+		}
+	}
 }
