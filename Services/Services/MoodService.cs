@@ -66,6 +66,7 @@ namespace PRN231.ExploreNow.Services.Services
             {
                 Code = GenerateUniqueCode(),
                 MoodTag = mood.MoodTag,
+                IconName = mood.IconName,
                 CreatedBy = currUserName,
                 CreatedDate = DateTime.Now,
                 LastUpdatedBy = currUserName,

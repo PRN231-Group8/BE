@@ -14,6 +14,8 @@ namespace PRN231.ExploreNow.Validations.Mood
         {
             RuleFor(m => m.MoodTag)
                 .NotEmpty().WithMessage("MoodTag is required");
+            RuleFor(m => m.IconName)
+                .NotEmpty().WithMessage("IconName is required");
         }
     }
 }
