@@ -16,7 +16,7 @@ namespace PRN231.ExploreNow.BusinessObject.Models.Request
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
         public decimal TotalPrice { get; set; }
-        public BookingStatus Status { get; set; }
+        public TourStatus Status { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
     }
