@@ -50,6 +50,10 @@ public class ApplicationDbContext : BaseDbContext
 			.HasForeignKey(t => t.UserId)
 			.OnDelete(DeleteBehavior.Cascade);  // Define cascade delete behavior
 
+		modelBuilder.Entity<Tour>()
+			.Property(d => d.Status)
+			.HasConversion(new EnumToStringConverter<TourStatus>());
+
 		// ApplicationUser -> Transaction (1-to-Many)
 		modelBuilder.Entity<Transaction>()
 			.HasOne(tr => tr.User)
@@ -71,7 +75,7 @@ public class ApplicationDbContext : BaseDbContext
 			.HasForeignKey(lit => lit.TourId)
 			.OnDelete(DeleteBehavior.Cascade);  // Define cascade delete behavior
 
-		// Configure TourTimeStamp relationship 
+		// TourTimeStamp configurations
 		modelBuilder.Entity<TourTimestamp>(entity =>
 		{
 			entity.OwnsOne(ar => ar.PreferredTimeSlot, ts =>
@@ -91,6 +95,7 @@ public class ApplicationDbContext : BaseDbContext
 			   .OnDelete(DeleteBehavior.Cascade);
 		});
 
+		// TourMood configurations
 		modelBuilder.Entity<TourMood>()
 		.HasKey(tm => new { tm.TourId, tm.MoodId });
 
@@ -104,9 +109,51 @@ public class ApplicationDbContext : BaseDbContext
 			.WithMany(m => m.TourMoods)
 			.HasForeignKey(tm => tm.MoodId);
 
-		modelBuilder.Entity<Tour>()
-			.Property(d => d.Status)
-			.HasConversion(new EnumToStringConverter<BookingStatus>());
+		// TourTrip configurations
+		modelBuilder.Entity<TourTrip>(entity =>
+		{
+			entity.HasOne(tt => tt.Tour)
+				.WithMany(t => t.TourTrips)
+				.HasForeignKey(tt => tt.TourId)
+				.OnDelete(DeleteBehavior.Cascade);
+
+			entity.Property(tt => tt.TripStatus)
+				.HasConversion(new EnumToStringConverter<TripStatus>());
+		});
+
+		// Payment configurations
+		modelBuilder.Entity<Payment>(entity =>
+		{
+			entity.HasOne(p => p.TourTrip)
+				.WithMany(tt => tt.Payments)
+				.HasForeignKey(p => p.TourTripId)
+				.OnDelete(DeleteBehavior.Cascade);
+
+			entity.HasOne(p => p.User)
+				.WithMany(u => u.Payments)
+				.HasForeignKey(p => p.UserId)
+				.OnDelete(DeleteBehavior.Cascade);
+
+			entity.Property(p => p.Status)
+				.HasConversion(new EnumToStringConverter<PaymentStatus>());
+		});
+
+		// Transaction configurations
+		modelBuilder.Entity<Transaction>(entity =>
+		{
+			entity.HasOne(t => t.User)
+				.WithMany(u => u.Transactions)
+				.HasForeignKey(t => t.UserId)
+				.OnDelete(DeleteBehavior.Cascade);
+
+			entity.HasOne(t => t.Payment)
+				.WithOne(p => p.Transaction)
+				.HasForeignKey<Transaction>(t => t.PaymentId)
+				.OnDelete(DeleteBehavior.Cascade);
+
+			entity.Property(t => t.Status)
+				.HasConversion(new EnumToStringConverter<PaymentTransactionStatus>());
+		});
 
 		// Configure Posts relationship 
 		modelBuilder.Entity<Posts>(entity =>
