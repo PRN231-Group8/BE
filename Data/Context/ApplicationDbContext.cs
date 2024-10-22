@@ -146,5 +146,28 @@ public class ApplicationDbContext : BaseDbContext
 			entity.Property(t => t.Status)
 				.HasConversion(new EnumToStringConverter<PaymentTransactionStatus>());
 		});
-	}
+
+        var dateTimeConverter = new ValueConverter<DateTime, DateTime>(
+        v => v.ToUniversalTime(),
+        v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+
+        var nullableDateTimeConverter = new ValueConverter<DateTime?, DateTime?>(
+            v => v.HasValue ? v.Value.ToUniversalTime() : v,
+            v => v.HasValue ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : v);
+
+        // Apply the converter globally to all DateTime properties
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            var dateTimeProperties = entityType.ClrType.GetProperties()
+                .Where(p => p.PropertyType == typeof(DateTime) || p.PropertyType == typeof(DateTime?));
+
+            foreach (var property in dateTimeProperties)
+            {
+                if (property.PropertyType == typeof(DateTime))
+                    modelBuilder.Entity(entityType.Name).Property(property.Name).HasConversion(dateTimeConverter);
+                else if (property.PropertyType == typeof(DateTime?))
+                    modelBuilder.Entity(entityType.Name).Property(property.Name).HasConversion(nullableDateTimeConverter);
+            }
+        }
+    }
 }
