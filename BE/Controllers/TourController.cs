@@ -28,7 +28,7 @@ namespace PRN231.ExploreNow.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll(int page = 1, int pageSize = 10, BookingStatus? sortByStatus = null, string? searchTerm = null)
+        public async Task<IActionResult> GetAll(int page = 1, int pageSize = 10, TourStatus? sortByStatus = null, string? searchTerm = null)
         {
             try
             {
