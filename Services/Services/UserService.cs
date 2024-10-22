@@ -20,7 +20,6 @@ namespace PRN231.ExploreNow.Services.Services
 		private Cloudinary _cloudinary;
 		private IConfiguration _configuration;
 		private IConfigurationSection _cloundinarySetting;
-		private IUnitOfWork @object;
 		private readonly IHttpContextAccessor _contextAccessor;
 		private readonly UserManager<ApplicationUser> _userManager;
 
@@ -96,7 +95,7 @@ namespace PRN231.ExploreNow.Services.Services
 			user.VerifyToken = null;
 			user.VerifyTokenExpires = DateTime.MinValue;
 
-			userRepo.Update(user);
+			await userRepo.Update(user);
 			await _unitOfWork.SaveChangesAsync();
 
 			return true;
