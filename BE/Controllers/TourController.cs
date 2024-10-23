@@ -8,6 +8,7 @@ using PRN231.ExploreNow.Validations.Tour;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Authorization;
 using Newtonsoft.Json;
+using PRN231.ExploreNow.BusinessObject.OtherObjects;
 
 
 namespace PRN231.ExploreNow.API.Controllers
@@ -83,7 +84,7 @@ namespace PRN231.ExploreNow.API.Controllers
                     await _tourService.Add(model);
                     return Ok(new BaseResponse<object> { IsSucceed = true, Message = "Created successfully" });
                 }
-                var errors = ValidateResult.Errors.Select(e => (object) new
+                var errors = ValidateResult.Errors.Select(e => (object)new
                 {
                     e.PropertyName,
                     e.ErrorMessage
@@ -93,6 +94,10 @@ namespace PRN231.ExploreNow.API.Controllers
                     IsSucceed = false,
                     Results = errors
                 });
+            }
+            catch (CreateException ce)
+            {
+                return BadRequest(new BaseResponse<object> { IsSucceed = false, Message = ce.Message });
             }
             catch (Exception ex)
             {
