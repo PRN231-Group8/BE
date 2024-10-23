@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using PRN231.ExploreNow.BusinessObject.Entities;
 using PRN231.ExploreNow.BusinessObject.Models.Request;
 using PRN231.ExploreNow.Repositories.Repositories.Interfaces;
@@ -46,7 +47,9 @@ namespace PRN231.ExploreNow.Services.Services
 
         public async Task<Moods> GetById(Guid id)
         {
-            var mood = await _unitOfWork.GetRepositoryByEntity<Moods>().GetById(id);
+            var mood = await _unitOfWork.GetRepositoryByEntity<Moods>().GetQueryable()
+                .Where(m => m.Id == id && !m.IsDeleted).
+                FirstOrDefaultAsync();
             return mood;
         }
 

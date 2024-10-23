@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using PRN231.ExploreNow.BusinessObject.Entities;
 using PRN231.ExploreNow.BusinessObject.Enums;
@@ -10,17 +11,24 @@ namespace PRN231.ExploreNow.Repositories.Repositories
 {
 	public class TourRepository : BaseRepository<Tour>, ITourRepository
 	{
-		private ApplicationDbContext _dbContext;
+		private readonly ApplicationDbContext _dbContext;
+		private IMapper _mapper;
+        public TourRepository(ApplicationDbContext dbContext, IMapper mapper) : base(dbContext)
+        {
+            _dbContext = dbContext;
+            _mapper = mapper;
+        }
 
-		public TourRepository(ApplicationDbContext dbContext) : base(dbContext)
-		{
-			_dbContext = dbContext;
-		}
-
-		public async Task<List<Tour>> GetToursAsync(int page, int pageSize, TourStatus? sortByStatus, string? searchTerm)
+        public async Task<List<TourResponse>> GetToursAsync(int page, int pageSize, TourStatus? sortByStatus, string? searchTerm)
 		{
 			var query = GetQueryable()
-						.Where(t => !t.IsDeleted);
+						.Where(t => !t.IsDeleted)
+						.Include(t => t.TourTimestamps)
+						.Include(t => t.TourMoods)
+						.Include(t => t.LocationInTours)
+						.Include(t => t.Transportations)
+						.Include(t => t.TourTrips)
+						.AsQueryable();
 			if (!string.IsNullOrEmpty(searchTerm))
 			{
 				query = query.Where(t => t.Title.Contains(searchTerm) || t.Description.Contains(searchTerm));
@@ -32,7 +40,9 @@ namespace PRN231.ExploreNow.Repositories.Repositories
 			var tours = await query.Skip((page - 1) * pageSize)
 									   .Take(pageSize)
 									   .ToListAsync();
-			return tours.ToList();
+			
+
+            return _mapper.Map<List<TourResponse>>(tours) ;
 		}
 	}
 }

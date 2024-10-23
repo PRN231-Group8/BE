@@ -7,9 +7,8 @@ namespace PRN231.ExploreNow.Services.Interfaces
 {
 	public interface ITourService
 	{
-		Task<List<Tour>> GetToursAsync(int page, int pageSize, TourStatus? sortByStatus, string? searchTerm);
-		Task<IList<Tour>> GetAll();
-		Task<Tour> GetById(Guid id);
+		Task<List<TourResponse>> GetToursAsync(int page, int pageSize, TourStatus? sortByStatus, string? searchTerm);
+		Task<TourResponse> GetById(Guid id);
 		Task Add(TourRequestModel tour);
 		Task UpdateAsync(TourRequestModel tour, Guid id);
 		Task Delete(Guid id);

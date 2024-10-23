@@ -37,7 +37,7 @@ namespace PRN231.ExploreNow.API.Controllers
                 if (result.Count == 0)
                 {
                     var tour = await _tourService.GetToursAsync(page, pageSize, sortByStatus, searchTerm);
-                    return Ok(new BaseResponse<Tour> { IsSucceed = true, Results = tour.ToList(), Message = "Success" });
+                    return Ok(new BaseResponse<TourResponse> { IsSucceed = true, Results = tour.ToList(), Message = "Success" });
                 }
                 return Ok(new BaseResponse<Tour> { IsSucceed = true, Results = result.ToList(), Message = "Success" });
             }
