@@ -80,8 +80,8 @@ var connectionString = builder.Configuration.GetConnectionString("local");
 // Add DbContext and MySQL configuration
 if (builder.Environment.IsDevelopment())
 {
-	// Use MySQL in development
-	builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    // Use MySQL in development
+    builder.Services.AddDbContext<ApplicationDbContext>(options =>
 		options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 }
 else

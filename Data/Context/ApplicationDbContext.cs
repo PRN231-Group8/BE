@@ -155,7 +155,7 @@ public class ApplicationDbContext : BaseDbContext
 				.HasConversion(new EnumToStringConverter<PaymentTransactionStatus>());
 		});
 
-		// Configure Posts relationship 
+		// Posts configurations
 		modelBuilder.Entity<Posts>(entity =>
 		{
 			entity.HasMany(p => p.Comments)
@@ -180,7 +180,7 @@ public class ApplicationDbContext : BaseDbContext
 				  .IsRequired();
 		});
 
-		// Configure Comments relationship
+		// Comments configurations
 		modelBuilder.Entity<Comments>(entity =>
 		{
 			entity.HasOne(c => c.Post)
@@ -188,5 +188,29 @@ public class ApplicationDbContext : BaseDbContext
 				  .HasForeignKey(c => c.PostId)
 				  .OnDelete(DeleteBehavior.Cascade);
 		});
+
+		// Postgresql configurations
+		var dateTimeConverter = new ValueConverter<DateTime, DateTime>(
+		v => v.ToUniversalTime(),
+		v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+
+		var nullableDateTimeConverter = new ValueConverter<DateTime?, DateTime?>(
+			v => v.HasValue ? v.Value.ToUniversalTime() : v,
+			v => v.HasValue ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : v);
+
+		// Apply the converter globally to all DateTime properties
+		foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+		{
+			var dateTimeProperties = entityType.ClrType.GetProperties()
+				.Where(p => p.PropertyType == typeof(DateTime) || p.PropertyType == typeof(DateTime?));
+
+			foreach (var property in dateTimeProperties)
+			{
+				if (property.PropertyType == typeof(DateTime))
+					modelBuilder.Entity(entityType.Name).Property(property.Name).HasConversion(dateTimeConverter);
+				else if (property.PropertyType == typeof(DateTime?))
+					modelBuilder.Entity(entityType.Name).Property(property.Name).HasConversion(nullableDateTimeConverter);
+			}
+		}
 	}
 }
