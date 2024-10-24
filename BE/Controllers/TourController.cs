@@ -84,7 +84,7 @@ namespace PRN231.ExploreNow.API.Controllers
                     await _tourService.Add(model);
                     return Ok(new BaseResponse<object> { IsSucceed = true, Message = "Created successfully" });
                 }
-                var errors = ValidateResult.Errors.Select(e => (object)new
+                var errors = ValidateResult.Errors.Select(e => (object) new
                 {
                     e.PropertyName,
                     e.ErrorMessage

@@ -21,7 +21,6 @@ namespace PRN231.ExploreNow.BusinessObject.Configs.Mapping
 				.ForMember(dest => dest.Photos, opt => opt.MapFrom(src => src.Photos != null ? src.Photos.ToList() : null));
 
 			CreateMap<Photo, PhotoResponse>();
-			
 			CreateMap<Tour,TourResponse>();
 		}
 	}
