@@ -11,6 +11,6 @@ public interface IUnitOfWork : IBaseUnitOfWork
 	IUserRepository UserRepository { get; }
 	ILocationRepository LocationRepository { get; }
 	ITourTimeStampRepository TourTimeStampRepository { get; }
-    ITourRepository TourRepository { get; }
+	ITourRepository TourRepository { get; }
 	IPostsRepository PostsRepository { get; }
 }

@@ -11,6 +11,10 @@ namespace PRN231.ExploreNow.Validations.Posts
 				.NotEmpty().WithMessage("Content is required.")
 				.MaximumLength(200).WithMessage("Content must not exceed 200 characters.");
 
+			RuleFor(x => x.Status)
+				.IsInEnum().When(x => x.Status.HasValue)
+				.WithMessage("Status must be a valid value (Pending, Approved, or Rejected).");
+
 			// If RemoveAllComments is true, CommentsToRemove must be null.
 			When(x => x.RemoveAllComments == true, () =>
 			{

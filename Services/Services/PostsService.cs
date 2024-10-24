@@ -55,9 +55,9 @@ namespace PRN231.ExploreNow.Services.Services
 										.Include(p => p.User)
 										.SingleOrDefaultAsync();
 
-			var isModulator = await _userManager.IsInRoleAsync(user, "MODERATOR");
+			var isModerator = await _userManager.IsInRoleAsync(user, "MODERATOR");
 			var isOwner = post.UserId == user.Id;
-			if (!isModulator && !isOwner)
+			if (!isModerator && !isOwner)
 			{
 				throw new UnauthorizedAccessException("You don't have permission to view this post. Only the post owner or moderators can view post details.");
 			}
@@ -178,33 +178,15 @@ namespace PRN231.ExploreNow.Services.Services
 										.SingleOrDefaultAsync(p => p.Id == postsId);
 
 			// Check user roles and permissions
-			var isModulator = await _userManager.IsInRoleAsync(user, "MODERATOR");
+			var isModerator = await _userManager.IsInRoleAsync(user, "MODERATOR");
 			var isOwner = post.UserId == user.Id;
-			if (!isModulator && !isOwner)
+			if (!isModerator && !isOwner)
 			{
 				throw new UnauthorizedAccessException("You don't have permission to delete this post. Only the post owner or moderators can delete posts.");
 			}
 
-			// Get repositories
-			var commentsRepo = _unitOfWork.GetRepositoryByEntity<Comments>();
-			var photosRepo = _unitOfWork.GetRepositoryByEntity<Photo>();
-
 			var currentUser = user.UserName;
 			var now = DateTime.UtcNow;
-
-			foreach (var comment in post.Comments)
-			{
-				comment.LastUpdatedBy = currentUser;
-				comment.LastUpdatedDate = now;
-				await commentsRepo.DeleteAsync(comment.Id);
-			}
-
-			foreach (var photo in post.Photos)
-			{
-				photo.LastUpdatedBy = currentUser;
-				photo.LastUpdatedDate = now;
-				await photosRepo.DeleteAsync(photo.Id);
-			}
 
 			post.LastUpdatedBy = currentUser;
 			post.LastUpdatedDate = now;

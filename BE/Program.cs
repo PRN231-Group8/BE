@@ -80,8 +80,8 @@ var connectionString = builder.Configuration.GetConnectionString("local");
 // Add DbContext and MySQL configuration
 if (builder.Environment.IsDevelopment())
 {
-    // Use MySQL in development
-    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+	// Use MySQL in development
+	builder.Services.AddDbContext<ApplicationDbContext>(options =>
 		options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 }
 else
@@ -290,7 +290,6 @@ builder.Services.AddControllers()
 		options.JsonSerializerOptions.MaxDepth = 32;
 		options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 		options.JsonSerializerOptions.Converters.Add(new TimeSpanConverter());
-		options.JsonSerializerOptions.Converters.Add(new PostsStatusConverter());
 	});
 
 builder.Services.AddEndpointsApiExplorer();

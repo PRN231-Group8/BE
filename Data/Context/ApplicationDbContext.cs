@@ -117,6 +117,7 @@ public class ApplicationDbContext : BaseDbContext
 				.HasForeignKey(tt => tt.TourId)
 				.OnDelete(DeleteBehavior.Cascade);
 
+			// Configure enums Status
 			entity.Property(tt => tt.TripStatus)
 				.HasConversion(new EnumToStringConverter<TripStatus>());
 		});
@@ -134,6 +135,7 @@ public class ApplicationDbContext : BaseDbContext
 				.HasForeignKey(p => p.UserId)
 				.OnDelete(DeleteBehavior.Cascade);
 
+			// Configure enums Status
 			entity.Property(p => p.Status)
 				.HasConversion(new EnumToStringConverter<PaymentStatus>());
 		});
@@ -151,6 +153,7 @@ public class ApplicationDbContext : BaseDbContext
 				.HasForeignKey<Transaction>(t => t.PaymentId)
 				.OnDelete(DeleteBehavior.Cascade);
 
+			// Configure enums Status
 			entity.Property(t => t.Status)
 				.HasConversion(new EnumToStringConverter<PaymentTransactionStatus>());
 		});
@@ -175,8 +178,7 @@ public class ApplicationDbContext : BaseDbContext
 
 			// Configure enums Status
 			entity.Property(ar => ar.Status)
-				  .HasConversion<string>()
-				  .HasMaxLength(50)
+				  .HasConversion(new EnumToStringConverter<PostsStatus>())
 				  .IsRequired();
 		});
 

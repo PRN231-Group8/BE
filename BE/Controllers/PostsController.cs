@@ -28,10 +28,10 @@ namespace PRN231.ExploreNow.API.Controllers
 		[HttpGet]
 		[Authorize(Roles = "MODERATOR")]
 		public async Task<IActionResult> GetAllPosts(
-			[FromQuery] PostsStatus? filter,
-			[FromQuery] string? searchTerm,
-			[FromQuery] int page = 1,
-			[FromQuery] int pageSize = 10)
+			[FromQuery(Name = "filter-status")] PostsStatus? postsStatus,
+			[FromQuery(Name = "search-term")] string? searchTerm,
+			[FromQuery(Name = "page-number")] int page = 1,
+			[FromQuery(Name = "page-size")] int pageSize = 10)
 		{
 			try
 			{
@@ -52,9 +52,9 @@ namespace PRN231.ExploreNow.API.Controllers
 					}
 
 					// Filter by post status
-					if (filter.HasValue)
+					if (postsStatus.HasValue)
 					{
-						filteredData = filteredData.Where(p => p.Status == filter.Value.ToString());
+						filteredData = filteredData.Where(p => p.Status == postsStatus.Value.ToString());
 					}
 
 					result = filteredData
@@ -65,7 +65,7 @@ namespace PRN231.ExploreNow.API.Controllers
 				else
 				{
 					// If not in cache, query from PostsService
-					result = await _postsService.GetAllPostsAsync(page, pageSize, filter, searchTerm);
+					result = await _postsService.GetAllPostsAsync(page, pageSize, postsStatus, searchTerm);
 
 					// Save the result to cache for future requests
 					await Save(result).ConfigureAwait(false);
@@ -91,9 +91,9 @@ namespace PRN231.ExploreNow.API.Controllers
 		[HttpGet("pending")]
 		[Authorize(Roles = "MODERATOR")]
 		public async Task<IActionResult> GetAllPendingPosts(
-			[FromQuery] string? searchTerm,
-			[FromQuery] int page = 1,
-			[FromQuery] int pageSize = 10)
+			[FromQuery(Name = "search-term")] string? searchTerm,
+			[FromQuery(Name = "page-number")] int page = 1,
+			[FromQuery(Name = "page-size")] int pageSize = 10)
 		{
 			try
 			{
@@ -104,7 +104,9 @@ namespace PRN231.ExploreNow.API.Controllers
 				// If data is found in cache, filter and return it
 				if (cacheData.Count > 0)
 				{
-					var filteredData = cacheData.Values.AsQueryable();
+					var filteredData = cacheData.Values
+						.Where(p => p.Status.ToString() == PostsStatus.Pending.ToString())
+						.AsQueryable();
 
 					// Search by content
 					if (!string.IsNullOrEmpty(searchTerm))
@@ -146,10 +148,10 @@ namespace PRN231.ExploreNow.API.Controllers
 		[HttpGet("history")]
 		[Authorize(Roles = "CUSTOMER")]
 		public async Task<IActionResult> GetUserPosts(
-		[FromQuery] PostsStatus? filter,
-		[FromQuery] string? searchTerm,
-		[FromQuery] int page = 1,
-		[FromQuery] int pageSize = 10)
+			[FromQuery(Name = "filter-status")] PostsStatus? postsStatus,
+			[FromQuery(Name = "search-term")] string? searchTerm,
+			[FromQuery(Name = "page-number")] int page = 1,
+			[FromQuery(Name = "page-size")] int pageSize = 10)
 		{
 			try
 			{
@@ -169,9 +171,9 @@ namespace PRN231.ExploreNow.API.Controllers
 					}
 
 					// Filter by post status
-					if (filter.HasValue)
+					if (postsStatus.HasValue)
 					{
-						filteredData = filteredData.Where(p => p.Status == filter.Value.ToString());
+						filteredData = filteredData.Where(p => p.Status == postsStatus.Value.ToString());
 					}
 
 					result = filteredData
@@ -182,7 +184,7 @@ namespace PRN231.ExploreNow.API.Controllers
 				else
 				{
 					// If not in cache, query from PostsService
-					result = await _postsService.GetUserPostsAsync(page, pageSize, filter, searchTerm);
+					result = await _postsService.GetUserPostsAsync(page, pageSize, postsStatus, searchTerm);
 
 					// Save the result to cache for future requests
 					await Save(result).ConfigureAwait(false);
