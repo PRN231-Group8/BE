@@ -35,6 +35,7 @@ using PRN231.ExploreNow.Validations.TourTimeStamp;
 using Microsoft.OpenApi.Any;
 using System.Text.Json.Serialization;
 using PRN231.ExploreNow.BusinessObject.OtherObjects;
+using PRN231.ExploreNow.Validations.Posts;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Extensions.AspNetCore.Configuration.Secrets;
@@ -79,8 +80,8 @@ var connectionString = builder.Configuration.GetConnectionString("local");
 // Add DbContext and MySQL configuration
 if (builder.Environment.IsDevelopment())
 {
-    // Use MySQL in development
-    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+	// Use MySQL in development
+	builder.Services.AddDbContext<ApplicationDbContext>(options =>
 		options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 }
 else
@@ -132,7 +133,6 @@ builder.Services.AddScoped<ILocationService, LocationService>();
 builder.Services.AddScoped<ILocationRepository, LocationRepository>();
 builder.Services.AddScoped<EmailVerify>();
 builder.Services.AddScoped<TokenGenerator>();
-builder.Services.AddScoped<ITokenValidator, TokenValidator>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmailVerify, EmailVerify>();
@@ -140,6 +140,8 @@ builder.Services.AddScoped<ITourTimeStampRepository, TourTimeStampRepository>();
 builder.Services.AddScoped<ITourTimeStampService, TourTimeStampService>();
 builder.Services.AddScoped<ITourRepository, TourRepository>();
 builder.Services.AddScoped<ITourService, TourService>();
+builder.Services.AddScoped<IPostsService, PostsService>();
+builder.Services.AddScoped<IPostsRepository, PostsRepository>();
 #endregion
 
 #region Configure FluentValidator
@@ -149,6 +151,7 @@ builder.Services.AddScoped<IValidator<TourTimeStampRequest>, TourTimeStampValida
 builder.Services.AddScoped<ITokenValidator, TokenValidator>();
 builder.Services.AddScoped<TourValidation>();
 builder.Services.AddScoped<ProfileValidation>();
+builder.Services.AddScoped<IValidator<PostsRequest>, PostsRequestValidator>();
 #endregion
 
 #region Configure AutoMapper
