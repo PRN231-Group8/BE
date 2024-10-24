@@ -12,12 +12,12 @@ namespace PRN231.ExploreNow.API.Controllers
 {
 	[ApiController]
 	[Route("api/posts")]
-	[Authorize(Roles = "MODERATOR")]
 	public class PostsController : ControllerBase
 	{
 		private readonly IPostsService _postsService;
 		private readonly IValidator<PostsRequest> _postsValidator;
 		private readonly ICacheService _cacheService;
+
 		public PostsController(IPostsService postsService, IValidator<PostsRequest> postsValidator, ICacheService cacheService)
 		{
 			_postsService = postsService;
@@ -26,8 +26,9 @@ namespace PRN231.ExploreNow.API.Controllers
 		}
 
 		[HttpGet]
+		[Authorize(Roles = "MODERATOR")]
 		public async Task<IActionResult> GetAllPosts(
-			[FromQuery] PostsStatus? sortPostsStatus,
+			[FromQuery] PostsStatus? filter,
 			[FromQuery] string? searchTerm,
 			[FromQuery] int page = 1,
 			[FromQuery] int pageSize = 10)
@@ -50,10 +51,10 @@ namespace PRN231.ExploreNow.API.Controllers
 															   p.Rating.ToString().Contains(searchTerm));
 					}
 
-					// Sort by post status
-					if (sortPostsStatus.HasValue)
+					// Filter by post status
+					if (filter.HasValue)
 					{
-						filteredData = filteredData.Where(p => p.Status == sortPostsStatus.Value.ToString());
+						filteredData = filteredData.Where(p => p.Status == filter.Value.ToString());
 					}
 
 					result = filteredData
@@ -64,7 +65,7 @@ namespace PRN231.ExploreNow.API.Controllers
 				else
 				{
 					// If not in cache, query from PostsService
-					result = await _postsService.GetAllPostsAsync(page, pageSize, sortPostsStatus, searchTerm);
+					result = await _postsService.GetAllPostsAsync(page, pageSize, filter, searchTerm);
 
 					// Save the result to cache for future requests
 					await Save(result).ConfigureAwait(false);
@@ -87,7 +88,125 @@ namespace PRN231.ExploreNow.API.Controllers
 			}
 		}
 
+		[HttpGet("pending")]
+		[Authorize(Roles = "MODERATOR")]
+		public async Task<IActionResult> GetAllPendingPosts(
+			[FromQuery] string? searchTerm,
+			[FromQuery] int page = 1,
+			[FromQuery] int pageSize = 10)
+		{
+			try
+			{
+				// Attempt to retrieve data from Redis cache
+				var cacheData = GetKeyValues();
+				List<PostsResponse> result;
+
+				// If data is found in cache, filter and return it
+				if (cacheData.Count > 0)
+				{
+					var filteredData = cacheData.Values.AsQueryable();
+
+					// Search by content
+					if (!string.IsNullOrEmpty(searchTerm))
+					{
+						filteredData = filteredData.Where(p => p.Content.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+					}
+
+					result = filteredData
+						.Skip((page - 1) * pageSize)
+						.Take(pageSize)
+						.ToList();
+				}
+				else
+				{
+					// If not in cache, query from PostsService
+					result = await _postsService.GetAllPendingPostsAsync(page, pageSize, searchTerm);
+
+					// Save the result to cache for future requests
+					await Save(result).ConfigureAwait(false);
+				}
+
+				return Ok(new BaseResponse<List<PostsResponse>>
+				{
+					IsSucceed = true,
+					Result = result,
+					Message = result.Count > 0 ? "Pending posts retrieved successfully." : "No pending posts found."
+				});
+			}
+			catch (Exception ex)
+			{
+				return StatusCode((int) HttpStatusCode.InternalServerError, new BaseResponse<List<PostsResponse>>
+				{
+					IsSucceed = false,
+					Message = $"An error occurred while retrieving pending posts: {ex.Message}"
+				});
+			}
+		}
+
+		[HttpGet("history")]
+		[Authorize(Roles = "CUSTOMER")]
+		public async Task<IActionResult> GetUserPosts(
+		[FromQuery] PostsStatus? filter,
+		[FromQuery] string? searchTerm,
+		[FromQuery] int page = 1,
+		[FromQuery] int pageSize = 10)
+		{
+			try
+			{
+				// Attempt to retrieve data from Redis cache
+				var cacheData = GetKeyValues();
+				List<PostsResponse> result;
+
+				// If data is found in cache, filter and return it
+				if (cacheData.Count > 0)
+				{
+					var filteredData = cacheData.Values.AsQueryable();
+
+					// Search by content
+					if (!string.IsNullOrEmpty(searchTerm))
+					{
+						filteredData = filteredData.Where(p => p.Content.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+					}
+
+					// Filter by post status
+					if (filter.HasValue)
+					{
+						filteredData = filteredData.Where(p => p.Status == filter.Value.ToString());
+					}
+
+					result = filteredData
+						.Skip((page - 1) * pageSize)
+						.Take(pageSize)
+						.ToList();
+				}
+				else
+				{
+					// If not in cache, query from PostsService
+					result = await _postsService.GetUserPostsAsync(page, pageSize, filter, searchTerm);
+
+					// Save the result to cache for future requests
+					await Save(result).ConfigureAwait(false);
+				}
+
+				return Ok(new BaseResponse<List<PostsResponse>>
+				{
+					IsSucceed = true,
+					Result = result,
+					Message = result.Count > 0 ? "User posts retrieved successfully." : "No posts found for this user."
+				});
+			}
+			catch (Exception ex)
+			{
+				return StatusCode((int) HttpStatusCode.InternalServerError, new BaseResponse<List<PostsResponse>>
+				{
+					IsSucceed = false,
+					Message = $"An error occurred while retrieving user posts: {ex.Message}"
+				});
+			}
+		}
+
 		[HttpGet("{id}")]
+		[Authorize(Roles = "CUSTOMER,MODERATOR")]
 		public async Task<IActionResult> GetPostsById(Guid id)
 		{
 			try
@@ -108,6 +227,15 @@ namespace PRN231.ExploreNow.API.Controllers
 
 				// If not in cache, query from PostsService
 				var post = await _postsService.GetPostsByIdAsync(id);
+				if (post == null)
+				{
+					return NotFound(new BaseResponse<object>
+					{
+						IsSucceed = false,
+						Result = null,
+						Message = $"Post with Id {id} not found."
+					});
+				}
 
 				// Save the result to cache for future requests
 				await Save(new List<PostsResponse> { post }).ConfigureAwait(false);
@@ -131,6 +259,7 @@ namespace PRN231.ExploreNow.API.Controllers
 		}
 
 		[HttpPut("{id}")]
+		[Authorize(Roles = "MODERATOR")]
 		public async Task<IActionResult> UpdatePosts(Guid id, [FromBody] PostsRequest postsRequest)
 		{
 			try
@@ -173,6 +302,7 @@ namespace PRN231.ExploreNow.API.Controllers
 		}
 
 		[HttpDelete("{id}")]
+		[Authorize(Roles = "CUSTOMER,MODERATOR")]
 		public async Task<IActionResult> DeletePosts(Guid id)
 		{
 			try

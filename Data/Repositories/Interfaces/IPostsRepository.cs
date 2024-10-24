@@ -8,5 +8,7 @@ namespace PRN231.ExploreNow.Repositories.Repositories.Interfaces
 	public interface IPostsRepository : IBaseRepository<Posts>
 	{
 		Task<List<PostsResponse>> GetAllPostsAsync(int page, int pageSize, PostsStatus? postsStatus, string? searchTerm);
+		Task<List<PostsResponse>> GetAllPendingPostsAsync(int page, int pageSize, string? searchTerm);
+		Task<List<PostsResponse>> GetUserPostsAsync(string userId, int page, int pageSize, PostsStatus? postsStatus, string? searchTerm);
 	}
 }

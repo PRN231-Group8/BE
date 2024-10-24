@@ -29,17 +29,38 @@ namespace PRN231.ExploreNow.Services.Services
 
 		public async Task<List<PostsResponse>> GetAllPostsAsync(int page, int pageSize, PostsStatus? postsStatus, string? searchTerm)
 		{
-			return await _unitOfWork.PostsRepository.GetAllPostsAsync(page, pageSize, postsStatus, searchTerm);
+			return await _unitOfWork.GetRepository<IPostsRepository>().GetAllPostsAsync(page, pageSize, postsStatus, searchTerm);
+		}
+
+		public async Task<List<PostsResponse>> GetAllPendingPostsAsync(int page, int pageSize, string? searchTerm)
+		{
+			return await _unitOfWork.GetRepository<IPostsRepository>().GetAllPendingPostsAsync(page, pageSize, searchTerm);
+		}
+
+		public async Task<List<PostsResponse>> GetUserPostsAsync(int page, int pageSize, PostsStatus? postsStatus, string? searchTerm)
+		{
+			var user = await GetAuthenticatedUserAsync();
+			return await _unitOfWork.GetRepository<IPostsRepository>().GetUserPostsAsync(user.Id, page, pageSize, postsStatus, searchTerm);
 		}
 
 		public async Task<PostsResponse> GetPostsByIdAsync(Guid postsId)
 		{
+			var user = await GetAuthenticatedUserAsync();
+
 			var post = await _unitOfWork.GetRepository<IPostsRepository>().GetQueryable()
+										.AsNoTracking()
 										.Where(p => p.Id == postsId && !p.IsDeleted)
 										.Include(p => p.Comments.Where(c => !c.IsDeleted))
 										.Include(p => p.Photos.Where(ph => !ph.IsDeleted))
 										.Include(p => p.User)
-										.FirstOrDefaultAsync();
+										.SingleOrDefaultAsync();
+
+			var isModulator = await _userManager.IsInRoleAsync(user, "MODERATOR");
+			var isOwner = post.UserId == user.Id;
+			if (!isModulator && !isOwner)
+			{
+				throw new UnauthorizedAccessException("You don't have permission to view this post. Only the post owner or moderators can view post details.");
+			}
 
 			return _mapper.Map<PostsResponse>(post);
 		}
@@ -53,7 +74,7 @@ namespace PRN231.ExploreNow.Services.Services
 												.Include(p => p.Comments.Where(c => !c.IsDeleted))
 												.Include(p => p.Photos.Where(ph => !ph.IsDeleted))
 												.Include(p => p.User)
-												.FirstOrDefaultAsync();
+												.SingleAsync();
 
 			// Validate status update
 			if (postsRequest.Status.HasValue)
@@ -65,19 +86,27 @@ namespace PRN231.ExploreNow.Services.Services
 				}
 			}
 
-			existingPost.Content = string.IsNullOrEmpty(postsRequest.Content) ? existingPost.Content : postsRequest.Content;
-			existingPost.Status = postsRequest.Status.HasValue ? postsRequest.Status.Value : existingPost.Status;
+			// Get repositories
+			var commentsRepo = _unitOfWork.GetRepositoryByEntity<Comments>();
+			var photosRepo = _unitOfWork.GetRepositoryByEntity<Photo>();
+
+			var currentUser = user.UserName;
+			var now = DateTime.UtcNow;
+
+			existingPost.Content = postsRequest.Content;
+			existingPost.Status = postsRequest.Status.Value;
 			existingPost.LastUpdatedBy = user.UserName;
 			existingPost.LastUpdatedDate = DateTime.UtcNow;
 
 			// Process and delete all comments if required
 			if (postsRequest.RemoveAllComments.HasValue && postsRequest.RemoveAllComments.Value)
 			{
-				foreach (var comment in existingPost.Comments)
+				var commentsToDelete = existingPost.Comments.Where(c => !c.IsDeleted);
+				foreach (var comment in commentsToDelete)
 				{
-					comment.IsDeleted = true;
-					comment.LastUpdatedBy = user.UserName;
-					comment.LastUpdatedDate = DateTime.UtcNow;
+					comment.LastUpdatedBy = currentUser;
+					comment.LastUpdatedDate = now;
+					await commentsRepo.DeleteAsync(comment.Id);
 				}
 			}
 			// Handle deletion of specific comments if required
@@ -88,15 +117,14 @@ namespace PRN231.ExploreNow.Services.Services
 					if (Guid.TryParse(commentId, out var commentGuid))
 					{
 						var comment = existingPost.Comments.FirstOrDefault(c => c.Id == commentGuid);
-
-						if (comment == null || comment.IsDeleted)
+						if (comment == null)
 						{
 							throw new InvalidOperationException($"Comment with ID {commentId} not found or has already been deleted.");
 						}
 
-						comment.IsDeleted = true;
-						comment.LastUpdatedBy = user.UserName;
-						comment.LastUpdatedDate = DateTime.UtcNow;
+						comment.LastUpdatedBy = currentUser;
+						comment.LastUpdatedDate = now;
+						await commentsRepo.DeleteAsync(comment.Id);
 					}
 				}
 			}
@@ -104,11 +132,12 @@ namespace PRN231.ExploreNow.Services.Services
 			// Process and delete all photos if required
 			if (postsRequest.RemoveAllPhotos.HasValue && postsRequest.RemoveAllPhotos.Value)
 			{
-				foreach (var photo in existingPost.Photos)
+				var photosToDelete = existingPost.Photos.Where(p => !p.IsDeleted);
+				foreach (var photo in photosToDelete)
 				{
-					photo.IsDeleted = true;
-					photo.LastUpdatedBy = user.UserName;
-					photo.LastUpdatedDate = DateTime.UtcNow;
+					photo.LastUpdatedBy = currentUser;
+					photo.LastUpdatedDate = now;
+					await photosRepo.DeleteAsync(photo.Id);
 				}
 			}
 			// Handle deletion of specific photos if required
@@ -119,15 +148,14 @@ namespace PRN231.ExploreNow.Services.Services
 					if (Guid.TryParse(photoId, out var photoGuid))
 					{
 						var photo = existingPost.Photos.FirstOrDefault(p => p.Id == photoGuid);
-
-						if (photo == null || photo.IsDeleted)
+						if (photo == null)
 						{
 							throw new InvalidOperationException($"Photo with ID {photoId} not found or has already been deleted.");
 						}
 
-						photo.IsDeleted = true;
-						photo.LastUpdatedBy = user.UserName;
-						photo.LastUpdatedDate = DateTime.UtcNow;
+						photo.LastUpdatedBy = currentUser;
+						photo.LastUpdatedDate = now;
+						await photosRepo.DeleteAsync(photo.Id);
 					}
 				}
 			}
@@ -140,7 +168,49 @@ namespace PRN231.ExploreNow.Services.Services
 
 		public async Task<bool> DeletePostAsync(Guid postsId)
 		{
-			return await _unitOfWork.PostsRepository.DeleteAsync(postsId);
+			var user = await GetAuthenticatedUserAsync();
+
+			var post = await _unitOfWork.GetRepository<IPostsRepository>()
+										.GetQueryable()
+										.Include(p => p.Comments)
+										.Include(p => p.Photos)
+										.Include(p => p.User)
+										.SingleOrDefaultAsync(p => p.Id == postsId);
+
+			// Check user roles and permissions
+			var isModulator = await _userManager.IsInRoleAsync(user, "MODERATOR");
+			var isOwner = post.UserId == user.Id;
+			if (!isModulator && !isOwner)
+			{
+				throw new UnauthorizedAccessException("You don't have permission to delete this post. Only the post owner or moderators can delete posts.");
+			}
+
+			// Get repositories
+			var commentsRepo = _unitOfWork.GetRepositoryByEntity<Comments>();
+			var photosRepo = _unitOfWork.GetRepositoryByEntity<Photo>();
+
+			var currentUser = user.UserName;
+			var now = DateTime.UtcNow;
+
+			foreach (var comment in post.Comments)
+			{
+				comment.LastUpdatedBy = currentUser;
+				comment.LastUpdatedDate = now;
+				await commentsRepo.DeleteAsync(comment.Id);
+			}
+
+			foreach (var photo in post.Photos)
+			{
+				photo.LastUpdatedBy = currentUser;
+				photo.LastUpdatedDate = now;
+				await photosRepo.DeleteAsync(photo.Id);
+			}
+
+			post.LastUpdatedBy = currentUser;
+			post.LastUpdatedDate = now;
+
+			await _unitOfWork.SaveChangesAsync();
+			return await _unitOfWork.GetRepository<IPostsRepository>().DeleteAsync(postsId);
 		}
 
 		// Check the user is authenticated

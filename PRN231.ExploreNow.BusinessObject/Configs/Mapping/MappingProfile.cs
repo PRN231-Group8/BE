@@ -12,7 +12,8 @@ namespace PRN231.ExploreNow.BusinessObject.Configs.Mapping
 			// Mapping between Posts and PostsResponse
 			CreateMap<Posts, PostsResponse>()
 				.ForMember(dest => dest.PostsId, opt => opt.MapFrom(src => src.Id))
-				.ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
+				.ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
+				.ForMember(dest => dest.CreateDate, opt => opt.MapFrom(src => src.CreatedDate));
 
 			// Mapping between PostsRequest and Posts
 			CreateMap<PostsRequest, Posts>()
