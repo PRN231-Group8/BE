@@ -82,9 +82,9 @@ namespace PRN231.ExploreNow.API.Controllers
         {
             try
             {
-                
+
                 var cache = GetKeyValues();
-                if(cache.TryGetValue(id, out var result))
+                if (cache.TryGetValue(id, out var result))
                 {
                     return Ok(new BaseResponse<Moods>
                     {
@@ -94,7 +94,7 @@ namespace PRN231.ExploreNow.API.Controllers
                     });
                 }
                 var mood = await _moodService.GetById(id);
-                if(mood == null)
+                if (mood == null)
                 {
                     return NotFound(new BaseResponse<object>
                     {
@@ -135,10 +135,10 @@ namespace PRN231.ExploreNow.API.Controllers
                         Message = "Created successfully"
                     });
                 }
-                var error = validationResult.Errors.Select(e => (object)new 
+                var error = validationResult.Errors.Select(e => (object)new
                 {
                     e.PropertyName,
-                    e.ErrorMessage 
+                    e.ErrorMessage
                 }).ToList();
 
                 return BadRequest(new BaseResponse<object>

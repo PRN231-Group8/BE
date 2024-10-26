@@ -30,15 +30,20 @@ namespace PRN231.ExploreNow.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll(int page = 1, int pageSize = 10, TourStatus? sortByStatus = null, List<string>? searchTerm = null)
+        public async Task<IActionResult> GetAll(int page = 1, int pageSize = 10, TourStatus? sortByStatus = null, string? searchTerm = null)
         {
             try
             {
+                List<string>? searchTerms = null;
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    searchTerms = searchTerm.Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                }
                 var cache = GetKeyValues();
                 var result = cache.Values;
                 if (result.Count == 0)
                 {
-                    var tour = await _tourService.GetToursAsync(page, pageSize, sortByStatus, searchTerm);
+                    var tour = await _tourService.GetToursAsync(page, pageSize, sortByStatus, searchTerms);
                     return Ok(new BaseResponse<TourResponse> { IsSucceed = true, Results = tour.ToList(), Message = "Success" });
                 }
                 return Ok(new BaseResponse<TourResponse> { IsSucceed = true, Results = result.ToList(), Message = "Success" });

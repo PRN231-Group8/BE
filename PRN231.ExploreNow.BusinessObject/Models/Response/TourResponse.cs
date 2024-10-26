@@ -21,7 +21,7 @@ namespace PRN231.ExploreNow.BusinessObject.Models.Response
         public ICollection<Transportation> Transportations { get; set; }
         public ICollection<TourTimestamp> TourTimestamps { get; set; }
         public ICollection<LocationInTour> LocationInTours { get; set; }
-        public ICollection<TourMood> TourMoods { get; set; }
+        public List<TourMoodResponse> TourMoods { get; set; }
         public ICollection<TourTrip> TourTrips { get; set; }
     }
 }
