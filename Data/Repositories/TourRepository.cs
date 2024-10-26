@@ -19,7 +19,7 @@ namespace PRN231.ExploreNow.Repositories.Repositories
             _mapper = mapper;
         }
 
-        public async Task<List<TourResponse>> GetToursAsync(int page, int pageSize, TourStatus? sortByStatus, string? searchTerm)
+        public async Task<List<TourResponse>> GetToursAsync(int page, int pageSize, TourStatus? sortByStatus, List<string>? searchTerm)
         {
             var query = GetQueryable()
                         .Where(t => !t.IsDeleted)
@@ -29,9 +29,11 @@ namespace PRN231.ExploreNow.Repositories.Repositories
                         .Include(t => t.Transportations)
                         .Include(t => t.TourTrips)
                         .AsQueryable();
-            if (!string.IsNullOrEmpty(searchTerm))
+            if (searchTerm != null && searchTerm.Any())
             {
-                query = query.Where(t => t.Title.Contains(searchTerm) || t.Description.Contains(searchTerm));
+                query = query.Where(t => t.TourMoods.Any(tm => searchTerm.Contains(tm.Mood.MoodTag)) ||
+                t.LocationInTours.Any(lit => searchTerm.Contains(lit.Location.Name)) ||
+                searchTerm.Any(keyword => t.Description.Contains(keyword)));
             }
             if (sortByStatus.HasValue)
             {

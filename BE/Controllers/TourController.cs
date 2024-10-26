@@ -9,6 +9,7 @@ using FluentValidation.Results;
 using Microsoft.AspNetCore.Authorization;
 using Newtonsoft.Json;
 using PRN231.ExploreNow.BusinessObject.OtherObjects;
+using Newtonsoft.Json.Linq;
 
 
 namespace PRN231.ExploreNow.API.Controllers
@@ -29,7 +30,7 @@ namespace PRN231.ExploreNow.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll(int page = 1, int pageSize = 10, TourStatus? sortByStatus = null, string? searchTerm = null)
+        public async Task<IActionResult> GetAll(int page = 1, int pageSize = 10, TourStatus? sortByStatus = null, List<string>? searchTerm = null)
         {
             try
             {
@@ -40,7 +41,7 @@ namespace PRN231.ExploreNow.API.Controllers
                     var tour = await _tourService.GetToursAsync(page, pageSize, sortByStatus, searchTerm);
                     return Ok(new BaseResponse<TourResponse> { IsSucceed = true, Results = tour.ToList(), Message = "Success" });
                 }
-                return Ok(new BaseResponse<Tour> { IsSucceed = true, Results = result.ToList(), Message = "Success" });
+                return Ok(new BaseResponse<TourResponse> { IsSucceed = true, Results = result.ToList(), Message = "Success" });
             }
             catch (Exception ex)
             {
@@ -79,12 +80,15 @@ namespace PRN231.ExploreNow.API.Controllers
             try
             {
                 ValidationResult ValidateResult = await _tourValidation.ValidateAsync(model);
+                var cacheData = GetKeyValues();
                 if (ValidateResult.IsValid)
                 {
-                    await _tourService.Add(model);
+                    var tour = await _tourService.Add(model);
+                    cacheData[tour.Id] = tour;
+                    await Save(cacheData.Values).ConfigureAwait(false);
                     return Ok(new BaseResponse<object> { IsSucceed = true, Message = "Created successfully" });
                 }
-                var errors = ValidateResult.Errors.Select(e => (object) new
+                var errors = ValidateResult.Errors.Select(e => (object)new
                 {
                     e.PropertyName,
                     e.ErrorMessage
@@ -112,10 +116,12 @@ namespace PRN231.ExploreNow.API.Controllers
             try
             {
                 ValidationResult ValidateResult = await _tourValidation.ValidateAsync(model);
-
+                var cache = GetKeyValues();
                 if (ValidateResult.IsValid)
                 {
-                    await _tourService.UpdateAsync(model, id);
+                    var tour = await _tourService.UpdateAsync(model, id);
+                    cache[id] = tour;
+                    await Save(cache.Values).ConfigureAwait(false);
                     return Ok(new BaseResponse<object> { IsSucceed = true, Message = "Succesfully" });
                 }
 
@@ -143,45 +149,40 @@ namespace PRN231.ExploreNow.API.Controllers
         {
             try
             {
-                if (id != null)
+                var cache = GetKeyValues();
+                if (await _tourService.GetById(id) != null)
                 {
-                    if (await _tourService.GetById(id) != null)
+                    await _tourService.Delete(id);
+                    cache.Remove(id);
+                    return Ok(new BaseResponse<Tour>
                     {
-                        await _tourService.Delete(id);
-                        return Ok(new BaseResponse<Tour>
-                        {
-                            IsSucceed = true,
-                            Message = "Delete successfully"
-                        });
-                    }
-                    return NotFound(new BaseResponse<Tour>
-                    {
-                        IsSucceed = false,
-                        Message = $"Not found tour with id = {id}"
+                        IsSucceed = true,
+                        Message = "Delete successfully"
                     });
                 }
-                return BadRequest(new BaseResponse<Tour>
+                return NotFound(new BaseResponse<Tour>
                 {
                     IsSucceed = false,
-                    Message = "Please input correct"
+                    Message = $"Not found tour with id = {id}"
                 });
             }
+
             catch (Exception ex)
             {
                 return BadRequest(new BaseResponse<object> { IsSucceed = false, Result = ex.Message, Message = "There is something wrong" });
             }
         }
 
-        private Task<bool> Save(IEnumerable<Tour> tour, double expireAfterSeconds = 30)
+        private Task<bool> Save(IEnumerable<TourResponse> tour, double expireAfterSeconds = 30)
         {
             var expirationTime = DateTimeOffset.Now.AddSeconds(expireAfterSeconds);
-            return _cacheService.AddOrUpdateAsync(nameof(Tour), tour, expirationTime); // khoi tao key hoac luu value trong key trong cache 30 giay
+            return _cacheService.AddOrUpdateAsync(nameof(TourResponse), tour, expirationTime); // khoi tao key hoac luu value trong key trong cache 30 giay
         }
 
-        private Dictionary<Guid, Tour> GetKeyValues()
+        private Dictionary<Guid, TourResponse> GetKeyValues()
         {
-            var data = _cacheService.Get<IEnumerable<Tour>>(nameof(Tour)); // dat ten key
-            return data?.ToDictionary(key => key.Id, val => val) ?? new Dictionary<Guid, Tour>();
+            var data = _cacheService.Get<IEnumerable<TourResponse>>(nameof(TourResponse)); // dat ten key
+            return data?.ToDictionary(key => key.Id, val => val) ?? new Dictionary<Guid, TourResponse>();
         }
     }
 }
