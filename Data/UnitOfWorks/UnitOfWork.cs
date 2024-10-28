@@ -8,12 +8,13 @@ namespace PRN231.ExploreNow.Repositories.UnitOfWorks;
 
 public class UnitOfWork : BaseUnitOfWork<ApplicationDbContext>, IUnitOfWork
 {
-	public UnitOfWork(ApplicationDbContext context, IServiceProvider serviceProvider) : base(context, serviceProvider)
-	{
-	}
-	public IUserRepository UserRepository => GetRepository<IUserRepository>();
-	public ITourRepository TourRepository => GetRepository<ITourRepository>();
-	public ILocationRepository LocationRepository => GetRepository<ILocationRepository>();
-	public ITourTimeStampRepository TourTimeStampRepository => GetRepository<ITourTimeStampRepository>();
-	public IPostsRepository PostsRepository => GetRepository<IPostsRepository>();
+    public UnitOfWork(ApplicationDbContext context, IServiceProvider serviceProvider) : base(context, serviceProvider)
+    {
+    }
+    public IUserRepository UserRepository => GetRepository<IUserRepository>();
+    public ITourRepository TourRepository => GetRepository<ITourRepository>();
+    public IMoodRepository MoodRepository => GetRepository<IMoodRepository>();
+    public ILocationRepository LocationRepository => GetRepository<ILocationRepository>();
+    public ITourTimeStampRepository TourTimeStampRepository => GetRepository<ITourTimeStampRepository>();
+    public IPostsRepository PostsRepository => GetRepository<IPostsRepository>();
 }

@@ -39,6 +39,7 @@ using PRN231.ExploreNow.Validations.Posts;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Extensions.AspNetCore.Configuration.Secrets;
+using PRN231.ExploreNow.Validations.Mood;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -140,6 +141,9 @@ builder.Services.AddScoped<ITourTimeStampRepository, TourTimeStampRepository>();
 builder.Services.AddScoped<ITourTimeStampService, TourTimeStampService>();
 builder.Services.AddScoped<ITourRepository, TourRepository>();
 builder.Services.AddScoped<ITourService, TourService>();
+builder.Services.AddScoped<IMoodService, MoodService>();
+builder.Services.AddScoped<IMoodRepository, MoodRepository>();
+builder.Services.AddScoped<MoodValidation>();
 builder.Services.AddScoped<IPostsService, PostsService>();
 builder.Services.AddScoped<IPostsRepository, PostsRepository>();
 #endregion
