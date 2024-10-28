@@ -12,7 +12,7 @@ using PRN231.ExploreNow.Repositories.Context;
 namespace PRN231.ExploreNow.Repositories.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241017165855_InitialCreate")]
+    [Migration("20241025142224_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

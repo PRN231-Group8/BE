@@ -6,4 +6,3 @@ public enum PaymentTransactionStatus
 	SUCCESSFUL,
 	FAILED
 }
-}

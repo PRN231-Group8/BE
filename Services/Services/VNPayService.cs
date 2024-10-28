@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CloudinaryDotNet;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -22,8 +23,7 @@ namespace PRN231.ExploreNow.Services.Services
 		private readonly IMapper _mapper;
 		private readonly IConfiguration _configuration;
 
-		public VNPayService(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor,
-			UserManager<ApplicationUser> userManager,
+		public VNPayService(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor, UserManager<ApplicationUser> userManager,
 			IMapper mapper, IConfiguration configuration)
 		{
 			_unitOfWork = unitOfWork;
@@ -33,27 +33,75 @@ namespace PRN231.ExploreNow.Services.Services
 			_configuration = configuration;
 		}
 
-		public async Task<string> CreatePaymentForTourTrip(VNPayRequest request)
+		public async Task<List<TourPackageHistoryResponse>> GetUserTourHistory(
+			int page,
+			int pageSize,
+			PaymentTransactionStatus? filterByPaymentStatus = null,
+			string? searchTerm = null)
+		{
+			var user = await GetAuthenticatedUserAsync();
+
+			var tours = await _unitOfWork.GetRepository<ITourRepository>()
+				.GetTourBookingHistoryAsync(
+					user.Id,
+					page,
+					pageSize,
+					filterByPaymentStatus,
+					searchTerm);
+
+			return _mapper.Map<List<TourPackageHistoryResponse>>(tours);
+		}
+
+		public async Task<TourPackageDetailsResponse> GetTourPackageDetails(Guid tourId)
+		{
+			var tour = await _unitOfWork.GetRepository<ITourRepository>().GetQueryable()
+				.AsSplitQuery()
+				.Where(t => t.Id == tourId)
+				.Include(t => t.TourTrips)
+				.Include(t => t.TourTimestamps)
+					.ThenInclude(ts => ts.Location)
+						.ThenInclude(l => l.Photos)
+				.Include(t => t.Transportations)
+				.Include(t => t.TourMoods)
+					.ThenInclude(tm => tm.Mood)
+				.SingleOrDefaultAsync();
+
+			var tourPackageDetails = _mapper.Map<TourPackageDetailsResponse>(tour);
+
+			tourPackageDetails.TourTrips = _mapper.Map<List<TourTripDetailsResponse>>(tour.TourTrips);
+			tourPackageDetails.TourTimestamps = _mapper.Map<List<TourTimeStampResponse>>(tour.TourTimestamps);
+			tourPackageDetails.Transportations = _mapper.Map<List<TransportationResponse>>(tour.Transportations);
+			tourPackageDetails.Moods = _mapper.Map<List<MoodResponse>>(tour.TourMoods.Select(tm => tm.Mood));
+
+			return tourPackageDetails;
+		}
+
+		public async Task<string> CreatePaymentForTourTrip(PaymentRequest request)
 		{
 			var user = await GetAuthenticatedUserAsync();
 			var tourTrip = await _unitOfWork.GetRepository<ITourTripRepository>().GetQueryable()
 						  .Include(tt => tt.Tour)
-						  .ThenInclude(t => t.Transportations)
-						  .FirstOrDefaultAsync(tt => tt.Id == request.TourTripId);
+							  .ThenInclude(t => t.Transportations)
+						  .Where(tt => tt.Id == request.TourTripId)
+						  .SingleOrDefaultAsync();
 
 			var amount = CalculateTourTripTotalPrice(tourTrip);
+			var paymentTransactionId = GenerateUniqueCode(); // Tạo PaymentTransactionId duy nhất
 
-			var vnPayRequest = _mapper.Map<VNPayRequest>(tourTrip);
-
-			vnPayRequest.Amount = amount;
-			vnPayRequest.Description = $"Thanh toán cho tour trip {tourTrip.Id}";
+			var vnPayRequest = new VNPayRequest
+			{
+				Amount = amount,
+				Description = $"Payment for Tour Trip {tourTrip.Id}",
+				FullName = user.UserName,
+				OrderId = paymentTransactionId
+			};
 
 			var paymentUrl = CreatePaymentUrl(_httpContextAccessor.HttpContext, vnPayRequest);
 
 			// Create a pending payment record
 			var payment = new Payment
 			{
-				Amount = (decimal)amount,
+				Amount = amount,
 				Code = GenerateUniqueCode(),
 				TourTripId = tourTrip.Id,
 				Status = PaymentStatus.PENDING,
@@ -63,42 +111,228 @@ namespace PRN231.ExploreNow.Services.Services
 				LastUpdatedBy = user.UserName,
 				LastUpdatedDate = DateTime.Now,
 				PaymentMethod = "VnPay",
-				PaymentTransactionId = Guid.NewGuid().ToString()
+				PaymentTransactionId = paymentTransactionId
 			};
-
 			await _unitOfWork.GetRepository<IPaymentRepository>().AddAsync(payment);
+
+			// Create a pending transaction record
+			var transaction = new Transaction
+			{
+				Amount = payment.Amount,
+				UserId = payment.UserId,
+				PaymentId = payment.Id,
+				Status = PaymentTransactionStatus.PENDING,
+				CreatedDate = DateTime.Now,
+				LastUpdatedDate = DateTime.Now,
+				CreatedBy = user.UserName,
+				LastUpdatedBy = user.UserName,
+				Code = GenerateUniqueCode()
+			};
+			await _unitOfWork.GetRepository<ITransactionRepository>().AddAsync(transaction);
 			await _unitOfWork.SaveChangesAsync();
+
+			return paymentUrl;
+		}
+
+		private string CreatePaymentUrl(HttpContext context, VNPayRequest model)
+		{
+			var timeZoneById = TimeZoneInfo.FindSystemTimeZoneById(_configuration["TimeZoneId"]);
+			var timeNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZoneById);
+			var vnpay = new VNPayLibrary();
+
+			vnpay.AddRequestData("vnp_Version", _configuration["VnPay:Version"]);
+			vnpay.AddRequestData("vnp_Command", _configuration["VnPay:Command"]);
+			vnpay.AddRequestData("vnp_TmnCode", _configuration["VnPay:TmnCode"]);
+			vnpay.AddRequestData("vnp_Amount", (model.Amount * 100).ToString());
+			vnpay.AddRequestData("vnp_CreateDate", timeNow.ToString("yyyyMMddHHmmss"));
+			vnpay.AddRequestData("vnp_CurrCode", _configuration["VnPay:CurrCode"]);
+			vnpay.AddRequestData("vnp_IpAddr", vnpay.GetIpAddress(context));
+			vnpay.AddRequestData("vnp_Locale", _configuration["VnPay:Locale"]);
+			vnpay.AddRequestData("vnp_OrderInfo", $"{model.FullName} {model.Description} {model.Amount}");
+			vnpay.AddRequestData("vnp_OrderType", "other");
+			vnpay.AddRequestData("vnp_ReturnUrl", _configuration["VnPay:PaymentBackReturnUrl"]);
+			vnpay.AddRequestData("vnp_TxnRef", model.OrderId);
+
+			var paymentUrl = vnpay.CreateRequestUrl(_configuration["VnPay:BaseUrl"], _configuration["VnPay:HashSecret"]);
 			return paymentUrl;
 		}
 
 		public async Task<VNPayResponse> ProcessPaymentCallback(IQueryCollection query)
 		{
-			var vnPayResponse = PaymentExecute(query);
+			var paymentResponse = PaymentExecute(query);
+			var vnpTxnRef = query["vnp_TxnRef"].ToString();
 
 			var payment = await _unitOfWork.GetRepository<IPaymentRepository>().GetQueryable()
-						 .FirstOrDefaultAsync(p => p.TourTripId == vnPayResponse.TourTripId);
+						 .Include(p => p.TourTrip)
+							.ThenInclude(tt => tt.Tour)
+						 .Where(p => p.PaymentTransactionId == vnpTxnRef && p.Status == PaymentStatus.PENDING)
+						 .SingleOrDefaultAsync();
 
-			payment.Status = vnPayResponse.Success ? PaymentStatus.COMPLETED : PaymentStatus.FAILED;
-			payment.PaymentTransactionId = vnPayResponse.TransactionId.ToString();
-			await _unitOfWork.GetRepository<IPaymentRepository>().UpdateAsync(payment);
-
-			if (vnPayResponse.Success)
+			if (payment == null)
 			{
-				var tourTrip = await _unitOfWork.GetRepository<ITourTripRepository>().GetById(vnPayResponse.TourTripId);
-				tourTrip.BookedSeats++;
-				if (tourTrip.BookedSeats == tourTrip.TotalSeats)
+				return new VNPayResponse
 				{
-					tourTrip.TripStatus = TripStatus.FULLYBOOKED;
-				}
-				await _unitOfWork.GetRepository<ITourTripRepository>().UpdateAsync(tourTrip);
+					Success = false,
+					Message = "No pending payment found"
+				};
 			}
 
+			var tourTrip = payment.TourTrip;
+			var tour = tourTrip.Tour;
+
+			var transaction = await _unitOfWork.GetRepository<ITransactionRepository>().GetQueryable()
+							 .Where(t => t.PaymentId == payment.Id)
+							 .SingleOrDefaultAsync();
+
+			if (tour.Status != TourStatus.ACTIVE)
+			{
+				await UpdateFailedPayment(payment, transaction);
+				return CreateFailedPaymentResponse(payment, paymentResponse, "Tour is not active. Payment cannot be processed.");
+			}
+
+			if (paymentResponse.VnPayResponseCode == "00")
+			{
+				await UpdateSuccessfulPayment(payment, transaction, tourTrip);
+				return CreateSuccessfulPaymentResponse(payment, paymentResponse);
+			}
+			else
+			{
+				await UpdateFailedPayment(payment, transaction);
+				return CreateFailedPaymentResponse(payment, paymentResponse, GetMessageFromResponseCode(paymentResponse.VnPayResponseCode));
+			}
+		}
+
+		public VNPayResponse PaymentExecute(IQueryCollection collections)
+		{
+			var vnpay = new VNPayLibrary();
+			foreach (var (key, value) in collections)
+			{
+				if (!string.IsNullOrEmpty(key) && key.StartsWith("vnp_"))
+				{
+					vnpay.AddResponseData(key, value.ToString());
+				}
+			}
+
+			var orderId = vnpay.GetResponseData("vnp_TxnRef");
+			var vnPayTranId = vnpay.GetResponseData("vnp_TransactionNo");
+			var vnp_ResponseCode = vnpay.GetResponseData("vnp_ResponseCode");
+			var vnp_SecureHash = collections.FirstOrDefault(k => k.Key == "vnp_SecureHash").Value;
+			var orderInfo = vnpay.GetResponseData("vnp_OrderInfo");
+			var amount = Convert.ToDouble(vnpay.GetResponseData("vnp_Amount")) / 100;
+
+			bool checkSignature = vnpay.ValidateSignature(vnp_SecureHash, _configuration["VnPay:HashSecret"]);
+			if (!checkSignature)
+			{
+				return new VNPayResponse
+				{
+					Success = false
+				};
+			}
 			return new VNPayResponse
 			{
-				Success = vnPayResponse.Success,
-				TransactionId = vnPayResponse.TransactionId
+				Success = true,
+				PaymentMethod = "VnPay",
+				OrderDescription = orderInfo,
+				OrderId = orderId,
+				PaymentId = vnPayTranId,
+				TransactionId = vnPayTranId,
+				Token = vnp_SecureHash,
+				VnPayResponseCode = vnp_ResponseCode,
+				Amount = amount
 			};
 		}
+
+		private string GetMessageFromResponseCode(string responseCode)
+		{
+			return responseCode switch
+			{
+				"00" => "Giao dịch thành công",
+				"01" => "Giao dịch chưa hoàn tất",
+				"02" => "Giao dịch bị lỗi",
+				"04" => "Giao dịch đã được thực hiện nhưng chưa thành công",
+				"05" => "VNPay đang xử lý giao dịch này",
+				"06" => "VNPay đã gửi yêu cầu hoàn tiền",
+				"07" => "Giao dịch bị nghi ngờ gian lận",
+				"09" => "Giao dịch hoàn trả bị từ chối",
+				"10" => "Khách hàng xác thực thông tin thẻ/tài khoản không đúng quá 3 lần",
+				"11" => "Đã hết hạn chờ thanh toán",
+				"12" => "Thẻ/Tài khoản của khách hàng bị khóa",
+				"13" => "Khách nhập sai mật khẩu xác thực giao dịch",
+				"24" => "Khách hàng hủy giao dịch",
+				"51" => "Tài khoản của quý khách không đủ số dư để thực hiện giao dịch",
+				"65" => "Tài khoản của quý khách đã vượt quá hạn mức giao dịch trong ngày",
+				"75" => "Ngân hàng thanh toán đang bảo trì",
+				"79" => "KH nhập sai mật khẩu thanh toán quá số lần quy định",
+				"99" => "Lỗi khác",
+				_ => "Lỗi không xác định"
+			};
+		}
+
+		private async Task UpdateSuccessfulPayment(Payment payment, Transaction transaction, TourTrip tourTrip)
+		{
+			payment.Status = PaymentStatus.COMPLETED;
+			payment.LastUpdatedDate = DateTime.UtcNow;
+			transaction.Status = PaymentTransactionStatus.SUCCESSFUL;
+			transaction.LastUpdatedDate = DateTime.UtcNow;
+
+			tourTrip.BookedSeats++;
+			if (tourTrip.BookedSeats == tourTrip.TotalSeats)
+			{
+				tourTrip.TripStatus = TripStatus.FULLYBOOKED;
+			}
+
+			await _unitOfWork.GetRepository<ITourTripRepository>().UpdateAsync(tourTrip);
+			await _unitOfWork.GetRepository<IPaymentRepository>().UpdateAsync(payment);
+			await _unitOfWork.GetRepository<ITransactionRepository>().UpdateAsync(transaction);
+			await _unitOfWork.SaveChangesAsync();
+		}
+
+		private async Task UpdateFailedPayment(Payment payment, Transaction transaction)
+		{
+			payment.Status = PaymentStatus.FAILED;
+			payment.LastUpdatedDate = DateTime.UtcNow;
+			transaction.Status = PaymentTransactionStatus.FAILED;
+			transaction.LastUpdatedDate = DateTime.UtcNow;
+
+			await _unitOfWork.GetRepository<IPaymentRepository>().UpdateAsync(payment);
+			await _unitOfWork.GetRepository<ITransactionRepository>().UpdateAsync(transaction);
+			await _unitOfWork.SaveChangesAsync();
+		}
+
+		private VNPayResponse CreateSuccessfulPaymentResponse(Payment payment, VNPayResponse paymentResponse)
+		{
+			return new VNPayResponse
+			{
+				Success = true,
+				Message = "Payment successful",
+				PaymentId = payment.Id.ToString(),
+				OrderId = payment.PaymentTransactionId,
+				Amount = (double)payment.Amount,
+				TransactionId = paymentResponse.TransactionId
+			};
+		}
+
+		private VNPayResponse CreateFailedPaymentResponse(Payment payment, VNPayResponse paymentResponse, string message)
+		{
+			return new VNPayResponse
+			{
+				Success = false,
+				Message = message,
+				PaymentId = payment.Id.ToString(),
+				OrderId = payment.PaymentTransactionId,
+				Amount = (double)payment.Amount,
+				TransactionId = paymentResponse.TransactionId
+			};
+		}
+
+		private static long CalculateTourTripTotalPrice(TourTrip tourTrip)
+		{
+			decimal totalPrice = tourTrip.Price + tourTrip.Tour.Transportations.Sum(t => t.Price);
+			return (long)Math.Round(totalPrice / 1000, 0) * 1000;
+		}
+
+		// Generate random Code
+		private static string GenerateUniqueCode() => Guid.NewGuid().ToString("N").Substring(0, 10).ToUpper();
 
 		private async Task<ApplicationUser> GetAuthenticatedUserAsync()
 		{
@@ -108,76 +342,6 @@ namespace PRN231.ExploreNow.Services.Services
 				throw new UnauthorizedAccessException("User not authenticated");
 			}
 			return user;
-		}
-
-		// Generate random Code
-		private static string GenerateUniqueCode() => Guid.NewGuid().ToString("N").Substring(0, 10).ToUpper();
-
-		private static double CalculateTourTripTotalPrice(TourTrip tourTrip)
-		{
-			double totalPrice = (double)tourTrip.Tour.TotalPrice;
-
-			// Thêm chi phí vận chuyển
-			if (tourTrip.Tour.Transportations != null)
-			{
-				totalPrice += tourTrip.Tour.Transportations.Sum(t => (double)t.Price);
-			}
-
-			// Áp dụng phụ phí cuối tuần nếu có
-			if (tourTrip.TripDate.DayOfWeek == DayOfWeek.Saturday || tourTrip.TripDate.DayOfWeek == DayOfWeek.Sunday)
-			{
-				totalPrice *= 1.1;
-			}
-
-			// Áp dụng giảm giá nếu ít người đặt
-			if (tourTrip.BookedSeats < tourTrip.TotalSeats * 0.5)
-			{
-				totalPrice *= 0.9;
-			}
-
-			// Làm tròn đến hàng nghìn đồng
-			return Math.Round(totalPrice / 1000, 0) * 1000;
-		}
-
-		private string CreatePaymentUrl(HttpContext context, VNPayRequest model)
-		{
-			var timeZoneById = TimeZoneInfo.FindSystemTimeZoneById(_configuration["TimeZoneId"]);
-			var timeNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZoneById);
-			var tick = DateTime.Now.Ticks.ToString();
-			var vnpay = new VNPayLibrary();
-
-			vnpay.AddRequestData("vnp_Version", _configuration["VnPay:Version"]);
-			vnpay.AddRequestData("vnp_Command", _configuration["VnPay:Command"]);
-			vnpay.AddRequestData("vnp_TmnCode", _configuration["VnPay:TmnCode"]);
-			vnpay.AddRequestData("vnp_Amount", ((int)(model.Amount * 100)).ToString());
-			vnpay.AddRequestData("vnp_CreateDate", timeNow.ToString("yyyyMMddHHmmss"));
-			vnpay.AddRequestData("vnp_CurrCode", _configuration["VnPay:CurrCode"]);
-			vnpay.AddRequestData("vnp_IpAddr", vnpay.GetIpAddress(context));
-			vnpay.AddRequestData("vnp_Locale", _configuration["VnPay:Locale"]);
-			vnpay.AddRequestData("vnp_OrderInfo", $"{model.FullName} {model.Description} {model.Amount}");
-			vnpay.AddRequestData("vnp_OrderType", "other");
-			vnpay.AddRequestData("vnp_ReturnUrl", _configuration["VnPay:PaymentBackReturnUrl"]);
-			vnpay.AddRequestData("vnp_TxnRef", tick);
-
-			var paymentUrl = vnpay.CreateRequestUrl(_configuration["VnPay:BaseUrl"], _configuration["VnPay:HashSecret"]);
-			return paymentUrl;
-		}
-
-		public VNPayResponse PaymentExecute(IQueryCollection collections)
-		{
-			var pay = new VNPayLibrary();
-			var response = pay.GetFullResponseData(collections, _configuration["VnPay:HashSecret"]);
-
-			return response;
-		}
-
-		private Guid ParseGuid(string input)
-		{
-			if (Guid.TryParse(input, out Guid result))
-			{
-				return result;
-			}
-			return Guid.Empty;
 		}
 	}
 }

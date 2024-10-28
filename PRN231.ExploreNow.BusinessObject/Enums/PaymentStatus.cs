@@ -7,4 +7,3 @@ public enum PaymentStatus
 	CANCELLED,
 	FAILED
 }
-}

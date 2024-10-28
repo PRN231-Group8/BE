@@ -13,4 +13,5 @@ public interface IUnitOfWork : IBaseUnitOfWork
 	ITourRepository TourRepository { get; }
 	IPaymentRepository PaymentRepository { get; }
 	ITourTripRepository TourTripRepository { get; }
+	ITransactionRepository TransactionRepository { get; }
 }

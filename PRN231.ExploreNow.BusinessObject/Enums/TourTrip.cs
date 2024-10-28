@@ -7,4 +7,3 @@ public enum TripStatus
 	COMPLETED,   // Chuyến đi đã kết thúc
 	CANCELLED    // Chuyến đi đã bị hủy
 }
-}

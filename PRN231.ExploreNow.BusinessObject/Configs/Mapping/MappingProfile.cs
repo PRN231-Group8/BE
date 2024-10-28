@@ -24,7 +24,35 @@ namespace PRN231.ExploreNow.BusinessObject.Configs.Mapping
 
 			CreateMap<TourTrip, VNPayRequest>();
 
-			CreateMap<TourTrip, Tour>().ReverseMap();
+			CreateMap<Transportation, TransportationResponse>();
+
+			// New mappings for TourPackageDetailsResponse
+			CreateMap<Tour, TourPackageDetailsResponse>()
+				.ForMember(dest => dest.Moods, opt => opt.MapFrom(src => src.TourMoods.Select(tm => tm.Mood)));
+
+			CreateMap<TourTrip, TourTripDetailsResponse>()
+				.ForMember(dest => dest.TourTripId, opt => opt.MapFrom(src => src.Id));
+
+			CreateMap<Location, LocationResponse>()
+				.ForMember(dest => dest.Photos, opt => opt.Ignore());
+
+			CreateMap<Transportation, TransportationResponse>();
+
+			CreateMap<Moods, MoodResponse>()
+				.ForMember(dest => dest.TourMoods, opt => opt.Ignore());
+
+			CreateMap<Photo, PhotoResponse>();
+
+			// New mappings for TourPackageHistoryResponse
+			CreateMap<Tour, TourPackageHistoryResponse>()
+				.ForMember(dest => dest.Moods, opt => opt.MapFrom(src => src.TourMoods.Select(tm => tm.Mood)))
+				.ForMember(dest => dest.Transactions, opt => opt.MapFrom(src =>
+					src.TourTrips.SelectMany(tt => tt.Payments)
+						.Where(p => p.Transaction != null)
+						.Select(p => p.Transaction)));
+
+			CreateMap<Transaction, TransactionResponse>()
+				.ForMember(dest => dest.CreateDate, opt => opt.MapFrom(src => src.CreatedDate));
 		}
 	}
 }
