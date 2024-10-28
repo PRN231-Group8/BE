@@ -35,6 +35,7 @@ using PRN231.ExploreNow.Validations.TourTimeStamp;
 using Microsoft.OpenApi.Any;
 using System.Text.Json.Serialization;
 using PRN231.ExploreNow.BusinessObject.OtherObjects;
+using PRN231.ExploreNow.Validations.Posts;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Extensions.AspNetCore.Configuration.Secrets;
@@ -61,6 +62,7 @@ var secrets = new Dictionary<string, string>
 		{"SMTP:Password", client.GetSecret("SMTPPassword").Value.Value},
 		{"GoogleAuthSettings:Google:ClientId", client.GetSecret("ClientId").Value.Value},
 		{"GoogleAuthSettings:Google:ClientSecret", client.GetSecret("ClientSecret").Value.Value},
+		{"RedisServer", client.GetSecret("RedisConnectionString").Value.Value},
 	};
 
 // Update configuration with secrets from Key Vault
@@ -97,14 +99,6 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 	.AddEntityFrameworkStores<ApplicationDbContext>()
 	.AddDefaultTokenProviders();
 
-//builder.Services.AddStackExchangeRedisCache(options =>
-//{
-//	options.Configuration = builder.Configuration["Redis"];
-//});
-
-//builder.Services.AddSingleton<IConnectionMultiplexer>(provider => ConnectionMultiplexer.Connect(builder.Configuration["Redis"]));
-
-// Configure Redis Server
 var redisServerConfig = builder.Configuration["RedisServer"];
 
 builder.Services.AddStackExchangeRedisCache(options =>
@@ -116,11 +110,6 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(provider =>
 {
 	var options = ConfigurationOptions.Parse(redisServerConfig);
 	options.AbortOnConnectFail = false;
-	options.ConnectTimeout = 60000;
-	options.ResponseTimeout = 60000;
-	options.SyncTimeout = 60000;
-	options.ConnectRetry = 10;
-	options.ReconnectRetryPolicy = new ExponentialRetry(5000, 60000);
 	return ConnectionMultiplexer.Connect(options);
 });
 
@@ -145,7 +134,6 @@ builder.Services.AddScoped<ILocationService, LocationService>();
 builder.Services.AddScoped<ILocationRepository, LocationRepository>();
 builder.Services.AddScoped<EmailVerify>();
 builder.Services.AddScoped<TokenGenerator>();
-builder.Services.AddScoped<ITokenValidator, TokenValidator>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmailVerify, EmailVerify>();
@@ -157,6 +145,8 @@ builder.Services.AddScoped<ITourTripRepository, TourTripRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IVNPayService, VNPayService>();
 builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
+builder.Services.AddScoped<IPostsService, PostsService>();
+builder.Services.AddScoped<IPostsRepository, PostsRepository>();
 #endregion
 
 #region Configure FluentValidator
@@ -167,6 +157,7 @@ builder.Services.AddScoped<ITokenValidator, TokenValidator>();
 builder.Services.AddScoped<TourValidation>();
 builder.Services.AddScoped<ProfileValidation>();
 builder.Services.AddScoped<IValidator<PaymentRequest>, PaymentRequestValidator>();
+builder.Services.AddScoped<IValidator<PostsRequest>, PostsRequestValidator>();
 #endregion
 
 #region Configure AutoMapper

@@ -27,10 +27,10 @@ namespace PRN231.ExploreNow.API.Controllers
 
 		[HttpGet]
 		public async Task<IActionResult> GetAllTourTimeStamps(
-		   [FromQuery] int page = 1,
-		   [FromQuery] int pageSize = 10,
-		   [FromQuery] TimeSpan? sortByTime = null,
-		   [FromQuery] string? searchTerm = null)
+		   [FromQuery(Name = "page-number")] int page = 1,
+		   [FromQuery(Name = "page-size")] int pageSize = 10,
+		   [FromQuery(Name = "sort-time")] TimeSpan? sortByTime = null,
+		   [FromQuery(Name = "search-term")] string? searchTerm = null)
 		{
 			try
 			{

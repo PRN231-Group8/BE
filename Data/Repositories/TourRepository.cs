@@ -10,12 +10,10 @@ namespace PRN231.ExploreNow.Repositories.Repositories
 	public class TourRepository : BaseRepository<Tour>, ITourRepository
 	{
 		private ApplicationDbContext _dbContext;
-		private readonly IMapper _mapper;
 
-		public TourRepository(ApplicationDbContext dbContext, IMapper mapper) : base(dbContext)
+		public TourRepository(ApplicationDbContext dbContext) : base(dbContext)
 		{
 			_dbContext = dbContext;
-			_mapper = mapper;
 		}
 
 		public async Task<List<Tour>> GetToursAsync(int page, int pageSize, TourStatus? sortByStatus, string? searchTerm)

@@ -33,6 +33,14 @@ public class ApplicationDbContext : BaseDbContext
 	{
 		base.OnModelCreating(modelBuilder);
 
+		modelBuilder.Entity<ApplicationUser>(entity =>
+		{
+			entity.HasMany(u => u.Posts)
+				  .WithOne(p => p.User)
+				  .HasForeignKey(p => p.UserId)
+				  .OnDelete(DeleteBehavior.Cascade);
+		});
+
 		// Explicitly configure relationships between ApplicationUser and Tour (formerly Booking)
 
 		// ApplicationUser -> Tour (1-to-Many)
@@ -109,6 +117,7 @@ public class ApplicationDbContext : BaseDbContext
 				.HasForeignKey(tt => tt.TourId)
 				.OnDelete(DeleteBehavior.Cascade);
 
+			// Configure enums Status
 			entity.Property(tt => tt.TripStatus)
 				.HasConversion(new EnumToStringConverter<TripStatus>());
 		});
@@ -126,6 +135,7 @@ public class ApplicationDbContext : BaseDbContext
 				.HasForeignKey(p => p.UserId)
 				.OnDelete(DeleteBehavior.Cascade);
 
+			// Configure enums Status
 			entity.Property(p => p.Status)
 				.HasConversion(new EnumToStringConverter<PaymentStatus>());
 		});
@@ -143,8 +153,66 @@ public class ApplicationDbContext : BaseDbContext
 				.HasForeignKey<Transaction>(t => t.PaymentId)
 				.OnDelete(DeleteBehavior.Cascade);
 
+			// Configure enums Status
 			entity.Property(t => t.Status)
 				.HasConversion(new EnumToStringConverter<PaymentTransactionStatus>());
 		});
+
+		// Posts configurations
+		modelBuilder.Entity<Posts>(entity =>
+		{
+			entity.HasMany(p => p.Comments)
+				  .WithOne(c => c.Post)
+				  .HasForeignKey(c => c.PostId)
+				  .OnDelete(DeleteBehavior.Cascade);
+
+			entity.HasMany(p => p.Photos)
+				  .WithOne(ph => ph.Post)
+				  .HasForeignKey(ph => ph.PostId)
+				  .OnDelete(DeleteBehavior.Cascade);
+
+			entity.HasOne(p => p.User)
+				  .WithMany(u => u.Posts)
+				  .HasForeignKey(p => p.UserId)
+				  .OnDelete(DeleteBehavior.Cascade);
+
+			// Configure enums Status
+			entity.Property(ar => ar.Status)
+				  .HasConversion(new EnumToStringConverter<PostsStatus>())
+				  .IsRequired();
+		});
+
+		// Comments configurations
+		modelBuilder.Entity<Comments>(entity =>
+		{
+			entity.HasOne(c => c.Post)
+				  .WithMany(p => p.Comments)
+				  .HasForeignKey(c => c.PostId)
+				  .OnDelete(DeleteBehavior.Cascade);
+		});
+
+		// Postgresql configurations
+		var dateTimeConverter = new ValueConverter<DateTime, DateTime>(
+		v => v.ToUniversalTime(),
+		v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+
+		var nullableDateTimeConverter = new ValueConverter<DateTime?, DateTime?>(
+			v => v.HasValue ? v.Value.ToUniversalTime() : v,
+			v => v.HasValue ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : v);
+
+		// Apply the converter globally to all DateTime properties
+		foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+		{
+			var dateTimeProperties = entityType.ClrType.GetProperties()
+				.Where(p => p.PropertyType == typeof(DateTime) || p.PropertyType == typeof(DateTime?));
+
+			foreach (var property in dateTimeProperties)
+			{
+				if (property.PropertyType == typeof(DateTime))
+					modelBuilder.Entity(entityType.Name).Property(property.Name).HasConversion(dateTimeConverter);
+				else if (property.PropertyType == typeof(DateTime?))
+					modelBuilder.Entity(entityType.Name).Property(property.Name).HasConversion(nullableDateTimeConverter);
+			}
+		}
 	}
 }
