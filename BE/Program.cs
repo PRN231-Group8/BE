@@ -63,6 +63,8 @@ var secrets = new Dictionary<string, string>
 		{"GoogleAuthSettings:Google:ClientId", client.GetSecret("ClientId").Value.Value},
 		{"GoogleAuthSettings:Google:ClientSecret", client.GetSecret("ClientSecret").Value.Value},
 		{"RedisServer", client.GetSecret("RedisConnectionString").Value.Value},
+		{"VnPay:TmnCode", client.GetSecret("TmnCode").Value.Value},
+		{"VnPay:HashSecret", client.GetSecret("HashSecret").Value.Value},
 	};
 
 // Update configuration with secrets from Key Vault
