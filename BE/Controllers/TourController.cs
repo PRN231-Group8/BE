@@ -93,7 +93,7 @@ namespace PRN231.ExploreNow.API.Controllers
                     await Save(cacheData.Values).ConfigureAwait(false);
                     return Ok(new BaseResponse<object> { IsSucceed = true, Message = "Created successfully" });
                 }
-                var errors = ValidateResult.Errors.Select(e => (object)new
+                var errors = ValidateResult.Errors.Select(e => (object) new
                 {
                     e.PropertyName,
                     e.ErrorMessage
@@ -130,7 +130,7 @@ namespace PRN231.ExploreNow.API.Controllers
                     return Ok(new BaseResponse<object> { IsSucceed = true, Message = "Succesfully" });
                 }
 
-                var error = ValidateResult.Errors.Select(e => (object)new
+                var error = ValidateResult.Errors.Select(e => (object) new
                 {
                     e.PropertyName,
                     e.ErrorMessage

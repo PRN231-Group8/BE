@@ -135,7 +135,7 @@ namespace PRN231.ExploreNow.API.Controllers
                         Message = "Created successfully"
                     });
                 }
-                var error = validationResult.Errors.Select(e => (object)new
+                var error = validationResult.Errors.Select(e => (object) new
                 {
                     e.PropertyName,
                     e.ErrorMessage
@@ -174,7 +174,7 @@ namespace PRN231.ExploreNow.API.Controllers
                         Message = "Updated Successfully"
                     });
                 }
-                var error = validationResult.Errors.Select(e => (object)new
+                var error = validationResult.Errors.Select(e => (object) new
                 {
                     e.PropertyName,
                     e.ErrorMessage
