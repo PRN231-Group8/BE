@@ -35,7 +35,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\PRN231.ExploreNow.BusinessObject\PRN231.ExploreNow.BusinessObject.csproj" />
+	  <ProjectReference Include="..\PRN231.ExploreNow.BusinessObject\PRN231.ExploreNow.BusinessObject.csproj" />
 	</ItemGroup>
 
 </Project>

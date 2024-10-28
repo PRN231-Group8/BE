@@ -12,6 +12,6 @@ namespace PRN231.ExploreNow.Repositories.Repositories.Interfaces
 {
     public interface IMoodRepository : IBaseRepository<Moods>
     {
-        Task<List<Moods>> GetAllAsync(int page , int pageSize, string? searchTerm);
+        Task<List<Moods>> GetAllAsync(int page, int pageSize, List<string>? searchTerm);
     }
 }

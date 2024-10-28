@@ -22,6 +22,15 @@ namespace PRN231.ExploreNow.Validations.Tour
 
             RuleFor(x => x.StartDate)
                 .LessThan(x => x.EndDate).WithMessage("EndDate must less than StartDate ");
+
+            RuleFor(x => x.Transports)
+                .Must(x => x != null && x.Any()).WithMessage("At least one transportation must be selected.");
+
+            RuleFor(x => x.LocationInTours)
+                .Must(x => x != null && x.Any()).WithMessage("At least one location in tour must be selected.");
+
+            RuleFor(x => x.TourMoods)
+                .Must(x => x != null && x.Any()).WithMessage("At least one tour mood must be selected.");
         }
     }
 }
