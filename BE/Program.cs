@@ -66,6 +66,9 @@ var secrets = new Dictionary<string, string>
 		{"RedisServer", client.GetSecret("RedisConnectionString").Value.Value},
 		{"VnPay:TmnCode", client.GetSecret("TmnCode").Value.Value},
 		{"VnPay:HashSecret", client.GetSecret("HashSecret").Value.Value},
+		{"CloudinarySetting:CloudName", client.GetSecret("CloudName").Value.Value},
+		{"CloudinarySetting:ApiKey", client.GetSecret("ApiKey").Value.Value},
+		{"CloudinarySetting:ApiSecret", client.GetSecret("ApiSecret").Value.Value}
 	};
 
 // Update configuration with secrets from Key Vault
