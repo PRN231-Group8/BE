@@ -17,6 +17,7 @@ using System.Security.Claims;
 using System.Text;
 using Xunit;
 using System.Net;
+using PRN231.ExploreNow.BusinessObject.OtherObjects;
 
 namespace PRN231.ExploreNow.UnitTests
 {
@@ -98,57 +99,65 @@ namespace PRN231.ExploreNow.UnitTests
 		public async Task ProcessPaymentCallback_SuccessfulPayment_ReturnsSuccessResponse()
 		{
 			// Arrange
+			var tourTrip = new TourTrip
+			{
+				Id = Guid.NewGuid(),
+				BookedSeats = 5,
+				TotalSeats = 10,
+				TripStatus = TripStatus.OPEN,
+				Tour = new Tour
+				{
+					Id = Guid.NewGuid(),
+					Status = TourStatus.ACTIVE
+				}
+			};
+
 			var payment = new Payment
 			{
 				Id = Guid.NewGuid(),
 				PaymentTransactionId = "TEST123",
 				Amount = 1500000,
 				Status = PaymentStatus.PENDING,
-				TourTrip = new TourTrip
-				{
-					Tour = new Tour { Status = TourStatus.ACTIVE }
-				}
+				TourTripId = tourTrip.Id,
+				TourTrip = tourTrip
 			};
 
 			var transaction = new Transaction
 			{
+				Id = Guid.NewGuid(),
 				PaymentId = payment.Id,
 				Status = PaymentTransactionStatus.PENDING
 			};
 
 			SetupMockPaymentAndTransaction(payment, transaction);
+			SetupMockTourTrip(tourTrip);
 
 			// Create sorted dictionary for proper hash calculation
-			var queryParams = new SortedList<string, string>
+			var vnp_Params = new SortedList<string, string>(new VnPayCompare())
 			{
-				{ "vnp_Amount", "150000000" },
+				{ "vnp_Amount", "150000000" }, // Amount in VNPay format (x100)
 				{ "vnp_BankCode", "NCB" },
 				{ "vnp_BankTranNo", "VNP13875753" },
 				{ "vnp_CardType", "ATM" },
 				{ "vnp_OrderInfo", $"Payment for tour trip - {payment.Id}" },
 				{ "vnp_PayDate", "20240328183520" },
-				{ "vnp_ResponseCode", "00" },  // Success code
+				{ "vnp_ResponseCode", "00" },
 				{ "vnp_TmnCode", "1R0NMGOT" },
 				{ "vnp_TransactionNo", "13875753" },
 				{ "vnp_TransactionStatus", "00" },
-				{ "vnp_TxnRef", "TEST123" }
+				{ "vnp_TxnRef", "TEST123" },
+				{ "vnp_Version", "2.1.0" }
 			};
 
-			// Calculate VNPay hash
-			var hashData = new StringBuilder();
-			foreach (var (key, value) in queryParams.Where(kv => !string.IsNullOrEmpty(kv.Value)))
-			{
-				if (hashData.Length > 0)
-				{
-					hashData.Append('&');
-				}
-				hashData.Append(WebUtility.UrlEncode(key) + "=" + WebUtility.UrlEncode(value));
-			}
+			// Calculate VNPay hash using the same method as VNPayLibrary
+			var signData = string.Join("&", vnp_Params
+				.Where(kv => !string.IsNullOrEmpty(kv.Value))
+				.Select(kv => $"{WebUtility.UrlEncode(kv.Key)}={WebUtility.UrlEncode(kv.Value)}"));
 
-			var hashSecret = _mockConfiguration.Object["VnPay:HashSecret"];
+			var secretKey = _mockConfiguration.Object["VnPay:HashSecret"];
 			var hash = new StringBuilder();
-			var keyBytes = Encoding.UTF8.GetBytes(hashSecret);
-			var inputBytes = Encoding.UTF8.GetBytes(hashData.ToString());
+			var keyBytes = Encoding.UTF8.GetBytes(secretKey);
+			var inputBytes = Encoding.UTF8.GetBytes(signData);
 			using (var hmac = new HMACSHA512(keyBytes))
 			{
 				var hashValue = hmac.ComputeHash(inputBytes);
@@ -159,26 +168,19 @@ namespace PRN231.ExploreNow.UnitTests
 			}
 			var vnpSecureHash = hash.ToString().ToUpper();
 
+			// Add secure hash to parameters
+			vnp_Params.Add("vnp_SecureHash", vnpSecureHash);
+
 			// Convert to query collection
-			var queryDictionary = new Dictionary<string, StringValues>();
-			foreach (var param in queryParams)
-			{
-				queryDictionary.Add(param.Key, new StringValues(param.Value));
-			}
-			queryDictionary.Add("vnp_SecureHash", new StringValues(vnpSecureHash));
-
-			var mockQuery = new Mock<IQueryCollection>();
-
-			// Setup query collection methods
-			mockQuery.Setup(x => x.Keys).Returns(queryDictionary.Keys);
-			mockQuery.Setup(x => x.GetEnumerator()).Returns(queryDictionary.GetEnumerator());
-			foreach (var (key, value) in queryDictionary)
-			{
-				mockQuery.Setup(x => x[key]).Returns(value);
-			}
+			var queryCollection = new QueryCollection(new Dictionary<string, StringValues>(
+				vnp_Params.ToDictionary(
+					k => k.Key,
+					v => new StringValues(v.Value)
+				)
+			));
 
 			// Act
-			var result = await _vnPayService.ProcessPaymentCallback(mockQuery.Object);
+			var result = await _vnPayService.ProcessPaymentCallback(queryCollection);
 
 			// Assert
 			Assert.True(result.Success);
@@ -188,13 +190,17 @@ namespace PRN231.ExploreNow.UnitTests
 			Assert.Equal(1500000, result.Amount);
 			Assert.Equal("13875753", result.TransactionId);
 
-			// Verify that payment and transaction were updated
+			// Verify repository updates
 			_mockUnitOfWork.Verify(u => u.GetRepository<IPaymentRepository>().UpdateAsync(
 				It.Is<Payment>(p => p.Status == PaymentStatus.COMPLETED)),
 				Times.Once);
 
 			_mockUnitOfWork.Verify(u => u.GetRepository<ITransactionRepository>().UpdateAsync(
 				It.Is<Transaction>(t => t.Status == PaymentTransactionStatus.SUCCESSFUL)),
+				Times.Once);
+
+			_mockUnitOfWork.Verify(u => u.GetRepository<ITourTripRepository>().UpdateAsync(
+				It.Is<TourTrip>(t => t.BookedSeats == 6)), // Original 5 + 1
 				Times.Once);
 		}
 
@@ -273,7 +279,7 @@ namespace PRN231.ExploreNow.UnitTests
 
 			// Assert
 			Assert.False(result.Success);
-			Assert.Equal("Lỗi không xác định", result.Message);  // Updated to match actual error message
+			Assert.Equal("Lỗi không xác định", result.Message);
 			Assert.Equal(paymentId.ToString(), result.PaymentId);
 		}
 
