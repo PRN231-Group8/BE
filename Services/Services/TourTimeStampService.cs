@@ -28,7 +28,7 @@ namespace PRN231.ExploreNow.Services.Services
 			_userManager = userManager;
 		}
 
-		public async Task<List<TourTimeStampResponse>> GetAllTourTimeStampAsync(int page, int pageSize, TimeSpan? sortByTime, string? searchTerm)
+		public async Task<(List<TourTimeStampResponse> Items, int TotalCount)> GetAllTourTimeStampAsync(int page, int pageSize, TimeSpan? sortByTime, string? searchTerm)
 		{
 			return await _unitOfWork.GetRepository<ITourTimeStampRepository>().GetAllTourTimestampsAsync(page, pageSize, sortByTime, searchTerm);
 		}

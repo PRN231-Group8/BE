@@ -10,7 +10,7 @@ namespace PRN231.ExploreNow.Services.Interfaces
 		Task<TourPackageDetailsResponse> GetTourPackageDetails(Guid tourId);
 		Task<string> CreatePaymentForTourTrip(PaymentRequest request);
 		Task<VNPayResponse> ProcessPaymentCallback(IQueryCollection query);
-		Task<List<TourPackageHistoryResponse>> GetUserTourHistory(
+		Task<(List<TourPackageHistoryResponse> Items, int TotalCount)> GetUserTourHistory(
 			int page,
 			int pageSize,
 			PaymentTransactionStatus? filterByPaymentStatus = null,

@@ -150,7 +150,6 @@ builder.Services.AddScoped<IVNPayService, VNPayService>();
 builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 builder.Services.AddScoped<IMoodService, MoodService>();
 builder.Services.AddScoped<IMoodRepository, MoodRepository>();
-builder.Services.AddScoped<MoodValidation>();
 builder.Services.AddScoped<IPostsService, PostsService>();
 builder.Services.AddScoped<IPostsRepository, PostsRepository>();
 #endregion
@@ -162,6 +161,7 @@ builder.Services.AddScoped<IValidator<TourTimeStampRequest>, TourTimeStampValida
 builder.Services.AddScoped<ITokenValidator, TokenValidator>();
 builder.Services.AddScoped<TourValidation>();
 builder.Services.AddScoped<ProfileValidation>();
+builder.Services.AddScoped<MoodValidation>();
 builder.Services.AddScoped<IValidator<PaymentRequest>, PaymentRequestValidator>();
 builder.Services.AddScoped<IValidator<PostsRequest>, PostsRequestValidator>();
 #endregion

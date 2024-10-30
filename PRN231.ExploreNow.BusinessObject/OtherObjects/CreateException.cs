@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace PRN231.ExploreNow.BusinessObject.OtherObjects
 {
-    public class CreateException : Exception
-    {
-        public CreateException(string message) : base(message) { }
-    }
+	public class CreateException : Exception
+	{
+		public CreateException(string message) : base(message) { }
+	}
 }

@@ -18,7 +18,7 @@ namespace PRN231.ExploreNow.Repositories.Repositories.Repositories
 			_mapper = mapper;
 		}
 
-		public async Task<List<TourTimeStampResponse>> GetAllTourTimestampsAsync(int page, int pageSize, TimeSpan? sortByTime, string? searchTerm)
+		public async Task<(List<TourTimeStampResponse> Items, int TotalCount)> GetAllTourTimestampsAsync(int page, int pageSize, TimeSpan? sortByTime, string? searchTerm)
 		{
 			var query = GetQueryable(p => !p.IsDeleted && !p.Tour.IsDeleted && !p.Location.IsDeleted)
 					   .Include(p => p.Tour)
@@ -32,6 +32,8 @@ namespace PRN231.ExploreNow.Repositories.Repositories.Repositories
 					tt.Title.Contains(searchTerm) ||
 					tt.Description.Contains(searchTerm));
 			}
+
+			var totalCount = await query.CountAsync();
 
 			// Perform paging before retrieving data
 			var tourTimestamps = await query.Skip((page - 1) * pageSize)
@@ -54,7 +56,8 @@ namespace PRN231.ExploreNow.Repositories.Repositories.Repositories
 								 .ToList();
 			}
 
-			return _mapper.Map<List<TourTimeStampResponse>>(tourTimestamps);
+			var mappedResults = _mapper.Map<List<TourTimeStampResponse>>(tourTimestamps);
+			return (mappedResults, totalCount);
 		}
 	}
 }

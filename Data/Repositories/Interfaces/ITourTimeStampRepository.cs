@@ -6,6 +6,6 @@ namespace PRN231.ExploreNow.Repositories.Repositories.Interfaces
 {
 	public interface ITourTimeStampRepository : IBaseRepository<TourTimestamp>
 	{
-		Task<List<TourTimeStampResponse>> GetAllTourTimestampsAsync(int page, int pageSize, TimeSpan? sortByTime, string? searchTerm);
+		Task<(List<TourTimeStampResponse> Items, int TotalCount)> GetAllTourTimestampsAsync(int page, int pageSize, TimeSpan? sortByTime, string? searchTerm);
 	}
 }

@@ -97,7 +97,7 @@ public class ApplicationDbContext : BaseDbContext
 
 		// TourMood configurations
 		modelBuilder.Entity<TourMood>()
-		.HasKey(tm => new { tm.TourId, tm.MoodId });
+			.HasKey(tm => new { tm.TourId, tm.MoodId });
 
 		modelBuilder.Entity<TourMood>()
 			.HasOne(tm => tm.Tour)

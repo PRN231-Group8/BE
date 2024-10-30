@@ -33,7 +33,7 @@ namespace PRN231.ExploreNow.Services.Services
 			_configuration = configuration;
 		}
 
-		public async Task<List<TourPackageHistoryResponse>> GetUserTourHistory(
+		public async Task<(List<TourPackageHistoryResponse> Items, int TotalCount)> GetUserTourHistory(
 			int page,
 			int pageSize,
 			PaymentTransactionStatus? filterByPaymentStatus = null,
@@ -41,7 +41,7 @@ namespace PRN231.ExploreNow.Services.Services
 		{
 			var user = await GetAuthenticatedUserAsync();
 
-			var tours = await _unitOfWork.GetRepository<ITourRepository>()
+			var (tours, totalCount) = await _unitOfWork.GetRepository<ITourRepository>()
 				.GetTourBookingHistoryAsync(
 					user.Id,
 					page,
@@ -49,7 +49,8 @@ namespace PRN231.ExploreNow.Services.Services
 					filterByPaymentStatus,
 					searchTerm);
 
-			return _mapper.Map<List<TourPackageHistoryResponse>>(tours);
+			var mappedResults = _mapper.Map<List<TourPackageHistoryResponse>>(tours);
+			return (mappedResults, totalCount);
 		}
 
 		public async Task<TourPackageDetailsResponse> GetTourPackageDetails(Guid tourId)
@@ -71,7 +72,7 @@ namespace PRN231.ExploreNow.Services.Services
 			tourPackageDetails.TourTrips = _mapper.Map<List<TourTripDetailsResponse>>(tour.TourTrips);
 			tourPackageDetails.TourTimestamps = _mapper.Map<List<TourTimeStampResponse>>(tour.TourTimestamps);
 			tourPackageDetails.Transportations = _mapper.Map<List<TransportationResponse>>(tour.Transportations);
-			tourPackageDetails.Moods = _mapper.Map<List<MoodResponse>>(tour.TourMoods.Select(tm => tm.Mood));
+			tourPackageDetails.Moods = _mapper.Map<List<MoodResponseWithoutTours>>(tour.TourMoods.Select(tm => tm.Mood));
 
 			return tourPackageDetails;
 		}
@@ -188,6 +189,12 @@ namespace PRN231.ExploreNow.Services.Services
 			{
 				await UpdateFailedPayment(payment, transaction);
 				return CreateFailedPaymentResponse(payment, paymentResponse, "Tour is not active. Payment cannot be processed.");
+			}
+
+			if (tourTrip.TripStatus == TripStatus.FULLYBOOKED)
+			{
+				await UpdateFailedPayment(payment, transaction);
+				return CreateFailedPaymentResponse(payment, paymentResponse, "Tour trip is fully booked. Payment cannot be processed.");
 			}
 
 			if (paymentResponse.VnPayResponseCode == "00")

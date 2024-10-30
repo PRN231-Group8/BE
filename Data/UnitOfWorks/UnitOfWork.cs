@@ -11,6 +11,7 @@ public class UnitOfWork : BaseUnitOfWork<ApplicationDbContext>, IUnitOfWork
 	public UnitOfWork(ApplicationDbContext context, IServiceProvider serviceProvider) : base(context, serviceProvider)
 	{
 	}
+
 	public IUserRepository UserRepository => GetRepository<IUserRepository>();
 	public ITourRepository TourRepository => GetRepository<ITourRepository>();
 	public ILocationRepository LocationRepository => GetRepository<ILocationRepository>();
@@ -19,5 +20,5 @@ public class UnitOfWork : BaseUnitOfWork<ApplicationDbContext>, IUnitOfWork
 	public IPaymentRepository PaymentRepository => GetRepository<IPaymentRepository>();
 	public ITourTripRepository TourTripRepository => GetRepository<ITourTripRepository>();
 	public ITransactionRepository TransactionRepository => GetRepository<ITransactionRepository>();
-	public IPostsRepository PostsRepository => GetRepository<IPostsRepository>();
+	public IMoodRepository MoodRepository => GetRepository<IMoodRepository>();
 }

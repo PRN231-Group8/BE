@@ -6,6 +6,7 @@ using PRN231.ExploreNow.BusinessObject.Enums;
 using PRN231.ExploreNow.BusinessObject.Models.Request;
 using PRN231.ExploreNow.BusinessObject.Models.Response;
 using PRN231.ExploreNow.Services.Interfaces;
+using PRN231.ExploreNow.Services.Services;
 using System.Net;
 
 namespace PRN231.ExploreNow.API.Controllers
@@ -16,14 +17,16 @@ namespace PRN231.ExploreNow.API.Controllers
 	{
 		private readonly IVNPayService _vnPayService;
 		private readonly IValidator<PaymentRequest> _validator;
+		private readonly ICacheService _cacheService;
 
-		public PaymentController(IVNPayService vnPayService, IValidator<PaymentRequest> validator)
+		public PaymentController(IVNPayService vnPayService, IValidator<PaymentRequest> validator, ICacheService cacheService)
 		{
 			_vnPayService = vnPayService;
 			_validator = validator;
+			_cacheService = cacheService;
 		}
 
-		[HttpGet]
+		[HttpGet("history")]
 		[Authorize]
 		public async Task<IActionResult> GetTourHistory(
 			[FromQuery(Name = "page-number")] int page = 1,
@@ -33,31 +36,71 @@ namespace PRN231.ExploreNow.API.Controllers
 		{
 			try
 			{
-				var tourHistory = await _vnPayService.GetUserTourHistory(
-					page,
-					pageSize,
-					status,
-					searchTerm);
+				var zeroBasedPage = page - 1;
+				var cacheData = GetKeyValues();
+				List<TourPackageHistoryResponse> items;
+				int totalCount;
 
-				if (tourHistory == null || !tourHistory.Any())
+				// If data is found in cache, filter and return it
+				if (cacheData.Count > 0)
 				{
-					return NotFound(new BaseResponse<List<TourPackageHistoryResponse>>
+					var filteredData = cacheData.Values.AsQueryable();
+					if (!string.IsNullOrEmpty(searchTerm))
 					{
-						IsSucceed = false,
-						Message = "No tour history found for the current user."
-					});
+						filteredData = filteredData.Where(t =>
+							t.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+							t.Description.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+					}
+
+					if (status.HasValue)
+					{
+						filteredData = filteredData.Where(t => t.Status == status.Value.ToString());
+					}
+
+					totalCount = filteredData.Count();
+					items = filteredData
+						.Skip(zeroBasedPage * pageSize)
+						.Take(pageSize)
+						.ToList();
+				}
+				else
+				{
+					// If not in cache, query from service
+					var (serviceItems, serviceTotalCount) = await _vnPayService.GetUserTourHistory(
+						page, pageSize, status, searchTerm);
+					items = serviceItems;
+					totalCount = serviceTotalCount;
+
+					// Save the result to cache for future requests
+					await Save(items).ConfigureAwait(false);
 				}
 
-				return Ok(new BaseResponse<List<TourPackageHistoryResponse>>
+				return Ok(new BaseResponse<TourPackageHistoryResponse>
 				{
 					IsSucceed = true,
-					Result = tourHistory,
-					Message = "Tour history retrieved successfully."
+					Results = items,
+					TotalElements = totalCount,
+					Message = items?.Any() == true
+						? "Tour history retrieved successfully."
+						: "No tour history found for the current user.",
+					Size = pageSize,
+					Number = zeroBasedPage,
+					TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize),
+					NumberOfElements = items.Count,
+					First = zeroBasedPage == 0,
+					Last = zeroBasedPage >= (int)Math.Ceiling(totalCount / (double)pageSize) - 1,
+					Empty = !items.Any(),
+					Sort = new BaseResponse<TourPackageHistoryResponse>.SortInfo
+					{
+						Empty = false,
+						Sorted = true,
+						Unsorted = false
+					}
 				});
 			}
 			catch (Exception ex)
 			{
-				return StatusCode((int)HttpStatusCode.InternalServerError, new BaseResponse<TourPackageDetailsResponse>
+				return StatusCode((int) HttpStatusCode.InternalServerError, new BaseResponse<TourPackageDetailsResponse>
 				{
 					IsSucceed = false,
 					Message = $"An error occurred while retrieving tour package details: {ex.Message}"
@@ -65,7 +108,7 @@ namespace PRN231.ExploreNow.API.Controllers
 			}
 		}
 
-		[HttpGet("{id}")]
+		[HttpGet("details/{id}")]
 		[Authorize]
 		public async Task<IActionResult> GetTourPackageDetails(Guid id)
 		{
@@ -90,7 +133,7 @@ namespace PRN231.ExploreNow.API.Controllers
 			}
 			catch (Exception ex)
 			{
-				return StatusCode((int)HttpStatusCode.InternalServerError, new BaseResponse<TourPackageDetailsResponse>
+				return StatusCode((int) HttpStatusCode.InternalServerError, new BaseResponse<TourPackageDetailsResponse>
 				{
 					IsSucceed = false,
 					Message = $"An error occurred while retrieving tour package details: {ex.Message}"
@@ -124,7 +167,7 @@ namespace PRN231.ExploreNow.API.Controllers
 			}
 			catch (Exception ex)
 			{
-				return StatusCode((int)HttpStatusCode.InternalServerError, new BaseResponse<string>
+				return StatusCode((int) HttpStatusCode.InternalServerError, new BaseResponse<string>
 				{
 					IsSucceed = false,
 					Message = $"An error occurred while creating the payment: {ex.Message}"
@@ -168,12 +211,28 @@ namespace PRN231.ExploreNow.API.Controllers
 			}
 			catch (Exception ex)
 			{
-				return StatusCode((int)HttpStatusCode.InternalServerError, new BaseResponse<VNPayResponse>
+				return StatusCode((int) HttpStatusCode.InternalServerError, new BaseResponse<VNPayResponse>
 				{
 					IsSucceed = false,
 					Message = $"An error occurred while processing the payment callback: {ex.Message}"
 				});
 			}
+		}
+
+		private Task<bool> Save(IEnumerable<TourPackageHistoryResponse> tourHistory, double expireAfterSeconds = 300)
+		{
+			// Set expiration time for the cache (default is 5 minutes)
+			var expirationTime = DateTimeOffset.Now.AddSeconds(expireAfterSeconds);
+			// Save data to Redis cache
+			return _cacheService.AddOrUpdateAsync(nameof(TourPackageHistoryResponse), tourHistory, expirationTime);
+		}
+
+		private Dictionary<Guid, TourPackageHistoryResponse> GetKeyValues()
+		{
+			// Attempt to retrieve data from Redis cache
+			var data = _cacheService.Get<IEnumerable<TourPackageHistoryResponse>>(nameof(TourPackageHistoryResponse));
+			// Convert data to Dictionary or return empty Dictionary if no data
+			return data?.ToDictionary(key => key.Id, val => val) ?? new Dictionary<Guid, TourPackageHistoryResponse>();
 		}
 	}
 }
