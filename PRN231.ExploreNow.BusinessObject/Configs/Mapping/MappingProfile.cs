@@ -77,6 +77,7 @@ namespace PRN231.ExploreNow.BusinessObject.Configs.Mapping
 
 			CreateMap<Transaction, TransactionResponse>()
 				.ForMember(dest => dest.CreateDate, opt => opt.MapFrom(src => src.CreatedDate));
+			CreateMap<Tour,TourResponse>();
 		}
 	}
 }

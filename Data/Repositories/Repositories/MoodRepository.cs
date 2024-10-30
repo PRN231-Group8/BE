@@ -18,28 +18,30 @@ namespace PRN231.ExploreNow.Repositories.Repositories.Repositories
     public class MoodRepository : BaseRepository<Moods>, IMoodRepository
     {
         private readonly ApplicationDbContext _context;
-        private readonly IHttpContextAccessor _contextAccessor;
-        private readonly UserManager<ApplicationUser> _userManager;
-        public MoodRepository(ApplicationDbContext dbContext, IHttpContextAccessor contextAccessor, UserManager<ApplicationUser> userManager) : base(dbContext)
+        public MoodRepository(ApplicationDbContext dbContext) : base(dbContext)
         {
             _context = dbContext;
-            _contextAccessor = contextAccessor;
-            _userManager = userManager;
-
         }
 
-        public async Task<List<Moods>> GetAllAsync(int page, int pageSize, string? searchTerm)
+        public async Task<List<Moods>> GetAllAsync(int page, int pageSize, List<string>? searchTerms)
         {
             var query = GetQueryable()
-                        .Where(m => !m.IsDeleted);
-            if (!string.IsNullOrEmpty(searchTerm))
+                        .Where(m => !m.IsDeleted)
+                        .AsEnumerable();  // Chuyển sang xử lý phía client
+
+            if (searchTerms != null && searchTerms.Any())
             {
-                query = query.Where(m => m.MoodTag.Contains(searchTerm));
+                // Thực hiện lọc sau khi đã chuyển sang client
+                query = query.Where(m => searchTerms.Any(term => m.MoodTag.Contains(term)));
             }
-            var moods = await query.Skip((page - 1) * pageSize)
-                                       .Take(pageSize)
-                                       .ToListAsync();
-            return moods.ToList();
+
+            var moods = query.Skip((page - 1) * pageSize)
+                             .Take(pageSize)
+                             .ToList();  // Sử dụng xử lý đồng bộ hoặc async tùy theo nhu cầu
+
+            return moods;
         }
+
+
     }
 }
