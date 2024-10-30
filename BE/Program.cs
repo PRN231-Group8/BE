@@ -41,6 +41,7 @@ using Azure.Security.KeyVault.Secrets;
 using Azure.Extensions.AspNetCore.Configuration.Secrets;
 using PRN231.ExploreNow.Validations.Mood;
 using PRN231.ExploreNow.Validations.Payment;
+using PRN231.ExploreNow.Validations.Transportation;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -155,6 +156,8 @@ builder.Services.AddScoped<IMoodService, MoodService>();
 builder.Services.AddScoped<IMoodRepository, MoodRepository>();
 builder.Services.AddScoped<IPostsService, PostsService>();
 builder.Services.AddScoped<IPostsRepository, PostsRepository>();
+builder.Services.AddScoped<ITransportationRepository, TransportationRepository>();
+builder.Services.AddScoped<ITransportationService, TransportationService>();
 #endregion
 
 #region Configure FluentValidator
@@ -167,6 +170,7 @@ builder.Services.AddScoped<ProfileValidation>();
 builder.Services.AddScoped<MoodValidation>();
 builder.Services.AddScoped<IValidator<PaymentRequest>, PaymentRequestValidator>();
 builder.Services.AddScoped<IValidator<PostsRequest>, PostsRequestValidator>();
+builder.Services.AddScoped<IValidator<TransportationRequestModel>, TransportationValidator>();
 #endregion
 
 #region Configure AutoMapper
