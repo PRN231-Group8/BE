@@ -11,7 +11,6 @@ using Newtonsoft.Json;
 using PRN231.ExploreNow.BusinessObject.OtherObjects;
 using Newtonsoft.Json.Linq;
 
-
 namespace PRN231.ExploreNow.API.Controllers
 {
     [Route("api/tours")]

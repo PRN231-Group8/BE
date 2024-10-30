@@ -45,7 +45,39 @@ namespace PRN231.ExploreNow.BusinessObject.Configs.Mapping
 				.ForMember(dest => dest.Photos, opt => opt.MapFrom(src => src.Photos != null ? src.Photos.ToList() : null));
 
 			CreateMap<Photo, PhotoResponse>();
-			CreateMap<Tour,TourResponse>();
+
+			CreateMap<Tour, TourResponse>();
+
+			CreateMap<TourTrip, VNPayRequest>();
+
+			CreateMap<Transportation, TransportationResponse>();
+
+			// New mappings for TourPackageDetailsResponse
+			CreateMap<Tour, TourPackageDetailsResponse>()
+				.ForMember(dest => dest.Moods, opt => opt.MapFrom(src => src.TourMoods.Select(tm => tm.Mood)));
+
+			CreateMap<TourTrip, TourTripDetailsResponse>()
+				.ForMember(dest => dest.TourTripId, opt => opt.MapFrom(src => src.Id));
+
+			CreateMap<Location, LocationResponse>();
+
+			CreateMap<Transportation, TransportationResponse>();
+
+			CreateMap<Moods, MoodResponseWithoutTours>();
+
+			CreateMap<Photo, PhotoResponse>();
+
+			// New mappings for TourPackageHistoryResponse
+			CreateMap<Tour, TourPackageHistoryResponse>()
+				.ForMember(dest => dest.Moods, opt => opt.MapFrom(src => src.TourMoods.Select(tm => tm.Mood)))
+				.ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
+				.ForMember(dest => dest.Transactions, opt => opt.MapFrom(src =>
+					src.TourTrips.SelectMany(tt => tt.Payments)
+						.Where(p => p.Transaction != null)
+						.Select(p => p.Transaction)));
+
+			CreateMap<Transaction, TransactionResponse>()
+				.ForMember(dest => dest.CreateDate, opt => opt.MapFrom(src => src.CreatedDate));
 		}
 	}
 }

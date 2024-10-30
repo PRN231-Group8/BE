@@ -34,9 +34,11 @@ namespace PRN231.ExploreNow.API.Controllers
 		{
 			try
 			{
+				var zeroBasedPage = page - 1;
 				// Attempt to retrieve data from Redis cache
 				var cacheData = GetKeyValues();
-				List<TourTimeStampResponse> result;
+				List<TourTimeStampResponse> items;
+				int totalCount;
 
 				// If data is found in cache, filter and return it
 				if (cacheData.Count > 0)
@@ -48,6 +50,8 @@ namespace PRN231.ExploreNow.API.Controllers
 						filteredData = filteredData.Where(t => t.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
 					}
 
+					totalCount = filteredData.Count();
+
 					if (sortByTime.HasValue)
 					{
 						filteredData = filteredData.OrderBy(t => Math.Abs((t.PreferredTimeSlot.StartTime - sortByTime.Value).TotalMinutes));
@@ -56,26 +60,41 @@ namespace PRN231.ExploreNow.API.Controllers
 					{
 						filteredData = filteredData.OrderBy(t => t.PreferredTimeSlot.StartTime);
 					}
-
-					result = filteredData
-						.Skip((page - 1) * pageSize)
+					items = filteredData
+						.Skip(zeroBasedPage * pageSize)
 						.Take(pageSize)
 						.ToList();
 				}
 				else
 				{
 					// If not in cache, query from TourTimeStampService
-					result = await _tourTimeStampService.GetAllTourTimeStampAsync(page, pageSize, sortByTime, searchTerm);
+					var (serviceItems, serviceTotalCount) = await _tourTimeStampService.GetAllTourTimeStampAsync(page, pageSize, sortByTime, searchTerm);
+					items = serviceItems;
+					totalCount = serviceTotalCount;
 
 					// Save the result to cache for future requests
-					await Save(result).ConfigureAwait(false);
+					await Save(items).ConfigureAwait(false);
 				}
 
 				return Ok(new BaseResponse<TourTimeStampResponse>
 				{
 					IsSucceed = true,
-					Results = result,
-					Message = result.Count > 0 ? "Tour timestamps retrieved successfully." : "No tour timestamps found."
+					Results = items,
+					TotalElements = totalCount,
+					Message = items.Count > 0 ? "Tour timestamps retrieved successfully." : "No tour timestamps found.",
+					Size = pageSize,
+					Number = zeroBasedPage,
+					TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize),
+					NumberOfElements = items.Count,
+					First = zeroBasedPage == 0,
+					Last = zeroBasedPage >= (int)Math.Ceiling(totalCount / (double)pageSize) - 1,
+					Empty = !items.Any(),
+					Sort = new BaseResponse<TourTimeStampResponse>.SortInfo
+					{
+						Empty = false,
+						Sorted = true,
+						Unsorted = false
+					}
 				});
 			}
 			catch (Exception ex)

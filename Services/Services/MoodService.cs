@@ -15,68 +15,69 @@ using System.Threading.Tasks;
 
 namespace PRN231.ExploreNow.Services.Services
 {
-    public class MoodService : IMoodService
-    {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IHttpContextAccessor _contextAccessor;
-        private readonly UserManager<ApplicationUser> _userManager;
+	public class MoodService : IMoodService
+	{
+		private readonly IUnitOfWork _unitOfWork;
+		private readonly IHttpContextAccessor _contextAccessor;
+		private readonly UserManager<ApplicationUser> _userManager;
 
-        public MoodService(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager, IHttpContextAccessor contextAccessor)
-        {
-            _unitOfWork = unitOfWork;
-            _userManager = userManager;
-            _contextAccessor = contextAccessor;
-        }
+		public MoodService(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager, IHttpContextAccessor contextAccessor)
+		{
+			_unitOfWork = unitOfWork;
+			_userManager = userManager;
+			_contextAccessor = contextAccessor;
+		}
 
-        public async Task Add(MoodRequest moods)
-        {
-            var mood = MapToMoods(moods);
-            await _unitOfWork.GetRepositoryByEntity<Moods>().AddAsync(mood);    
-            await _unitOfWork.SaveChangesAsync();
-        }
+		public async Task Add(MoodRequest moods)
+		{
+			var mood = MapToMoods(moods);
+			await _unitOfWork.GetRepositoryByEntity<Moods>().AddAsync(mood);
+			await _unitOfWork.SaveChangesAsync();
+		}
 
-        public async Task Delete(Guid id)
-        {
-            await _unitOfWork.GetRepositoryByEntity<Moods>().DeleteAsync(id);
-        }
+		public async Task Delete(Guid id)
+		{
+			await _unitOfWork.GetRepositoryByEntity<Moods>().DeleteAsync(id);
+		}
 
-        public async Task<List<Moods>> GetAllAsync(int page, int pageSize, List<string>? searchTerm)
-        {
-            return await _unitOfWork.GetRepository<IMoodRepository>().GetAllAsync(page, pageSize, searchTerm);
-        }
+		public async Task<List<Moods>> GetAllAsync(int page, int pageSize, List<string>? searchTerm)
+		{
+			return await _unitOfWork.GetRepository<IMoodRepository>().GetAllAsync(page, pageSize, searchTerm);
+		}
 
-        public async Task<Moods> GetById(Guid id)
-        {
-            var mood = await _unitOfWork.GetRepositoryByEntity<Moods>().GetQueryable()
-                .Where(m => m.Id == id && !m.IsDeleted).
-                FirstOrDefaultAsync();
-            return mood;
-        }
+		public async Task<Moods> GetById(Guid id)
+		{
+			var mood = await _unitOfWork.GetRepositoryByEntity<Moods>().GetQueryable()
+				.Where(m => m.Id == id && !m.IsDeleted).
+				FirstOrDefaultAsync();
+			return mood;
+		}
 
-        public async Task Update(MoodRequest moods, Guid id)
-        {
-            var mood = MapToMoods(moods);
-            mood.Id = id;
-            await _unitOfWork.GetRepositoryByEntity<Moods>().UpdateAsync(mood);
-            await _unitOfWork.SaveChangesAsync();
-        }
+		public async Task Update(MoodRequest moods, Guid id)
+		{
+			var mood = MapToMoods(moods);
+			mood.Id = id;
+			await _unitOfWork.GetRepositoryByEntity<Moods>().UpdateAsync(mood);
+			await _unitOfWork.SaveChangesAsync();
+		}
 
-        private Moods MapToMoods(MoodRequest mood) 
-        {
-            var currentUser = _contextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var currUserName = _contextAccessor.HttpContext?.User.Identity.Name;
-            return new Moods
-            {
-                Code = GenerateUniqueCode(),
-                MoodTag = mood.MoodTag,
-                IconName = mood.IconName,
-                CreatedBy = currUserName,
-                CreatedDate = DateTime.Now,
-                LastUpdatedBy = currUserName,
-                LastUpdatedDate = DateTime.Now,
-                IsDeleted = false,
-            };
-        }
-        private string GenerateUniqueCode() => Guid.NewGuid().ToString("N").Substring(0, 10).ToUpper();
-    }
+		private Moods MapToMoods(MoodRequest mood)
+		{
+			var currentUser = _contextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+			var currUserName = _contextAccessor.HttpContext?.User.Identity.Name;
+			return new Moods
+			{
+				Code = GenerateUniqueCode(),
+				MoodTag = mood.MoodTag,
+				IconName = mood.IconName,
+				CreatedBy = currUserName,
+				CreatedDate = DateTime.Now,
+				LastUpdatedBy = currUserName,
+				LastUpdatedDate = DateTime.Now,
+				IsDeleted = false,
+			};
+		}
+
+		private string GenerateUniqueCode() => Guid.NewGuid().ToString("N").Substring(0, 10).ToUpper();
+	}
 }

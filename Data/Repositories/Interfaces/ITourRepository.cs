@@ -2,16 +2,11 @@
 using PRN231.ExploreNow.BusinessObject.Entities;
 using PRN231.ExploreNow.BusinessObject.Enums;
 using PRN231.ExploreNow.BusinessObject.Models.Response;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace PRN231.ExploreNow.Repositories.Repositories.Interfaces
 {
-    public interface ITourRepository : IBaseRepository<Tour>
-    {
-        Task<List<TourResponse>> GetToursAsync(int page, int pageSize, TourStatus? sortByStatus, List<string>? searchTerm);
-    }
+	public interface ITourRepository : IBaseRepository<Tour>
+	{
+		Task<List<TourResponse>> GetToursAsync(int page, int pageSize, TourStatus? sortByStatus, List<string>? searchTerm);
+		Task<(List<Tour> Items, int TotalCount)> GetTourBookingHistoryAsync(string userId, int page, int pageSize, PaymentTransactionStatus? filterTransactionStatus, string? searchTerm = null);
+	}
 }

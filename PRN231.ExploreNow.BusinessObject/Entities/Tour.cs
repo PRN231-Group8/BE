@@ -10,6 +10,7 @@ public class Tour : BaseEntity
 	public ApplicationUser User { get; set; }
 	public string Title { get; set; }
 	public string Description { get; set; }
+	//public bool? isCustomization { get; set; }
 	public ICollection<Transportation> Transportations { get; set; }
 	public ICollection<TourTimestamp> TourTimestamps { get; set; }
 	public ICollection<LocationInTour> LocationInTours { get; set; }
