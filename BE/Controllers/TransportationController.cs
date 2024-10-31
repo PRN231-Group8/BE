@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using PRN231.ExploreNow.BusinessObject.Enums;
 using PRN231.ExploreNow.BusinessObject.Models.Request;
 using PRN231.ExploreNow.BusinessObject.Models.Response;
+using PRN231.ExploreNow.BusinessObject.Models.Response.CacheResponse;
 using PRN231.ExploreNow.Services.Interfaces;
 
 namespace PRN231.ExploreNow.API.Controllers;
@@ -78,12 +79,12 @@ public class TransportationController : ControllerBase
     {
         try
         {
-            var cacheData = GetKeyValues();
+            var cacheData = GetCachedTransportations();
             IQueryable<TransportationResponse> filteredData;
 
-            if (cacheData.Count > 0)
+            if (cacheData.ResponseList.Count > 0)
             {
-                filteredData = cacheData.Values.AsQueryable();
+                filteredData = cacheData.ResponseList.AsQueryable();
 
                 // Apply search filter if searchTerm is provided
                 if (!string.IsNullOrEmpty(searchTerm))
@@ -100,23 +101,13 @@ public class TransportationController : ControllerBase
                     .Take(pageSize)
                     .ToList();
 
-                return Ok(new BaseResponse<TransportationResponse>
-                {
-                    IsSucceed = true,
-                    Results = result,
-                    Message = result.Any() ? "Transportations retrieved successfully." : "No transportations found."
-                });
+                return Ok(new BaseResponse<TransportationResponse>(result, cacheData.TotalElements, page, pageSize, result.Any() ? "Transportations retrieved in cache successfully." : "No transportations found."));
             }
             else
             {
-                var result = await _transportationService.GetTransportations(page, pageSize, sortBy, searchTerm);
-                await Save(result);
-                return Ok(new BaseResponse<TransportationResponse>
-                {
-                    IsSucceed = true,
-                    Results = result,
-                    Message = result.Any() ? "Transportations retrieved successfully." : "No transportations found."
-                });
+                var (result, totalElements) = await _transportationService.GetTransportations(page, pageSize, sortBy, searchTerm);
+                await Save(result, totalElements);
+                return Ok(new BaseResponse<TransportationResponse>(result, totalElements, page, pageSize, result.Any() ? "Transportations retrieved successfully." : "No transportations found."));
             }
         }
         catch (Exception ex)
@@ -269,6 +260,24 @@ public class TransportationController : ControllerBase
         var expirationTime = DateTimeOffset.Now.AddSeconds(expireAfterSeconds);
         return _cacheService.AddOrUpdateAsync(nameof(TransportationResponse), transportations, expirationTime);
     }
+
+    private async Task<bool> Save(List<TransportationResponse> transportations, int totalElements, double expireAfterSeconds = 30)
+    {
+        var cacheData = new BaseCacheResponse<TransportationResponse>
+        {
+            ResponseList = transportations,
+            TotalElements = totalElements
+        };
+
+        var expirationTime = DateTimeOffset.Now.AddSeconds(expireAfterSeconds);
+        return await _cacheService.AddOrUpdateAsync("BaseCacheResponse", cacheData, expirationTime);
+    }
+
+    private BaseCacheResponse<TransportationResponse> GetCachedTransportations()
+    {
+        return _cacheService.Get<BaseCacheResponse<TransportationResponse>>("BaseCacheResponse") ?? new BaseCacheResponse<TransportationResponse>();
+    }
+
 
     private Dictionary<Guid, TransportationResponse> GetKeyValues()
     {

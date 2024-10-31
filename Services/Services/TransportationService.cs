@@ -32,9 +32,10 @@ namespace PRN231.ExploreNow.Services.Services
             return transportation != null ? _mapper.Map<TransportationResponse>(transportation) : null;
         }
 
-        public async Task<List<TransportationResponse>> GetTransportations(int page, int pageSize, string? sortBy, string? searchTerm)
+        public async Task<(List<TransportationResponse> Items, int TotalElements)> GetTransportations(int page, int pageSize, string? sortBy, string? searchTerm)
         {
             var queryable = _unitOfWork.GetRepository<ITransportationRepository>().GetQueryable().Where(t => !t.IsDeleted);
+            var totalElements = await _unitOfWork.GetRepository<ITransportationRepository>().GetTotalCount();
 
             // Apply search filter if searchTerm is provided
             if (!string.IsNullOrWhiteSpace(searchTerm))
@@ -58,7 +59,8 @@ namespace PRN231.ExploreNow.Services.Services
                 .Take(pageSize)
                 .ToListAsync();
 
-            return _mapper.Map<List<TransportationResponse>>(paginatedList);
+           var mappedTransportations = _mapper.Map<List<TransportationResponse>>(paginatedList);
+           return (mappedTransportations, totalElements);
         }
 
         public async Task<bool> AddTransportation(TransportationRequestModel req)

@@ -10,7 +10,7 @@ namespace PRN231.ExploreNow.Services.Interfaces
 {
     public interface ITransportationService
     {
-        Task<List<TransportationResponse>> GetTransportations(int page, int pageSize, string? sortBy, string? searchTerm);
+        Task<(List<TransportationResponse> Items, int TotalElements)> GetTransportations(int page, int pageSize, string? sortBy, string? searchTerm);
         Task<TransportationResponse> GetTransportationById(Guid id);
         Task<bool> AddTransportation(TransportationRequestModel req);
         Task<bool> UpdateTransportation(Guid id, TransportationRequestModel req);
