@@ -23,7 +23,7 @@ public class BaseResponse<T>
 		public bool Unsorted { get; set; }
 	}
 
-	public BaseResponse(List<T> items, int totalElements, int pageNumber, int pageSize)
+	public BaseResponse(List<T> items, int totalElements, int pageNumber, int pageSize, string message)
 	{
 		IsSucceed = true;
 		Results = items;
@@ -43,6 +43,7 @@ public class BaseResponse<T>
 			Sorted = true,
 			Unsorted = false
 		};
+		Message = message;
 	}
 
 	// Default constructor

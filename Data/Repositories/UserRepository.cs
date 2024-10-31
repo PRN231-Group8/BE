@@ -67,5 +67,15 @@ namespace PRN231.ExploreNow.BusinessObject.Contracts.Repositories
 				AvatarPath = applicationUser.AvatarPath
 			};
 		}
-	}
+
+        public async Task<ApplicationUser> GetUsersClaimIdentity()
+        {
+            var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
+            if (user == null)
+            {
+                throw new UnauthorizedAccessException("User not authenticated");
+            }
+            return user;
+        }
+    }
 }

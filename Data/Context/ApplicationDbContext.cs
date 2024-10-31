@@ -61,15 +61,22 @@ public class ApplicationDbContext : BaseDbContext
 			.HasForeignKey(tr => tr.UserId)
 			.OnDelete(DeleteBehavior.Cascade);  // Define cascade delete behavior
 
-		// Transportation -> Tour (Many-to-1)
-		modelBuilder.Entity<Transportation>()
-			.HasOne(tp => tp.Tour)
-			.WithMany(t => t.Transportations)  // Tour has a collection of Transportations
-			.HasForeignKey(tp => tp.TourId)
-			.OnDelete(DeleteBehavior.Cascade);  // Define cascade delete behavior
+        // Inside OnModelCreating method
+        modelBuilder.Entity<Transportation>(entity =>
+        {
+            entity.HasOne(tp => tp.Tour)
+                .WithMany(t => t.Transportations)  // Tour has a collection of Transportations
+                .HasForeignKey(tp => tp.TourId)
+                .OnDelete(DeleteBehavior.Cascade);  // Define cascade delete behavior
 
-		// Tour -> LocationInTour (1-to-Many)
-		modelBuilder.Entity<LocationInTour>()
+            // Configure enum TransportationType to be stored as a string
+            entity.Property(tp => tp.Type)
+                .HasConversion(new EnumToStringConverter<TransportationType>());
+        });
+
+
+        // Tour -> LocationInTour (1-to-Many)
+        modelBuilder.Entity<LocationInTour>()
 			.HasOne(lit => lit.Tour)
 			.WithMany(t => t.LocationInTours)  // Tour has a collection of LocationInTours
 			.HasForeignKey(lit => lit.TourId)
