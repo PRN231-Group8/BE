@@ -45,6 +45,7 @@ namespace PRN231.ExploreNow.BusinessObject.Configs.Mapping
 				.ForMember(dest => dest.Photos, opt => opt.MapFrom(src => src.Photos != null ? src.Photos.ToList() : null));
 
 			CreateMap<Photo, PhotoResponse>();
+			CreateMap<Tour, TourResponse>();
 
 			CreateMap<Tour, TourResponse>();
 			CreateMap<TourMood, TourMoodResponse>()
@@ -92,6 +93,9 @@ namespace PRN231.ExploreNow.BusinessObject.Configs.Mapping
 
 			CreateMap<Transaction, TransactionResponse>()
 				.ForMember(dest => dest.CreateDate, opt => opt.MapFrom(src => src.CreatedDate));
+
+			CreateMap<Transportation, TransportationResponse>().ReverseMap();
+			CreateMap<Transportation, TransportationRequestModel>().ReverseMap();
 		}
 	}
 }
