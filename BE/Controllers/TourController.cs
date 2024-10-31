@@ -29,7 +29,8 @@ namespace PRN231.ExploreNow.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll(int page = 1, int pageSize = 10, TourStatus? sortByStatus = null, string? searchTerm = null)
+		[ProducesResponseType(typeof(BaseResponse<List<TourResponse>>), 200)]
+		public async Task<IActionResult> GetAll(int page = 1, int pageSize = 10, TourStatus? sortByStatus = null, string? searchTerm = null)
         {
             try
             {
@@ -54,7 +55,8 @@ namespace PRN231.ExploreNow.API.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(Guid id)
+		[ProducesResponseType(typeof(BaseResponse<TourResponse>), 200)]
+		public async Task<IActionResult> GetById(Guid id)
         {
             try
             {
@@ -79,7 +81,10 @@ namespace PRN231.ExploreNow.API.Controllers
 
         [HttpPost]
         [Authorize(Roles = StaticUserRoles.ADMIN)]
-        public async Task<IActionResult> AddTour([FromBody] TourRequestModel model)
+		[ProducesResponseType(typeof(BaseResponse<TourResponse>), 201)]
+		[ProducesResponseType(typeof(BaseResponse<object>), 400)]
+		[ProducesResponseType(typeof(BaseResponse<object>), 500)]
+		public async Task<IActionResult> AddTour([FromBody] TourRequestModel model)
         {
             try
             {
@@ -115,7 +120,11 @@ namespace PRN231.ExploreNow.API.Controllers
 
         [HttpPut("{id}")]
         [Authorize(Roles = StaticUserRoles.ADMIN)]
-        public async Task<IActionResult> Update([FromBody] TourRequestModel model, Guid id)
+		[ProducesResponseType(typeof(BaseResponse<object>), 200)]
+		[ProducesResponseType(typeof(BaseResponse<object>), 400)]
+		[ProducesResponseType(typeof(BaseResponse<object>), 404)]
+		[ProducesResponseType(typeof(BaseResponse<object>), 500)]
+		public async Task<IActionResult> Update([FromBody] TourRequestModel model, Guid id)
         {
             try
             {
@@ -149,7 +158,10 @@ namespace PRN231.ExploreNow.API.Controllers
 
         [HttpDelete("{id}")]
         [Authorize(Roles = StaticUserRoles.ADMIN)]
-        public async Task<IActionResult> Delete(Guid id)
+		[ProducesResponseType(typeof(BaseResponse<object>), 200)]
+		[ProducesResponseType(typeof(BaseResponse<object>), 404)]
+		[ProducesResponseType(typeof(BaseResponse<object>), 500)]
+		public async Task<IActionResult> Delete(Guid id)
         {
             try
             {
