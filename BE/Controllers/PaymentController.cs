@@ -108,7 +108,7 @@ namespace PRN231.ExploreNow.API.Controllers
 			}
 		}
 
-		[HttpGet("details/{id}")]
+		[HttpGet("details/{id}/tour")]
 		[Authorize]
 		public async Task<IActionResult> GetTourPackageDetails(Guid id)
 		{
