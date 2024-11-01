@@ -168,9 +168,9 @@ public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : 
 
 	#region Other
 
-	public async Task<long> GetTotalCount()
+	public async Task<int> GetTotalCount()
 	{
-		var result = await GetQueryable().LongCountAsync();
+		var result = await GetQueryable().CountAsync();
 		return result;
 	}
 

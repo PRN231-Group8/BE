@@ -45,7 +45,57 @@ namespace PRN231.ExploreNow.BusinessObject.Configs.Mapping
 				.ForMember(dest => dest.Photos, opt => opt.MapFrom(src => src.Photos != null ? src.Photos.ToList() : null));
 
 			CreateMap<Photo, PhotoResponse>();
-			CreateMap<Tour,TourResponse>();
+			CreateMap<Tour, TourResponse>();
+
+			CreateMap<Tour, TourResponse>();
+			CreateMap<TourMood, TourMoodResponse>()
+				.ForMember(dest => dest.MoodTag, opt => opt.MapFrom(src => src.Mood.MoodTag))
+				.ForMember(dest => dest.IconName, opt => opt.MapFrom(src => src.Mood.IconName));
+
+			CreateMap<TourTrip, VNPayRequest>();
+
+			CreateMap<Transportation, TransportationResponse>();
+
+			// New mappings for TourPackageDetailsResponse
+			CreateMap<Tour, TourPackageDetailsResponse>()
+				.ForMember(dest => dest.Moods, opt => opt.MapFrom(src => src.TourMoods.Select(tm => tm.Mood)));
+
+			CreateMap<Tour, TourDetailsResponse>()
+				.ForMember(dest => dest.TourTrips, opt => opt.MapFrom(src => src.TourTrips.OrderBy(tt => tt.TripDate)));
+
+			CreateMap<TourTrip, TourTripDetailsResponse>()
+				.ForMember(dest => dest.TripStatus, opt => opt.MapFrom(src => src.TripStatus.ToString()))
+				.ForMember(dest => dest.TourTripId, opt => opt.MapFrom(src => src.Id));
+
+			CreateMap<Location, LocationResponse>();
+
+			CreateMap<LocationInTour, LocationInTourResponse>();
+
+			CreateMap<Transportation, TransportationResponse>();
+
+			CreateMap<Moods, MoodResponseWithoutTours>();
+
+			CreateMap<TourTrip, TourTripResponse>()
+				.ForMember(dest => dest.CreatedDate, opt => opt.MapFrom(src => src.CreatedDate))
+				.ForMember(dest => dest.TourTripId, opt => opt.MapFrom(src => src.Id))
+				.ForMember(dest => dest.TripStatus, opt => opt.MapFrom(src => src.TripStatus.ToString()));
+
+			CreateMap<TourTripRequest, TourTrip>();
+
+			// New mappings for TourPackageHistoryResponse
+			CreateMap<Tour, TourPackageHistoryResponse>()
+				.ForMember(dest => dest.Moods, opt => opt.MapFrom(src => src.TourMoods.Select(tm => tm.Mood)))
+				.ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
+				.ForMember(dest => dest.Transactions, opt => opt.MapFrom(src =>
+					src.TourTrips.SelectMany(tt => tt.Payments)
+						.Where(p => p.Transaction != null)
+						.Select(p => p.Transaction)));
+
+			CreateMap<Transaction, TransactionResponse>()
+				.ForMember(dest => dest.CreateDate, opt => opt.MapFrom(src => src.CreatedDate));
+
+			CreateMap<Transportation, TransportationResponse>().ReverseMap();
+			CreateMap<Transportation, TransportationRequestModel>().ReverseMap();
 		}
 	}
 }

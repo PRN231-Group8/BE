@@ -14,4 +14,5 @@ public interface IUnitOfWork : IBaseUnitOfWork
     ITourRepository TourRepository { get; }
     IMoodRepository MoodRepository { get; }
     IPostsRepository PostsRepository { get; }
+    ITransportationRepository TransportationRepository { get; }
 }

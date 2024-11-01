@@ -17,4 +17,5 @@ public class UnitOfWork : BaseUnitOfWork<ApplicationDbContext>, IUnitOfWork
     public ILocationRepository LocationRepository => GetRepository<ILocationRepository>();
     public ITourTimeStampRepository TourTimeStampRepository => GetRepository<ITourTimeStampRepository>();
     public IPostsRepository PostsRepository => GetRepository<IPostsRepository>();
+    public ITransportationRepository TransportationRepository => GetRepository<ITransportationRepository>();
 }

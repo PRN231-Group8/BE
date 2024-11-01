@@ -40,6 +40,9 @@ using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Extensions.AspNetCore.Configuration.Secrets;
 using PRN231.ExploreNow.Validations.Mood;
+using PRN231.ExploreNow.Validations.Payment;
+using PRN231.ExploreNow.Validations.Transportation;
+using PRN231.ExploreNow.Validations.TourTrip;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -63,6 +66,11 @@ var secrets = new Dictionary<string, string>
 		{"GoogleAuthSettings:Google:ClientId", client.GetSecret("ClientId").Value.Value},
 		{"GoogleAuthSettings:Google:ClientSecret", client.GetSecret("ClientSecret").Value.Value},
 		{"RedisServer", client.GetSecret("RedisConnectionString").Value.Value},
+		{"VnPay:TmnCode", client.GetSecret("TmnCode").Value.Value},
+		{"VnPay:HashSecret", client.GetSecret("HashSecret").Value.Value},
+		{"CloudinarySetting:CloudName", client.GetSecret("CloudName").Value.Value},
+		{"CloudinarySetting:ApiKey", client.GetSecret("ApiKey").Value.Value},
+		{"CloudinarySetting:ApiSecret", client.GetSecret("ApiSecret").Value.Value}
 	};
 
 // Update configuration with secrets from Key Vault
@@ -141,11 +149,17 @@ builder.Services.AddScoped<ITourTimeStampRepository, TourTimeStampRepository>();
 builder.Services.AddScoped<ITourTimeStampService, TourTimeStampService>();
 builder.Services.AddScoped<ITourRepository, TourRepository>();
 builder.Services.AddScoped<ITourService, TourService>();
+builder.Services.AddScoped<ITourTripRepository, TourTripRepository>();
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+builder.Services.AddScoped<IVNPayService, VNPayService>();
+builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 builder.Services.AddScoped<IMoodService, MoodService>();
 builder.Services.AddScoped<IMoodRepository, MoodRepository>();
-builder.Services.AddScoped<MoodValidation>();
 builder.Services.AddScoped<IPostsService, PostsService>();
 builder.Services.AddScoped<IPostsRepository, PostsRepository>();
+builder.Services.AddScoped<ITransportationRepository, TransportationRepository>();
+builder.Services.AddScoped<ITransportationService, TransportationService>();
+builder.Services.AddScoped<ITourTripService, TourTripService>();
 #endregion
 
 #region Configure FluentValidator
@@ -155,7 +169,11 @@ builder.Services.AddScoped<IValidator<TourTimeStampRequest>, TourTimeStampValida
 builder.Services.AddScoped<ITokenValidator, TokenValidator>();
 builder.Services.AddScoped<TourValidation>();
 builder.Services.AddScoped<ProfileValidation>();
+builder.Services.AddScoped<MoodValidation>();
+builder.Services.AddScoped<IValidator<PaymentRequest>, PaymentRequestValidator>();
 builder.Services.AddScoped<IValidator<PostsRequest>, PostsRequestValidator>();
+builder.Services.AddScoped<IValidator<TourTripRequest>, TourTripValidator>();
+builder.Services.AddScoped<IValidator<TransportationRequestModel>, TransportationValidator>();
 #endregion
 
 #region Configure AutoMapper
@@ -344,7 +362,5 @@ app.MapHealthChecks("/health", new HealthCheckOptions
 		await context.Response.WriteAsync(result);
 	}
 });
-
-//app.MapControllers();
 
 app.Run();

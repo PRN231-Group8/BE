@@ -19,6 +19,7 @@ namespace PRN231.ExploreNow.API.Controllers
         private readonly IMoodService _moodService;
         private readonly MoodValidation _validation;
         private readonly ICacheService _cacheService;
+
         public MoodController(IMoodService moodService, MoodValidation validation, ICacheService cacheService)
         {
             _moodService = moodService;
@@ -218,6 +219,7 @@ namespace PRN231.ExploreNow.API.Controllers
                 });
             }
         }
+
         private Task<bool> Save(IEnumerable<Moods> posts, double expireAfterSeconds = 30)
         {
             // Set expiration time for the cache (default is 30 seconds)

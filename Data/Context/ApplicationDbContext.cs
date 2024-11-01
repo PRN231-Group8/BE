@@ -42,7 +42,6 @@ public class ApplicationDbContext : BaseDbContext
 		});
 
 		// Explicitly configure relationships between ApplicationUser and Tour (formerly Booking)
-
 		// ApplicationUser -> Tour (1-to-Many)
 		modelBuilder.Entity<Tour>()
 			.HasOne(t => t.User)
@@ -61,12 +60,18 @@ public class ApplicationDbContext : BaseDbContext
 			.HasForeignKey(tr => tr.UserId)
 			.OnDelete(DeleteBehavior.Cascade);  // Define cascade delete behavior
 
-		// Transportation -> Tour (Many-to-1)
-		modelBuilder.Entity<Transportation>()
-			.HasOne(tp => tp.Tour)
-			.WithMany(t => t.Transportations)  // Tour has a collection of Transportations
-			.HasForeignKey(tp => tp.TourId)
-			.OnDelete(DeleteBehavior.Cascade);  // Define cascade delete behavior
+		// Inside OnModelCreating method
+		modelBuilder.Entity<Transportation>(entity =>
+		{
+			entity.HasOne(tp => tp.Tour)
+				.WithMany(t => t.Transportations)  // Tour has a collection of Transportations
+				.HasForeignKey(tp => tp.TourId)
+				.OnDelete(DeleteBehavior.Cascade);  // Define cascade delete behavior
+
+			// Configure enum TransportationType to be stored as a string
+			entity.Property(tp => tp.Type)
+				.HasConversion(new EnumToStringConverter<TransportationType>());
+		});
 
 		// Tour -> LocationInTour (1-to-Many)
 		modelBuilder.Entity<LocationInTour>()
@@ -97,7 +102,7 @@ public class ApplicationDbContext : BaseDbContext
 
 		// TourMood configurations
 		modelBuilder.Entity<TourMood>()
-		.HasKey(tm => new { tm.TourId, tm.MoodId });
+			.HasKey(tm => new { tm.TourId, tm.MoodId });
 
 		modelBuilder.Entity<TourMood>()
 			.HasOne(tm => tm.Tour)
@@ -168,8 +173,7 @@ public class ApplicationDbContext : BaseDbContext
 
 			entity.HasMany(p => p.Photos)
 				  .WithOne(ph => ph.Post)
-				  .HasForeignKey(ph => ph.PostId)
-				  .OnDelete(DeleteBehavior.Cascade);
+				  .HasForeignKey(ph => ph.PostId);
 
 			entity.HasOne(p => p.User)
 				  .WithMany(u => u.Posts)
@@ -189,6 +193,38 @@ public class ApplicationDbContext : BaseDbContext
 				  .WithMany(p => p.Comments)
 				  .HasForeignKey(c => c.PostId)
 				  .OnDelete(DeleteBehavior.Cascade);
+		});
+
+		// Locations configurations
+		modelBuilder.Entity<Location>(entity =>
+		{
+			entity.HasMany(l => l.Photos)
+				  .WithOne(p => p.Location)
+				  .HasForeignKey(p => p.LocationId)
+				  .OnDelete(DeleteBehavior.Cascade);
+
+			entity.HasMany(l => l.TourTimestamps)
+				  .WithOne(tt => tt.Location)
+				  .HasForeignKey(tt => tt.LocationId)
+				  .OnDelete(DeleteBehavior.Cascade);
+		});
+
+		modelBuilder.Entity<Photo>(entity =>
+		{
+			// Make PostId nullable if photos can exist without posts
+			entity.Property(p => p.PostId).IsRequired(false);
+
+			// Configure relationship with Posts
+			entity.HasOne(p => p.Post)
+				  .WithMany(p => p.Photos)
+				  .HasForeignKey(p => p.PostId)
+				  .OnDelete(DeleteBehavior.Cascade);  // Adjust delete behavior as needed
+
+			// Configure relationship with Location
+			entity.HasOne(p => p.Location)
+				  .WithMany(l => l.Photos)
+				  .HasForeignKey(p => p.LocationId)
+				  .OnDelete(DeleteBehavior.Cascade);  // Adjust delete behavior as needed
 		});
 
 		// Postgresql configurations

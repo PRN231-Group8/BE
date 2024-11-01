@@ -13,7 +13,7 @@ public interface IBaseRepository<TEntity> : IBaseRepository
 
 	IQueryable<TEntity> GetQueryable(CancellationToken cancellationToken = default);
 
-	Task<long> GetTotalCount();
+	Task<int> GetTotalCount();
 
 	Task<IList<TEntity>> GetAll(CancellationToken cancellationToken = default);
 

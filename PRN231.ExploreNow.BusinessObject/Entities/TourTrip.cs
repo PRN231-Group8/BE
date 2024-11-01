@@ -9,6 +9,7 @@ public class TourTrip : BaseEntity
 	public DateTime TripDate { get; set; }
 	public decimal Price { get; set; }
 	public int TotalSeats { get; set; }
+	//public bool? isCustomization { get; set; }
 	public int BookedSeats { get; set; }
 	public TripStatus TripStatus { get; set; } // Được ví như là BookingStatus
 	public ICollection<Payment> Payments { get; set; }

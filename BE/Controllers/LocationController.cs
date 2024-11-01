@@ -10,8 +10,8 @@ using PRN231.ExploreNow.Services.Interfaces;
 namespace PRN231.ExploreNow.API.Controllers
 {
     [ApiController]
-    [Route("api/location")]
-    public class LocationController : Controller
+    [Route("api/locations")]
+    public class LocationController : ControllerBase
     {
         private readonly ILocationService _locationService;
         private readonly IValidator<LocationsRequest> _locationValidator;
