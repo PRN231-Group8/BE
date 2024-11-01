@@ -16,5 +16,6 @@ namespace PRN231.ExploreNow.Services.Interfaces
 		Task<string> SaveImage(IFormFile image);
 		Task<UserProfileResponseModel> UpdateUserProfile(string id, UserProfileRequestModel profile);
 		Task<UserProfileResponseModel> GetUserByEmailAsync(string email);
+		Task<List<UserResponse>> GetAllUsersAsync();
 	}
 }

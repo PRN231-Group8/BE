@@ -350,5 +350,54 @@ namespace PRN231.ExploreNow.API.Controllers
 			// Convert data to Dictionary or return empty Dictionary if no data
 			return data?.ToDictionary(key => key.PostsId, val => val) ?? new Dictionary<Guid, PostsResponse>();
 		}
+
+		[HttpPost]
+		[Authorize(Roles = "CUSTOMER,MODERATOR")]
+		public async Task<IActionResult> CreatePost([FromForm] CreatePostRequest createPostRequest)
+		{
+			try
+			{
+				// Validate the number of uploaded images
+				if (createPostRequest.Photos.Count > 5)
+				{
+					return BadRequest(new BaseResponse<object>
+					{
+						IsSucceed = false,
+						Message = "You can upload up to 5 images only."
+					});
+				}
+
+				// Validate file sizes
+				foreach (var file in createPostRequest.Photos)
+				{
+					if (file.Length > 3 * 1024 * 1024) // 3MB limit
+					{
+						return BadRequest(new BaseResponse<object>
+						{
+							IsSucceed = false,
+							Message = $"File {file.FileName} exceeds the 3MB size limit."
+						});
+					}
+				}
+
+				// Call the service to create the post with images
+				var result = await _postsService.CreatePost(createPostRequest);
+
+				return Ok(new BaseResponse<PostsResponse>
+				{
+					IsSucceed = true,
+					Result = result,
+					Message = "Post created successfully."
+				});
+			}
+			catch (Exception ex)
+			{
+				return StatusCode((int)HttpStatusCode.InternalServerError, new BaseResponse<object>
+				{
+					IsSucceed = false,
+					Message = $"An error occurred while creating the post: {ex.InnerException?.Message ?? ex.Message}"
+				});
+			}
+		}
 	}
 }

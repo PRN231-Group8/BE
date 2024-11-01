@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using CloudinaryDotNet.Actions;
+using CloudinaryDotNet;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +11,9 @@ using PRN231.ExploreNow.BusinessObject.Models.Response;
 using PRN231.ExploreNow.Repositories.Repositories.Interfaces;
 using PRN231.ExploreNow.Repositories.UnitOfWorks.Interfaces;
 using PRN231.ExploreNow.Services.Interfaces;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using PRN231.ExploreNow.Repositories.UnitOfWorks;
 
 namespace PRN231.ExploreNow.Services.Services
 {
@@ -18,13 +23,28 @@ namespace PRN231.ExploreNow.Services.Services
 		private readonly IHttpContextAccessor _httpContextAccessor;
 		private readonly UserManager<ApplicationUser> _userManager;
 		private readonly IMapper _mapper;
+		private Cloudinary _cloudinary;
+		private readonly IConfiguration _configuration;
 
-		public PostsService(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor, UserManager<ApplicationUser> userManager, IMapper mapper)
+		public PostsService(
+			IUnitOfWork unitOfWork,
+			IHttpContextAccessor httpContextAccessor,
+			UserManager<ApplicationUser> userManager,
+			IMapper mapper,
+			IConfiguration configuration)
 		{
 			_unitOfWork = unitOfWork;
 			_httpContextAccessor = httpContextAccessor;
 			_userManager = userManager;
 			_mapper = mapper;
+			_configuration = configuration;
+
+			var account = new Account(
+				_configuration["CloudinarySetting:CloudName"],
+				_configuration["CloudinarySetting:ApiKey"],
+				_configuration["CloudinarySetting:ApiSecret"]
+			);
+			_cloudinary = new Cloudinary(account);
 		}
 
 		public async Task<List<PostsResponse>> GetAllPostsAsync(int page, int pageSize, PostsStatus? postsStatus, string? searchTerm)
@@ -205,5 +225,79 @@ namespace PRN231.ExploreNow.Services.Services
 			}
 			return user;
 		}
+		public async Task<PostsResponse> CreatePost(CreatePostRequest createPostRequest)
+		{
+			var user = await GetAuthenticatedUserAsync();
+
+			if (user == null || string.IsNullOrEmpty(user.UserName))
+			{
+				throw new InvalidOperationException("User is not authenticated.");
+			}
+
+			// Validate the number of photos
+			if (createPostRequest.Photos == null || !createPostRequest.Photos.Any())
+			{
+				throw new ArgumentException("At least one photo is required.");
+			}
+			if (createPostRequest.Photos.Count > 5)
+			{
+				throw new ArgumentException("You can upload up to 5 images only.");
+			}
+
+			// Validate each photo file size
+			foreach (var file in createPostRequest.Photos)
+			{
+				if (file.Length > 3 * 1024 * 1024) // 3MB limit
+				{
+					throw new ArgumentException($"File {file.FileName} exceeds the 3MB size limit.");
+				}
+			}
+
+			// Prepare photos
+			var photos = new List<Photo>();
+			foreach (var file in createPostRequest.Photos)
+			{
+				var altText = Path.GetFileNameWithoutExtension(file.FileName);  // Generate Alt text from file name
+
+				using var stream = file.OpenReadStream();
+				var uploadParams = new ImageUploadParams
+				{
+					File = new FileDescription(file.FileName, stream),
+					Transformation = new Transformation().Height(300).Width(200)
+				};
+
+				var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+
+				photos.Add(new Photo
+				{
+					Url = uploadResult.SecureUrl.ToString(),
+					Alt = altText,  // Auto-generated Alt text from file name
+					Code = GenerateUniqueCode(),
+					CreatedBy = user.UserName
+				});
+			}
+
+			// Create the new post entity
+			var post = new Posts
+			{
+				Content = createPostRequest.Content,
+				Status = PostsStatus.Pending,
+				UserId = user.Id,
+				CreatedBy = user.UserName,
+				CreatedDate = DateTime.UtcNow,
+				Photos = photos,
+				LastUpdatedBy = user.UserName,
+				Code = GenerateUniqueCode()
+			};
+
+			await _unitOfWork.GetRepository<IPostsRepository>().AddAsync(post);
+			await _unitOfWork.SaveChangesAsync();
+
+			return _mapper.Map<PostsResponse>(post);
+		}
+
+		// Helper method to generate a unique code
+		private string GenerateUniqueCode() => Guid.NewGuid().ToString("N").Substring(0, 10).ToUpper();
+
 	}
 }

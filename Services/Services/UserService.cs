@@ -116,5 +116,9 @@ namespace PRN231.ExploreNow.Services.Services
 				AvatarPath = user.AvatarPath
 			};
 		}
+		public async Task<List<UserResponse>> GetAllUsersAsync()
+		{
+			return await _unitOfWork.UserRepository.GetAllUsersAsync();
+		}
 	}
 }

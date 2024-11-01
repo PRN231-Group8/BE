@@ -37,8 +37,7 @@ public class ApplicationDbContext : BaseDbContext
 		{
 			entity.HasMany(u => u.Posts)
 				  .WithOne(p => p.User)
-				  .HasForeignKey(p => p.UserId)
-				  .OnDelete(DeleteBehavior.Cascade);
+				  .HasForeignKey(p => p.UserId);
 		});
 
 		// Explicitly configure relationships between ApplicationUser and Tour (formerly Booking)
@@ -47,8 +46,7 @@ public class ApplicationDbContext : BaseDbContext
 		modelBuilder.Entity<Tour>()
 			.HasOne(t => t.User)
 			.WithMany(u => u.Tours)  // ApplicationUser now has a collection of Tours
-			.HasForeignKey(t => t.UserId)
-			.OnDelete(DeleteBehavior.Cascade);  // Define cascade delete behavior
+			.HasForeignKey(t => t.UserId);
 
 		modelBuilder.Entity<Tour>()
 			.Property(d => d.Status)
@@ -58,22 +56,19 @@ public class ApplicationDbContext : BaseDbContext
 		modelBuilder.Entity<Transaction>()
 			.HasOne(tr => tr.User)
 			.WithMany(u => u.Transactions)  // ApplicationUser has a collection of Transactions
-			.HasForeignKey(tr => tr.UserId)
-			.OnDelete(DeleteBehavior.Cascade);  // Define cascade delete behavior
+			.HasForeignKey(tr => tr.UserId);
 
 		// Transportation -> Tour (Many-to-1)
 		modelBuilder.Entity<Transportation>()
 			.HasOne(tp => tp.Tour)
 			.WithMany(t => t.Transportations)  // Tour has a collection of Transportations
-			.HasForeignKey(tp => tp.TourId)
-			.OnDelete(DeleteBehavior.Cascade);  // Define cascade delete behavior
+			.HasForeignKey(tp => tp.TourId);
 
 		// Tour -> LocationInTour (1-to-Many)
 		modelBuilder.Entity<LocationInTour>()
 			.HasOne(lit => lit.Tour)
 			.WithMany(t => t.LocationInTours)  // Tour has a collection of LocationInTours
-			.HasForeignKey(lit => lit.TourId)
-			.OnDelete(DeleteBehavior.Cascade);  // Define cascade delete behavior
+			.HasForeignKey(lit => lit.TourId);
 
 		// TourTimeStamp configurations
 		modelBuilder.Entity<TourTimestamp>(entity =>
@@ -86,13 +81,11 @@ public class ApplicationDbContext : BaseDbContext
 
 			entity.HasOne(tt => tt.Tour)
 				.WithMany(t => t.TourTimestamps)
-				.HasForeignKey(tt => tt.TourId)
-				.OnDelete(DeleteBehavior.Cascade);
+				.HasForeignKey(tt => tt.TourId);
 
 			entity.HasOne(tt => tt.Location)
 			   .WithMany(l => l.TourTimestamps)
-			   .HasForeignKey(tt => tt.LocationId)
-			   .OnDelete(DeleteBehavior.Cascade);
+			   .HasForeignKey(tt => tt.LocationId);
 		});
 
 		// TourMood configurations
@@ -114,8 +107,7 @@ public class ApplicationDbContext : BaseDbContext
 		{
 			entity.HasOne(tt => tt.Tour)
 				.WithMany(t => t.TourTrips)
-				.HasForeignKey(tt => tt.TourId)
-				.OnDelete(DeleteBehavior.Cascade);
+				.HasForeignKey(tt => tt.TourId);
 
 			// Configure enums Status
 			entity.Property(tt => tt.TripStatus)
@@ -127,13 +119,12 @@ public class ApplicationDbContext : BaseDbContext
 		{
 			entity.HasOne(p => p.TourTrip)
 				.WithMany(tt => tt.Payments)
-				.HasForeignKey(p => p.TourTripId)
-				.OnDelete(DeleteBehavior.Cascade);
+				.HasForeignKey(p => p.TourTripId);
 
 			entity.HasOne(p => p.User)
 				.WithMany(u => u.Payments)
-				.HasForeignKey(p => p.UserId)
-				.OnDelete(DeleteBehavior.Cascade);
+				.HasForeignKey(p => p.UserId);
+
 
 			// Configure enums Status
 			entity.Property(p => p.Status)
@@ -145,13 +136,13 @@ public class ApplicationDbContext : BaseDbContext
 		{
 			entity.HasOne(t => t.User)
 				.WithMany(u => u.Transactions)
-				.HasForeignKey(t => t.UserId)
-				.OnDelete(DeleteBehavior.Cascade);
+				.HasForeignKey(t => t.UserId);
+
 
 			entity.HasOne(t => t.Payment)
 				.WithOne(p => p.Transaction)
-				.HasForeignKey<Transaction>(t => t.PaymentId)
-				.OnDelete(DeleteBehavior.Cascade);
+				.HasForeignKey<Transaction>(t => t.PaymentId);
+
 
 			// Configure enums Status
 			entity.Property(t => t.Status)
@@ -163,18 +154,17 @@ public class ApplicationDbContext : BaseDbContext
 		{
 			entity.HasMany(p => p.Comments)
 				  .WithOne(c => c.Post)
-				  .HasForeignKey(c => c.PostId)
-				  .OnDelete(DeleteBehavior.Cascade);
+				  .HasForeignKey(c => c.PostId);
 
 			entity.HasMany(p => p.Photos)
 				  .WithOne(ph => ph.Post)
-				  .HasForeignKey(ph => ph.PostId)
-				  .OnDelete(DeleteBehavior.Cascade);
+				  .HasForeignKey(ph => ph.PostId);
+
 
 			entity.HasOne(p => p.User)
 				  .WithMany(u => u.Posts)
-				  .HasForeignKey(p => p.UserId)
-				  .OnDelete(DeleteBehavior.Cascade);
+				  .HasForeignKey(p => p.UserId);
+
 
 			// Configure enums Status
 			entity.Property(ar => ar.Status)
@@ -187,9 +177,26 @@ public class ApplicationDbContext : BaseDbContext
 		{
 			entity.HasOne(c => c.Post)
 				  .WithMany(p => p.Comments)
-				  .HasForeignKey(c => c.PostId)
-				  .OnDelete(DeleteBehavior.Cascade);
+				  .HasForeignKey(c => c.PostId);
+
 		});
+		modelBuilder.Entity<Photo>(entity =>
+		{
+			// Thiết lập khóa ngoại từ Photo đến Location
+			entity.HasOne(p => p.Location)
+				  .WithMany(l => l.Photos)
+				  .HasForeignKey(p => p.LocationId)
+				  .OnDelete(DeleteBehavior.Cascade); // Xóa Location thì xóa luôn Photo
+
+			// Thiết lập khóa ngoại từ Photo đến Post
+			entity.HasOne(p => p.Post)
+				  .WithMany(p => p.Photos)
+				  .HasForeignKey(p => p.PostId)
+				  .IsRequired(false) // Cho phép PostId là nullable
+				  .OnDelete(DeleteBehavior.Cascade); // Xóa Post thì xóa luôn Photo
+		});
+
+
 
 		// Postgresql configurations
 		var dateTimeConverter = new ValueConverter<DateTime, DateTime>(
