@@ -45,7 +45,7 @@ namespace PRN231.ExploreNow.Services.Services
 			return _mapper.Map<TourTimeStampResponse>(tourTimestamp);
 		}
 
-		public async Task<TourTimeStampDetailsResponse> GetTourTimeStampsByTourIdAsync(Guid tourId)
+		public async Task<List<TourTimeStampResponse>> GetTourTimeStampsByTourIdAsync(Guid tourId)
 		{
 			var tour = await _unitOfWork.GetRepository<ITourRepository>().GetQueryable()
 					  .Where(t => t.Id == tourId && !t.IsDeleted)
@@ -54,7 +54,7 @@ namespace PRN231.ExploreNow.Services.Services
 								.ThenInclude(p => p.Photos.Where(p => !p.IsDeleted))
 					  .SingleOrDefaultAsync();
 
-			return _mapper.Map<TourTimeStampDetailsResponse>(tour);
+			return _mapper.Map<List<TourTimeStampResponse>>(tour);
 		}
 
 		public async Task<List<TourTimeStampResponse>> CreateBatchTourTimeStampsAsync(List<TourTimeStampRequest> tourTimeStampRequests)
