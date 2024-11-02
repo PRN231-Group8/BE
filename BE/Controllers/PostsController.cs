@@ -26,7 +26,7 @@ namespace PRN231.ExploreNow.API.Controllers
 		}
 
 		[HttpGet]
-		[Authorize(Roles = "CUSTOMER,MODERATOR,ADMIN")]
+		[ProducesResponseType(typeof(BaseResponse<List<PostsResponse>>), 200)]
 		public async Task<IActionResult> GetAllPosts(
 			[FromQuery(Name = "filter-status")] PostsStatus? postsStatus,
 			[FromQuery(Name = "search-term")] string? searchTerm,
@@ -90,6 +90,7 @@ namespace PRN231.ExploreNow.API.Controllers
 
 		[HttpGet("pending")]
 		[Authorize(Roles = "MODERATOR,ADMIN")]
+		[ProducesResponseType(typeof(BaseResponse<List<PostsResponse>>), 200)]
 		public async Task<IActionResult> GetAllPendingPosts(
 			[FromQuery(Name = "search-term")] string? searchTerm,
 			[FromQuery(Name = "page-number")] int page = 1,
@@ -147,6 +148,7 @@ namespace PRN231.ExploreNow.API.Controllers
 
 		[HttpGet("history")]
 		[Authorize(Roles = "CUSTOMER,MODERATOR,ADMIN")]
+		[ProducesResponseType(typeof(BaseResponse<List<PostsResponse>>), 200)]
 		public async Task<IActionResult> GetUserPosts(
 			[FromQuery(Name = "filter-status")] PostsStatus? postsStatus,
 			[FromQuery(Name = "search-term")] string? searchTerm,
@@ -209,6 +211,7 @@ namespace PRN231.ExploreNow.API.Controllers
 
 		[HttpGet("{id}")]
 		[Authorize(Roles = "CUSTOMER,MODERATOR,ADMIN")]
+		[ProducesResponseType(typeof(BaseResponse<List<PostsResponse>>), 200)]
 		public async Task<IActionResult> GetPostsById(Guid id)
 		{
 			try
@@ -262,6 +265,10 @@ namespace PRN231.ExploreNow.API.Controllers
 
 		[HttpPut("{id}")]
 		[Authorize(Roles = "MODERATOR,ADMIN")]
+		[ProducesResponseType(typeof(BaseResponse<object>), 200)]
+		[ProducesResponseType(typeof(BaseResponse<object>), 400)]
+		[ProducesResponseType(typeof(BaseResponse<object>), 404)]
+		[ProducesResponseType(typeof(BaseResponse<object>), 500)]
 		public async Task<IActionResult> UpdatePosts(Guid id, [FromBody] PostsRequest postsRequest)
 		{
 			try
@@ -305,6 +312,9 @@ namespace PRN231.ExploreNow.API.Controllers
 
 		[HttpDelete("{id}")]
 		[Authorize(Roles = "CUSTOMER,MODERATOR")]
+		[ProducesResponseType(typeof(BaseResponse<object>), 200)]
+		[ProducesResponseType(typeof(BaseResponse<object>), 404)]
+		[ProducesResponseType(typeof(BaseResponse<object>), 500)]
 		public async Task<IActionResult> DeletePosts(Guid id)
 		{
 			try

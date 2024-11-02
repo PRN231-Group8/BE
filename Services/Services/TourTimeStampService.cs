@@ -36,13 +36,25 @@ namespace PRN231.ExploreNow.Services.Services
 		public async Task<TourTimeStampResponse> GetTourTimeStampByIdAsync(Guid tourTimeStampId)
 		{
 			var tourTimestamp = await _unitOfWork.GetRepository<ITourTimeStampRepository>().GetQueryable()
-							   .Where(l => l.Id == tourTimeStampId && !l.IsDeleted && !l.Tour.IsDeleted)
+							   .Where(l => l.Id == tourTimeStampId && !l.IsDeleted && !l.Tour.IsDeleted && !l.Location.IsDeleted)
 							   .Include(t => t.Tour)
 							   .Include(tt => tt.Location)
-							   .ThenInclude(l => l.Photos)
+									.ThenInclude(l => l.Photos.Where(p => !p.IsDeleted))
 							   .FirstOrDefaultAsync();
 
 			return _mapper.Map<TourTimeStampResponse>(tourTimestamp);
+		}
+
+		public async Task<TourTimeStampDetailsResponse> GetTourTimeStampsByTourIdAsync(Guid tourId)
+		{
+			var tour = await _unitOfWork.GetRepository<ITourRepository>().GetQueryable()
+					  .Where(t => t.Id == tourId && !t.IsDeleted)
+					  .Include(t => t.TourTimestamps.Where(tt => !tt.IsDeleted && !tt.Location.IsDeleted))
+							.ThenInclude(l => l.Location)
+								.ThenInclude(p => p.Photos.Where(p => !p.IsDeleted))
+					  .SingleOrDefaultAsync();
+
+			return _mapper.Map<TourTimeStampDetailsResponse>(tour);
 		}
 
 		public async Task<List<TourTimeStampResponse>> CreateBatchTourTimeStampsAsync(List<TourTimeStampRequest> tourTimeStampRequests)
@@ -101,7 +113,7 @@ namespace PRN231.ExploreNow.Services.Services
 									   .Where(tt => tt.Id == tourTimeStampId && !tt.IsDeleted && !tt.Tour.IsDeleted && !tt.Location.IsDeleted)
 									   .Include(tt => tt.Tour)
 									   .Include(tt => tt.Location)
-									   .ThenInclude(l => l.Photos)
+											.ThenInclude(l => l.Photos.Where(l => !l.IsDeleted))
 									   .FirstOrDefaultAsync();
 
 			// Get all other timestamps for the same tour and location

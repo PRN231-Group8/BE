@@ -23,7 +23,7 @@ namespace PRN231.ExploreNow.Repositories.Repositories.Repositories
 			var query = GetQueryable(p => !p.IsDeleted && !p.Tour.IsDeleted && !p.Location.IsDeleted)
 					   .Include(p => p.Tour)
 					   .Include(tt => tt.Location)
-					   .ThenInclude(l => l.Photos)
+						   .ThenInclude(l => l.Photos.Where(p => !p.IsDeleted))
 					   .AsQueryable();
 
 			if (!string.IsNullOrEmpty(searchTerm))

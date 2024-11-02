@@ -28,12 +28,6 @@ namespace PRN231.ExploreNow.Validations.TourTrip
 				.LessThanOrEqualTo(200)
 					.WithMessage("Total seats cannot exceed 200");
 
-			RuleFor(x => x.BookedSeats)
-				.GreaterThanOrEqualTo(0)
-					.WithMessage("Booked seats cannot be negative")
-				.LessThanOrEqualTo(x => x.TotalSeats)
-					.WithMessage("Booked seats cannot exceed total seats");
-
 			RuleFor(x => x.TripStatus)
 				.NotNull().WithMessage("Trip status is required");
 		}
