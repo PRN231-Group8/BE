@@ -1,10 +1,15 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
+using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using PRN231.ExploreNow.BusinessObject.Entities;
 using PRN231.ExploreNow.BusinessObject.Enums;
+using PRN231.ExploreNow.BusinessObject.Models.Request;
 using PRN231.ExploreNow.BusinessObject.Models.Response;
 using PRN231.ExploreNow.Repositories.Context;
 using PRN231.ExploreNow.Repositories.Repositories.Interface;
@@ -14,114 +19,49 @@ namespace PRN231.ExploreNow.Repositories.Repositories
     public class LocationRepository : BaseRepository<Location>, ILocationRepository
     {
         private readonly ApplicationDbContext _context;
-        private readonly IHttpContextAccessor _contextAccessor;
-        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly Cloudinary _cloudinary;
+        private readonly IConfiguration _configuration;
+        private readonly IMapper _mapper;
 
-        public LocationRepository(ApplicationDbContext context, IHttpContextAccessor contextAccessor, UserManager<ApplicationUser> userManager) : base(context)
+
+        public LocationRepository(ApplicationDbContext context, IConfiguration configuration, IMapper mapper) : base(context)
         {
             _context = context;
-            _contextAccessor = contextAccessor;
-            _userManager = userManager;
+            _mapper = mapper;
+            _configuration = configuration;
+            var account = new Account(
+                _configuration["CloudinarySetting:CloudName"],
+                _configuration["CloudinarySetting:ApiKey"],
+                _configuration["CloudinarySetting:ApiSecret"]);
+            _cloudinary = new Cloudinary(account);
         }
 
         public async Task<List<LocationResponse>> GetAllLocationsAsync(int page, int pageSize, WeatherStatus? sortByStatus, string? searchTerm)
         {
             var query = GetQueryable()
-                        .Include(l => l.Photos)
-                        .Where(l => !l.IsDeleted);
+                .Include(l => l.Photos)
+                .Where(l => !l.IsDeleted);
+
             if (!string.IsNullOrEmpty(searchTerm))
             {
                 query = query.Where(l => l.Name.Contains(searchTerm) || l.Description.Contains(searchTerm));
             }
+
             if (sortByStatus.HasValue)
             {
                 query = query.OrderBy(l => l.Status == sortByStatus.Value);
             }
+
             var locations = await query.Skip((page - 1) * pageSize)
-                                       .Take(pageSize)
-                                       .ToListAsync();
-            return locations.Select(MapToDto).ToList();
-        }
+                .Take(pageSize)
+                .ToListAsync();
 
-        public async Task<LocationResponse> GetByIdAsync(Guid id)
-        {
-            var location = await GetQueryable(l => l.Id == id && !l.IsDeleted)
-                                .Include(l => l.Photos)
-                                .FirstOrDefaultAsync();
-            return location == null ? null : MapToDto(location);
-        }
-
-        public async Task<LocationResponse> CreateAsync(Location location)
-        {
-            Add(location);
-            await _context.SaveChangesAsync();
-            return MapToDto(location);
-        }
-
-        public async Task<LocationResponse> UpdateAsync(Location location)
-        {
-            var existingLocation = await GetQueryable(l => l.Id == location.Id && !l.IsDeleted)
-                .Include(l => l.Photos)
-                .FirstOrDefaultAsync();
-            if (existingLocation == null)
+            if (_mapper == null)
             {
-                return null;
+                throw new InvalidOperationException("Mapper is not initialized");
             }
-            UpdateLocationProperties(existingLocation, location);
-            Update(existingLocation);
-            await _context.SaveChangesAsync();
-            return MapToDto(existingLocation);
-        }
 
-        private void UpdateLocationProperties(Location existingLocation, Location newLocation)
-        {
-            var currentUser = _userManager.GetUserAsync(_contextAccessor.HttpContext.User).Result;
-            var currentUserName = currentUser?.UserName ?? "Admin";
-            existingLocation.Name = newLocation.Name;
-            existingLocation.Description = newLocation.Description;
-            existingLocation.Address = newLocation.Address;
-            existingLocation.Status = newLocation.Status;
-            existingLocation.Temperature = newLocation.Temperature;
-            if (newLocation.Photos != null && newLocation.Photos.Any())
-            {
-                foreach (var photo in existingLocation.Photos)
-                {
-                    photo.IsDeleted = true;
-                }
-                existingLocation.Photos = newLocation.Photos.Select(p => new Photo
-                {
-                    Url = p.Url,
-                    Alt = p.Alt,
-                    Code = p.Code ?? GenerateUniqueCode(),
-                    CreatedBy = currentUserName,
-                    CreatedDate = DateTime.Now,
-                    LastUpdatedBy = currentUserName,
-                    IsDeleted = false
-                }).ToList();
-            }
+            return _mapper.Map<List<LocationResponse>>(locations);
         }
-
-        private LocationResponse MapToDto(Location location)
-        {
-            return new LocationResponse
-            {
-                Id = location.Id,
-                Name = location.Name,
-                Description = location.Description,
-                Address = location.Address,
-                Status = location.Status.ToString(),
-                Temperature = location.Temperature,
-                Photos = location.Photos
-                    .Where(p => !p.IsDeleted)
-                    .Select(p => new PhotoResponse
-                {
-                    Id = p.Id,
-                    Url = p.Url,
-                    Alt = p.Alt
-                }).ToList()
-            };
-        }
-
-        private string GenerateUniqueCode() => Guid.NewGuid().ToString("N").Substring(0, 10).ToUpper();
     }
 }

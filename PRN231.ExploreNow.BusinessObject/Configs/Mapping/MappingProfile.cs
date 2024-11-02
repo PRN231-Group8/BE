@@ -67,8 +67,14 @@ namespace PRN231.ExploreNow.BusinessObject.Configs.Mapping
 				.ForMember(dest => dest.TripStatus, opt => opt.MapFrom(src => src.TripStatus.ToString()))
 				.ForMember(dest => dest.TourTripId, opt => opt.MapFrom(src => src.Id));
 
-			CreateMap<Location, LocationResponse>();
-
+			CreateMap<Location, LocationResponse>()
+				.ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
+				.ForMember(dest => dest.Photos, opt => opt.MapFrom(src => src.Photos));
+			
+			CreateMap<LocationsRequest, Location>()
+				.ForMember(dest => dest.Photos, opt => opt.Ignore());
+			CreateMap<LocationCreateRequest, Location>();
+			
 			CreateMap<LocationInTour, LocationInTourResponse>();
 
 			CreateMap<Transportation, TransportationResponse>();

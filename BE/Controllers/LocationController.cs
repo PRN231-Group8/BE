@@ -2,6 +2,7 @@
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using PRN231.ExploreNow.BusinessObject.Enums;
 using PRN231.ExploreNow.BusinessObject.Models.Request;
 using PRN231.ExploreNow.BusinessObject.Models.Response;
@@ -15,12 +16,12 @@ namespace PRN231.ExploreNow.API.Controllers
     {
         private readonly ILocationService _locationService;
         private readonly IValidator<LocationsRequest> _locationValidator;
-        private readonly IValidator<PhotoRequest> _photoValidator;
-        public LocationController(ILocationService locationService, IValidator<LocationsRequest> locationValidator, IValidator<PhotoRequest> photoValidator)
+        private readonly IValidator<LocationCreateRequest> _locationCreateValidator;
+        public LocationController(ILocationService locationService, IValidator<LocationsRequest> locationValidator, IValidator<LocationCreateRequest> locationCreateValidator)
         {
             _locationService = locationService;
             _locationValidator = locationValidator;
-            _photoValidator = photoValidator;
+            _locationCreateValidator = locationCreateValidator;
         }
 
         [HttpGet]
@@ -40,28 +41,43 @@ namespace PRN231.ExploreNow.API.Controllers
         public async Task<IActionResult> GetById(Guid id)
         {
             var data = await _locationService.GetByIdAsync(id);
+    
+            if (data == null)
+            {
+                return NotFound(new BaseResponse<object>
+                {
+                    IsSucceed = false,
+                    Result = null,
+                    Message = "Location not found"
+                });
+            }
+
             var baseResponse = new BaseResponse<object>
             {
                 IsSucceed = true,
                 Result = data,
                 Message = "Location retrieved successfully"
             };
+    
             return Ok(baseResponse);
         }
+
         [Authorize(Roles = "ADMIN")]
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] LocationsRequest locationsRequest)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> Create([FromForm] LocationCreateRequest locationsRequest, [FromForm] List<IFormFile> files)
         {
-            ValidationResult validationResult = await _locationValidator.ValidateAsync(locationsRequest);
+            ValidationResult validationResult = await _locationCreateValidator.ValidateAsync(locationsRequest);
             if (!validationResult.IsValid)
             {
-                return Ok(new BaseResponse<object>
+                return BadRequest(new BaseResponse<object>
                 {
                     IsSucceed = false,
-                    Message = validationResult.Errors.Select(e => new { e.PropertyName, e.ErrorMessage }).ToString()
+                    Message = string.Join("; ", validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"))
                 });
             }
-            var data = await _locationService.CreateAsync(locationsRequest);
+
+            var data = await _locationService.CreateAsync(locationsRequest, files);
             var baseResponse = new BaseResponse<object>
             {
                 IsSucceed = true,
@@ -70,29 +86,48 @@ namespace PRN231.ExploreNow.API.Controllers
             };
             return CreatedAtAction(nameof(GetById), new { id = data.Id }, baseResponse);
         }
-        [Authorize(Roles = "ADMIN")]
+        
+        //[Authorize(Roles = "ADMIN")]
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, [FromBody] LocationsRequest locationsRequest)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> Update(Guid id, [FromForm] LocationsRequest locationsRequest, [FromForm] string photos = null, [FromForm] List<IFormFile> files = null)
         {
-            ValidationResult validationResult = await _locationValidator.ValidateAsync(locationsRequest);
-            if (!validationResult.IsValid)
+            // Kiểm tra nếu photos có giá trị và không rỗng trước khi xử lý
+            if (!string.IsNullOrEmpty(photos))
             {
-                return BadRequest(new BaseResponse<object>
+                // Kiểm tra nếu `photos` là một JSON array hợp lệ trước khi Deserialize
+                if (photos.Trim().StartsWith("[") && photos.Trim().EndsWith("]"))
                 {
-                    IsSucceed = false,
-                    Message = validationResult.Errors.Select(e => new { e.PropertyName, e.ErrorMessage }).ToString()
-                });
+                    try
+                    {
+                        locationsRequest.Photos = JsonConvert.DeserializeObject<List<PhotoRequest>>(photos);
+                    }
+                    catch (JsonSerializationException)
+                    {
+                        // Xử lý lỗi nếu JSON không hợp lệ
+                        return BadRequest(new { message = "Invalid photos JSON format. Please provide a valid JSON array." });
+                    }
+                }
+                else
+                {
+                    return BadRequest(new { message = "Photos should be a JSON array." });
+                }
             }
-            
-            var data = await _locationService.UpdateAsync(id, locationsRequest);
+            // Nếu `photos` không có hoặc rỗng, thì không làm gì, giữ nguyên `locationsRequest.Photos`
+    
+            // Xử lý phần cập nhật location
+            var data = await _locationService.UpdateAsync(id, locationsRequest, files);
             var baseResponse = new BaseResponse<object>
             {
                 IsSucceed = true,
                 Result = data,
                 Message = "Location updated successfully"
             };
+
             return Ok(baseResponse);
         }
+
+
         [Authorize(Roles = "ADMIN")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)

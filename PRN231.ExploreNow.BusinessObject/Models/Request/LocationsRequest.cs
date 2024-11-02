@@ -1,4 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using PRN231.ExploreNow.BusinessObject.Enums;
 
 namespace PRN231.ExploreNow.BusinessObject.Models.Request;

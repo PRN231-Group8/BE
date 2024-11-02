@@ -166,6 +166,7 @@ builder.Services.AddScoped<ITourTripService, TourTripService>();
 builder.Services.AddScoped<IValidator<LocationsRequest>, LocationRequestValidator>();
 builder.Services.AddScoped<IValidator<PhotoRequest>, PhotoRequestValidator>();
 builder.Services.AddScoped<IValidator<TourTimeStampRequest>, TourTimeStampValidator>();
+builder.Services.AddScoped<IValidator<LocationCreateRequest>, LocationCreateValidator>();
 builder.Services.AddScoped<ITokenValidator, TokenValidator>();
 builder.Services.AddScoped<TourValidation>();
 builder.Services.AddScoped<ProfileValidation>();
