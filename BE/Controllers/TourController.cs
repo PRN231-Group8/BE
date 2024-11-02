@@ -7,9 +7,8 @@ using PRN231.ExploreNow.BusinessObject.Enums;
 using PRN231.ExploreNow.Validations.Tour;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Authorization;
-using Newtonsoft.Json;
 using PRN231.ExploreNow.BusinessObject.OtherObjects;
-using Newtonsoft.Json.Linq;
+using System.Net;
 
 namespace PRN231.ExploreNow.API.Controllers
 {
@@ -30,27 +29,63 @@ namespace PRN231.ExploreNow.API.Controllers
 
 		[HttpGet]
 		[ProducesResponseType(typeof(BaseResponse<List<TourResponse>>), 200)]
-		public async Task<IActionResult> GetAll(int page = 1, int pageSize = 10, TourStatus? sortByStatus = null, string? searchTerm = null)
+		public async Task<IActionResult> GetTours(
+			[FromQuery(Name = "page-number")] int page = 1,
+			[FromQuery(Name = "page-size")] int pageSize = 10,
+			[FromQuery(Name = "sort-by-status")] TourStatus? sortByStatus = null,
+			[FromQuery(Name = "search-term")] string? searchTerm = null)
 		{
 			try
 			{
-				List<string>? searchTerms = null;
-				if (!string.IsNullOrWhiteSpace(searchTerm))
-				{
-					searchTerms = searchTerm.Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
-				}
+				// Check cache
 				var cache = GetKeyValues();
-				var result = cache.Values;
-				if (result.Count == 0)
+				if (cache.Count > 0)
 				{
-					var tour = await _tourService.GetToursAsync(page, pageSize, sortByStatus, searchTerms);
-					return Ok(new BaseResponse<TourResponse> { IsSucceed = true, Results = tour.ToList(), Message = "Success" });
+					var filteredData = cache.Values.AsQueryable();
+
+					// Apply search filter
+					if (!string.IsNullOrWhiteSpace(searchTerm))
+					{
+						filteredData = filteredData.Where(t => t.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+						t.Description.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+						t.TourMoods.Any(tm => tm != null &&
+							tm.MoodTag.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+						t.LocationInTours.Any(lit => lit != null &&
+							lit.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+					);
+					}
+
+					var totalElements = filteredData.Count();
+					var result = ApplySortingAndPagination(filteredData, sortByStatus, page, pageSize);
+
+					return Ok(new BaseResponse<TourResponse>(
+						result.ToList(),
+						totalElements,
+						page,
+						pageSize,
+						result.Any() ? "Tours retrieved from cache successfully." : "No tours found."));
 				}
-				return Ok(new BaseResponse<TourResponse> { IsSucceed = true, Results = result.ToList(), Message = "Success" });
+
+				// Get from service if not in cache
+				var (serviceItems, serviceTotalCount) = await _tourService.GetAllToursAsync(page, pageSize, sortByStatus, searchTerm);
+
+				// Save to cache
+				await Save(serviceItems);
+
+				return Ok(new BaseResponse<TourResponse>(
+					serviceItems,
+					serviceTotalCount,
+					page,
+					pageSize,
+					serviceItems.Any() ? "Tours retrieved successfully." : "No tours found."));
 			}
 			catch (Exception ex)
 			{
-				return BadRequest(new BaseResponse<object> { IsSucceed = false, Result = ex.Message, Message = "There is something wrong" });
+				return StatusCode((int) HttpStatusCode.InternalServerError, new BaseResponse<object>
+				{
+					IsSucceed = false,
+					Message = $"Error: {ex.Message}"
+				});
 			}
 		}
 
@@ -199,6 +234,18 @@ namespace PRN231.ExploreNow.API.Controllers
 		{
 			var data = _cacheService.Get<IEnumerable<TourResponse>>(nameof(TourResponse)); // dat ten key
 			return data?.ToDictionary(key => key.Id, val => val) ?? new Dictionary<Guid, TourResponse>();
+		}
+
+		private IQueryable<TourResponse> ApplySortingAndPagination(IQueryable<TourResponse> query, TourStatus? sortByStatus, int page, int pageSize)
+		{
+			if (sortByStatus.HasValue)
+			{
+				query = query.OrderBy(t => t.Status == sortByStatus.Value);
+			}
+
+			return query
+				.Skip((page - 1) * pageSize)
+				.Take(pageSize);
 		}
 	}
 }

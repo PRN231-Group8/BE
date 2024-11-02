@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using CloudinaryDotNet;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -58,12 +57,12 @@ namespace PRN231.ExploreNow.Services.Services
 			var tour = await _unitOfWork.GetRepository<ITourRepository>().GetQueryable()
 				.AsSplitQuery()
 				.Where(t => t.Id == tourId)
-				.Include(t => t.TourTrips)
-				.Include(t => t.TourTimestamps)
+				.Include(t => t.TourTrips.Where(tt => !tt.IsDeleted))
+				.Include(t => t.TourTimestamps.Where(ts => !ts.IsDeleted && !ts.Location.IsDeleted))
 					.ThenInclude(ts => ts.Location)
-						.ThenInclude(l => l.Photos)
-				.Include(t => t.Transportations)
-				.Include(t => t.TourMoods)
+						.ThenInclude(l => l.Photos.Where(p => !p.IsDeleted))
+				.Include(t => t.Transportations.Where(tr => !tr.IsDeleted))
+				.Include(t => t.TourMoods.Where(tm => !tm.IsDeleted && !tm.Mood.IsDeleted))
 					.ThenInclude(tm => tm.Mood)
 				.SingleOrDefaultAsync();
 
@@ -81,9 +80,11 @@ namespace PRN231.ExploreNow.Services.Services
 		{
 			var user = await GetAuthenticatedUserAsync();
 			var tourTrip = await _unitOfWork.GetRepository<ITourTripRepository>().GetQueryable()
+						  .Where(tt => tt.Id == request.TourTripId
+							&& !tt.IsDeleted
+							&& !tt.Tour.IsDeleted)
 						  .Include(tt => tt.Tour)
-							  .ThenInclude(t => t.Transportations)
-						  .Where(tt => tt.Id == request.TourTripId)
+							  .ThenInclude(t => t.Transportations.Where(tr => !tr.IsDeleted))
 						  .SingleOrDefaultAsync();
 
 			var amount = CalculateTourTripTotalPrice(tourTrip);
@@ -164,9 +165,12 @@ namespace PRN231.ExploreNow.Services.Services
 			var vnpTxnRef = query["vnp_TxnRef"].ToString();
 
 			var payment = await _unitOfWork.GetRepository<IPaymentRepository>().GetQueryable()
+						 .Where(p => p.PaymentTransactionId == vnpTxnRef && p.Status == PaymentStatus.PENDING
+							&& !p.IsDeleted
+							&& !p.TourTrip.IsDeleted
+							&& !p.TourTrip.Tour.IsDeleted)
 						 .Include(p => p.TourTrip)
 							.ThenInclude(tt => tt.Tour)
-						 .Where(p => p.PaymentTransactionId == vnpTxnRef && p.Status == PaymentStatus.PENDING)
 						 .SingleOrDefaultAsync();
 
 			if (payment == null)
@@ -182,7 +186,7 @@ namespace PRN231.ExploreNow.Services.Services
 			var tour = tourTrip.Tour;
 
 			var transaction = await _unitOfWork.GetRepository<ITransactionRepository>().GetQueryable()
-							 .Where(t => t.PaymentId == payment.Id)
+							 .Where(t => t.PaymentId == payment.Id && !t.IsDeleted)
 							 .SingleOrDefaultAsync();
 
 			if (tour.Status != TourStatus.ACTIVE)

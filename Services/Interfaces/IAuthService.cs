@@ -1,5 +1,4 @@
 ﻿using Google.Apis.Auth;
-using PRN231.ExploreNow.BusinessObject.Entities;
 using PRN231.ExploreNow.BusinessObject.Models.Request;
 using PRN231.ExploreNow.BusinessObject.Models.Response.Auth;
 
