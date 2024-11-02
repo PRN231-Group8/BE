@@ -42,7 +42,6 @@ public class ApplicationDbContext : BaseDbContext
 		});
 
 		// Explicitly configure relationships between ApplicationUser and Tour (formerly Booking)
-
 		// ApplicationUser -> Tour (1-to-Many)
 		modelBuilder.Entity<Tour>()
 			.HasOne(t => t.User)
@@ -194,6 +193,20 @@ public class ApplicationDbContext : BaseDbContext
 			entity.HasOne(c => c.Post)
 				  .WithMany(p => p.Comments)
 				  .HasForeignKey(c => c.PostId)
+				  .OnDelete(DeleteBehavior.Cascade);
+		});
+
+		// Locations configurations
+		modelBuilder.Entity<Location>(entity =>
+		{
+			entity.HasMany(l => l.Photos)
+				  .WithOne(p => p.Location)
+				  .HasForeignKey(p => p.LocationId)
+				  .OnDelete(DeleteBehavior.Cascade);
+
+			entity.HasMany(l => l.TourTimestamps)
+				  .WithOne(tt => tt.Location)
+				  .HasForeignKey(tt => tt.LocationId)
 				  .OnDelete(DeleteBehavior.Cascade);
 		});
 
