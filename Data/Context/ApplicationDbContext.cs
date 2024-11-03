@@ -73,6 +73,7 @@ public class ApplicationDbContext : BaseDbContext
 				.HasConversion(new EnumToStringConverter<TransportationType>());
 		});
 
+
 		// Tour -> LocationInTour (1-to-Many)
 		modelBuilder.Entity<LocationInTour>()
 			.HasOne(lit => lit.Tour)
