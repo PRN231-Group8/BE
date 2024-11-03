@@ -21,4 +21,5 @@ public class ApplicationUser : IdentityUser<string>
 	public ICollection<Posts> Posts { get; set; }
 	public ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
 	public ICollection<Payment> Payments { get; set; }
+	public ICollection<Comments> Comments { get; set; } = new List<Comments>();
 }
