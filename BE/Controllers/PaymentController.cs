@@ -6,7 +6,6 @@ using PRN231.ExploreNow.BusinessObject.Enums;
 using PRN231.ExploreNow.BusinessObject.Models.Request;
 using PRN231.ExploreNow.BusinessObject.Models.Response;
 using PRN231.ExploreNow.Services.Interfaces;
-using PRN231.ExploreNow.Services.Services;
 using System.Net;
 
 namespace PRN231.ExploreNow.API.Controllers

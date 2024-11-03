@@ -18,13 +18,16 @@ namespace PRN231.ExploreNow.Services.Services
 		private readonly UserManager<ApplicationUser> _userManager;
 		private readonly IHttpContextAccessor _httpContextAccessor;
 		private readonly IMapper _mapper;
+		private readonly ITourService _tourService;
 
-		public TourTripService(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager, IHttpContextAccessor httpContextAccessor, IMapper mapper)
+		public TourTripService(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager,
+			IHttpContextAccessor httpContextAccessor, IMapper mapper, ITourService tourService)
 		{
 			_unitOfWork = unitOfWork;
 			_userManager = userManager;
 			_httpContextAccessor = httpContextAccessor;
 			_mapper = mapper;
+			_tourService = tourService;
 		}
 
 		public async Task<(List<TourTripResponse> Items, int TotalCount)> GetAllTourTripAsync(int page, int pageSize, bool? sortByPrice, string? searchTerm)
@@ -59,14 +62,18 @@ namespace PRN231.ExploreNow.Services.Services
 
 			// Group trips by TourId
 			var groupedTrips = tourTripEntities.GroupBy(t => t.TourId);
+			var processedTourIds = new HashSet<Guid>();
 
 			foreach (var group in groupedTrips)
 			{
 				var tourId = group.Key;
 				var tripsForTour = group.ToList();
+				processedTourIds.Add(tourId);
 
 				// Validate tour existence and get tour details for date range validation
-				var tour = await _unitOfWork.GetRepository<ITourRepository>().GetQueryable()
+				var tour = await _unitOfWork.GetRepository<ITourRepository>()
+					.GetQueryable()
+					.Include(t => t.Transportations.Where(tr => !tr.IsDeleted))
 					.FirstOrDefaultAsync(t => t.Id == tourId && !t.IsDeleted);
 
 				if (tour == null)
@@ -87,8 +94,7 @@ namespace PRN231.ExploreNow.Services.Services
 				// Check for overlaps within new trips and with existing trips
 				var allTrips = existingTrips.Concat(tripsForTour).ToList();
 				var overlaps = FindOverlaps(allTrips);
-
-				if (overlaps.Any())
+				if (overlaps.Count > 0)
 				{
 					var overlapDescriptions = overlaps.Select(o =>
 						$"Trip date overlap detected: {o.Item1.TripDate:d} conflicts with {o.Item2.TripDate:d} for tour {tourId}");
@@ -110,6 +116,20 @@ namespace PRN231.ExploreNow.Services.Services
 
 			await _unitOfWork.GetRepository<ITourTripRepository>().AddRangeAsync(tourTripEntities);
 			await _unitOfWork.SaveChangesAsync();
+
+			// Update totalprice for tour after create a specific or a list tourtrip
+			foreach (var tourId in processedTourIds)
+			{
+				var tour = await _unitOfWork.GetRepository<ITourRepository>()
+					.GetQueryable()
+					.Include(t => t.Transportations.Where(tr => !tr.IsDeleted))
+					.FirstOrDefaultAsync(t => t.Id == tourId && !t.IsDeleted);
+
+				if (tour != null && tour.Transportations.Count > 0)
+				{
+					await _tourService.UpdateTourPrice(tourId);
+				}
+			}
 
 			return _mapper.Map<List<TourTripResponse>>(tourTripEntities);
 		}
@@ -162,16 +182,30 @@ namespace PRN231.ExploreNow.Services.Services
 			existingTourTrip.LastUpdatedBy = user.UserName;
 
 			await _unitOfWork.SaveChangesAsync();
+			await _tourService.UpdateTourPrice(existingTourTrip.TourId);
 
 			return _mapper.Map<TourTripResponse>(existingTourTrip);
 		}
 
 		public async Task<bool> DeleteTourTrip(Guid id)
 		{
+			var tourTrip = await _unitOfWork.GetRepository<ITourTripRepository>()
+				.GetQueryable()
+				.FirstOrDefaultAsync(tt => tt.Id == id);
+
+			var tourId = tourTrip.TourId;
 			var result = await _unitOfWork.GetRepository<ITourTripRepository>().DeleteAsync(id);
+			await _unitOfWork.SaveChangesAsync();
+
+			if (result)
+			{
+				await _tourService.UpdateTourPrice(tourId);
+			}
+
 			return result;
 		}
 
+		#region Helper method TourTripService
 		private async Task ValidateStatusTransition(TourTrip tourTrip, TripStatus newStatus)
 		{
 			// Cannot change status if trip has passed unless completing it
@@ -209,7 +243,7 @@ namespace PRN231.ExploreNow.Services.Services
 						.Where(p => p.Status == PaymentStatus.PENDING)
 						.ToList();
 
-					if (pendingPayments?.Any() == true)
+					if (pendingPayments?.Count > 0)
 					{
 						throw new InvalidOperationException(
 							$"Cannot complete trip with {pendingPayments.Count} pending payments. Please process all payments first.");
@@ -322,5 +356,6 @@ namespace PRN231.ExploreNow.Services.Services
 		{
 			return date1.Date == date2.Date;
 		}
+		#endregion
 	}
 }

@@ -19,17 +19,19 @@ namespace PRN231.ExploreNow.Repositories.Repositories
 			_mapper = mapper;
 		}
 
-		public async Task<List<TourResponse>> GetToursAsync(int page, int pageSize, TourStatus? sortByStatus, List<string>? searchTerm)
+		public async Task<(List<TourResponse> Items, int TotalCount)> GetToursAsync(int page, int pageSize, TourStatus? sortByStatus, string? searchTerm)
 		{
 			var query = GetQueryable()
+				.AsSplitQuery()
 				.Where(t => !t.IsDeleted)
-				.Include(t => t.TourTimestamps)
-				.Include(t => t.TourMoods)
-					.ThenInclude(tm => tm.Mood) // Đảm bảo bao gồm quan hệ Mood
-				.Include(t => t.LocationInTours)
+				.Include(t => t.TourTimestamps.Where(tt => !tt.IsDeleted))
+				.Include(t => t.TourMoods.Where(tm => !tm.IsDeleted && !tm.Mood.IsDeleted))
+					.ThenInclude(tm => tm.Mood)
+				.Include(t => t.LocationInTours.Where(lit => !lit.IsDeleted && !lit.Location.IsDeleted))
 					.ThenInclude(lit => lit.Location)
-				.Include(t => t.Transportations)
-				.Include(t => t.TourTrips)
+					.ThenInclude(l => l.Photos.Where(p => !p.IsDeleted))
+				.Include(t => t.Transportations.Where(tr => !tr.IsDeleted))
+				.Include(t => t.TourTrips.Where(tt => !tt.IsDeleted))
 				.AsQueryable();
 
 			var allTours = await query.ToListAsync();
@@ -45,17 +47,21 @@ namespace PRN231.ExploreNow.Repositories.Repositories
 				);
 			}
 
+			var totalCount = await query.CountAsync();
+
 			if (sortByStatus.HasValue)
 			{
 				filteredTours = filteredTours.OrderBy(t => t.Status == sortByStatus.Value);
 			}
 
-			var tours = _mapper.Map<List<TourResponse>>(filteredTours
+			var pagedTours = await query
 				.Skip((page - 1) * pageSize)
 				.Take(pageSize)
-				.ToList());
+				.ToListAsync();
 
-			return tours;
+			var mappedTours = _mapper.Map<List<TourResponse>>(pagedTours);
+
+			return (mappedTours, totalCount);
 		}
 
 		public async Task<(List<Tour> Items, int TotalCount)> GetTourBookingHistoryAsync(
@@ -68,15 +74,15 @@ namespace PRN231.ExploreNow.Repositories.Repositories
 			// Start with tours that have bookings for this user
 			var query = GetQueryable()
 				.Where(t => !t.IsDeleted)
-				.Where(t => t.TourTrips.Any(tt => tt.Payments.Any(p => p.UserId == userId)))
-				.Include(t => t.TourTrips.Where(tt => tt.Payments.Any(p => p.UserId == userId)))
-					.ThenInclude(tt => tt.Payments.Where(p => p.UserId == userId))
+				.Where(t => t.TourTrips.Any(tt => !tt.IsDeleted && tt.Payments.Any(p => !p.IsDeleted && p.UserId == userId)))
+				.Include(t => t.TourTrips.Where(tt => !tt.IsDeleted))
+					.ThenInclude(tt => tt.Payments.Where(p => !p.IsDeleted && p.UserId == userId))
 						.ThenInclude(p => p.Transaction)
-				.Include(t => t.TourTimestamps)
+				.Include(t => t.TourTimestamps.Where(ts => !ts.IsDeleted))
 					.ThenInclude(ts => ts.Location)
-						.ThenInclude(l => l.Photos)
-				.Include(t => t.Transportations)
-				.Include(t => t.TourMoods)
+						.ThenInclude(l => l.Photos.Where(t => !t.IsDeleted))
+				.Include(t => t.Transportations.Where(t => !t.IsDeleted))
+				.Include(t => t.TourMoods.Where(tm => !tm.IsDeleted && !tm.Mood.IsDeleted))
 					.ThenInclude(tm => tm.Mood)
 				.AsSplitQuery();
 

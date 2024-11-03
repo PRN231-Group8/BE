@@ -60,7 +60,7 @@ public class TransportationController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode((int)HttpStatusCode.InternalServerError, new BaseResponse<object>
+            return StatusCode((int) HttpStatusCode.InternalServerError, new BaseResponse<object>
             {
                 IsSucceed = false,
                 Message = $"Error: {ex.Message}"
@@ -112,7 +112,7 @@ public class TransportationController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode((int)HttpStatusCode.InternalServerError, new BaseResponse<object>
+            return StatusCode((int) HttpStatusCode.InternalServerError, new BaseResponse<object>
             {
                 IsSucceed = false,
                 Message = $"Error: {ex.Message}"
@@ -151,7 +151,7 @@ public class TransportationController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode((int)HttpStatusCode.InternalServerError, new BaseResponse<object>
+            return StatusCode((int) HttpStatusCode.InternalServerError, new BaseResponse<object>
             {
                 IsSucceed = false,
                 Message = $"Error: {ex.Message}"
@@ -247,7 +247,7 @@ public class TransportationController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode((int)HttpStatusCode.InternalServerError, new BaseResponse<object>
+            return StatusCode((int) HttpStatusCode.InternalServerError, new BaseResponse<object>
             {
                 IsSucceed = false,
                 Message = $"Error: {ex.Message}"
@@ -277,7 +277,6 @@ public class TransportationController : ControllerBase
     {
         return _cacheService.Get<BaseCacheResponse<TransportationResponse>>("BaseCacheResponse") ?? new BaseCacheResponse<TransportationResponse>();
     }
-
 
     private Dictionary<Guid, TransportationResponse> GetKeyValues()
     {
