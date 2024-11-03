@@ -44,14 +44,14 @@ public class AuthService : IAuthService
 		_emailVerify = emailVerify;
 	}
 
-	public async Task<AuthResquest> SeedRolesAsync()
+	public async Task<AuthResponse> SeedRolesAsync()
 	{
 		var isOwnerRoleExists = await _roleManager.RoleExistsAsync(StaticUserRoles.MODERATOR);
 		var isAdminRoleExists = await _roleManager.RoleExistsAsync(StaticUserRoles.ADMIN);
 		var isUserRoleExists = await _roleManager.RoleExistsAsync(StaticUserRoles.CUSTOMER);
 
 		if (isOwnerRoleExists && isAdminRoleExists && isUserRoleExists)
-			return new AuthResquest
+			return new AuthResponse
 			{
 				IsSucceed = true,
 				Token = "Roles Seeding is Already Done"
@@ -61,18 +61,18 @@ public class AuthService : IAuthService
 		await _roleManager.CreateAsync(new IdentityRole(StaticUserRoles.ADMIN));
 		await _roleManager.CreateAsync(new IdentityRole(StaticUserRoles.MODERATOR));
 
-		return new AuthResquest
+		return new AuthResponse
 		{
 			IsSucceed = true,
 			Token = "Role Seeding Done Successfully"
 		};
 	}
-	public async Task<AuthResquest> RegisterAsync(RegisterResponse registerResponse)
+	public async Task<AuthResponse> RegisterAsync(RegisterResponse registerResponse)
 	{
 		var isExistsUser = await _userManager.FindByNameAsync(registerResponse.UserName);
 
 		if (isExistsUser != null)
-			return new AuthResquest
+			return new AuthResponse
 			{
 				IsSucceed = false,
 				Token = "UserName Already Exists"
@@ -81,14 +81,14 @@ public class AuthService : IAuthService
 		// Check if email is already in use
 		var isExistsEmail = await _userManager.FindByEmailAsync(registerResponse.Email);
 		if (isExistsEmail != null)
-			return new AuthResquest
+			return new AuthResponse
 			{
 				IsSucceed = false,
 				Token = "Email Already Exists"
 			};
 
 		if (registerResponse.Password != registerResponse.ConfirmPassword)
-			return new AuthResquest
+			return new AuthResponse
 			{
 				IsSucceed = false,
 				Token = "The password and confirmation password do not match."
@@ -112,7 +112,7 @@ public class AuthService : IAuthService
 		{
 			var errorString = "User Creation Failed Because: " +
 							  string.Join(" # ", createUserResult.Errors.Select(e => e.Description));
-			return new AuthResquest { IsSucceed = false, Token = errorString };
+			return new AuthResponse { IsSucceed = false, Token = errorString };
 		}
 
 		// Add a Default USER Role to all users
@@ -128,36 +128,36 @@ public class AuthService : IAuthService
 		{
 			var errorString = "User Update Failed Because: " +
 							  string.Join(" # ", updateUserResult.Errors.Select(e => e.Description));
-			return new AuthResquest { IsSucceed = false, Token = errorString };
+			return new AuthResponse { IsSucceed = false, Token = errorString };
 		}
 
 		// Send verification email
 		var emailSent = _emailVerify.SendVerifyAccountEmail(newUser.Email, verificationToken);
 		if (!emailSent)
-			return new AuthResquest
+			return new AuthResponse
 			{
 				IsSucceed = false,
 				Token = "Email sending failed!"
 			};
 
-		return new AuthResquest
+		return new AuthResponse
 		{
 			IsSucceed = true,
 			Token = "Account created successfully and check your email to verify account!"
 		};
 	}
-	public async Task<AuthResquest> LoginAsync(LoginResponse loginResponse)
+	public async Task<AuthResponse> LoginAsync(LoginResponse loginResponse)
 	{
 		var user = await _userManager.FindByNameAsync(loginResponse.UserName);
 
 		if (user is null)
-			return new AuthResquest
+			return new AuthResponse
 			{
 				IsSucceed = false,
 				Token = "Invalid Credentials"
 			};
 		if (!user.isActived)
-			return new AuthResquest
+			return new AuthResponse
 			{
 				IsSucceed = false,
 				Token = "Account not verified!"
@@ -166,7 +166,7 @@ public class AuthService : IAuthService
 		var isPasswordCorrect = await _userManager.CheckPasswordAsync(user, loginResponse.Password);
 
 		if (!isPasswordCorrect)
-			return new AuthResquest
+			return new AuthResponse
 			{
 				IsSucceed = false,
 				Token = "Invalid Credentials"
@@ -189,7 +189,7 @@ public class AuthService : IAuthService
 
 		var token = GenerateNewJsonWebToken(authClaims);
 
-		return new AuthResquest { IsSucceed = true, Token = token, Role = role, UserId = user.Id, Email = user.Email };
+		return new AuthResponse { IsSucceed = true, Token = token, Role = role, UserId = user.Id, Email = user.Email };
 	}
 	private string GenerateNewJsonWebToken(List<Claim> claims)
 	{
@@ -254,14 +254,14 @@ public class AuthService : IAuthService
 
 		return token;
 	}
-	public async Task<AuthResquest> MakeAdminAsync(
+	public async Task<AuthResponse> MakeAdminAsync(
 		UpdatePermissionResponse updatePermissionDto
 	)
 	{
 		var user = await _userManager.FindByNameAsync(updatePermissionDto.UserName);
 
 		if (user is null)
-			return new AuthResquest
+			return new AuthResponse
 			{
 				IsSucceed = false,
 				Token = "Invalid User name!!!!!!!!"
@@ -271,21 +271,21 @@ public class AuthService : IAuthService
 
 		await _userManager.AddToRoleAsync(user, StaticUserRoles.ADMIN);
 
-		return new AuthResquest
+		return new AuthResponse
 		{
 			IsSucceed = true,
 			Token = "User is now an ADMIN"
 		};
 	}
 
-	public async Task<AuthResquest> MakeModeratorAsync(
+	public async Task<AuthResponse> MakeModeratorAsync(
 		UpdatePermissionResponse updatePermissionDto
 	)
 	{
 		var user = await _userManager.FindByNameAsync(updatePermissionDto.UserName);
 
 		if (user is null)
-			return new AuthResquest
+			return new AuthResponse
 			{
 				IsSucceed = false,
 				Token = "Invalid User name!!!!!!!!"
@@ -295,7 +295,7 @@ public class AuthService : IAuthService
 
 		await _userManager.AddToRoleAsync(user, StaticUserRoles.MODERATOR);
 
-		return new AuthResquest
+		return new AuthResponse
 		{
 			IsSucceed = true,
 			Token = "User is now an STAFF"
