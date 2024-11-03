@@ -1,10 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace PRN231.ExploreNow.BusinessObject.Models.Request;
+﻿namespace PRN231.ExploreNow.BusinessObject.Models.Request;
 
 public class PhotoRequest
 {
-    public string Url { get; set; }
-
-    public string Alt { get; set; }
+	public Guid? Id { get; set; }
+	public string Url { get; set; }
+	public string Alt { get; set; }
 }
