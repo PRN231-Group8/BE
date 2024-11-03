@@ -118,7 +118,6 @@ namespace PRN231.ExploreNow.Services.Services
 			existingPost.LastUpdatedBy = user.UserName;
 			existingPost.LastUpdatedDate = DateTime.UtcNow;
 
-			// Process and delete all comments if required
 			if (postsRequest.RemoveAllComments.HasValue && postsRequest.RemoveAllComments.Value)
 			{
 				var commentsToDelete = existingPost.Comments.Where(c => !c.IsDeleted);
@@ -129,7 +128,6 @@ namespace PRN231.ExploreNow.Services.Services
 					await commentsRepo.DeleteAsync(comment.Id);
 				}
 			}
-			// Handle deletion of specific comments if required
 			else if (postsRequest.CommentsToRemove != null && postsRequest.CommentsToRemove.Count > 0)
 			{
 				foreach (var commentId in postsRequest.CommentsToRemove)
@@ -149,7 +147,6 @@ namespace PRN231.ExploreNow.Services.Services
 				}
 			}
 
-			// Process and delete all photos if required
 			if (postsRequest.RemoveAllPhotos.HasValue && postsRequest.RemoveAllPhotos.Value)
 			{
 				var photosToDelete = existingPost.Photos.Where(p => !p.IsDeleted);
@@ -160,7 +157,6 @@ namespace PRN231.ExploreNow.Services.Services
 					await photosRepo.DeleteAsync(photo.Id);
 				}
 			}
-			// Handle deletion of specific photos if required
 			else if (postsRequest.PhotosToRemove != null && postsRequest.PhotosToRemove.Count > 0)
 			{
 				foreach (var photoId in postsRequest.PhotosToRemove)
@@ -234,7 +230,6 @@ namespace PRN231.ExploreNow.Services.Services
 				throw new InvalidOperationException("User is not authenticated.");
 			}
 
-			// Validate the number of photos
 			if (createPostRequest.Photos == null || !createPostRequest.Photos.Any())
 			{
 				throw new ArgumentException("At least one photo is required.");
@@ -244,10 +239,9 @@ namespace PRN231.ExploreNow.Services.Services
 				throw new ArgumentException("You can upload up to 5 images only.");
 			}
 
-			// Validate each photo file size
 			foreach (var file in createPostRequest.Photos)
 			{
-				if (file.Length > 3 * 1024 * 1024) // 3MB limit
+				if (file.Length > 3 * 1024 * 1024)
 				{
 					throw new ArgumentException($"File {file.FileName} exceeds the 3MB size limit.");
 				}
@@ -257,13 +251,12 @@ namespace PRN231.ExploreNow.Services.Services
 			var photos = new List<Photo>();
 			foreach (var file in createPostRequest.Photos)
 			{
-				var altText = Path.GetFileNameWithoutExtension(file.FileName);  // Generate Alt text from file name
+				var altText = Path.GetFileNameWithoutExtension(file.FileName);
 
 				using var stream = file.OpenReadStream();
 				var uploadParams = new ImageUploadParams
 				{
 					File = new FileDescription(file.FileName, stream),
-					Transformation = new Transformation().Height(300).Width(200)
 				};
 
 				var uploadResult = await _cloudinary.UploadAsync(uploadParams);
@@ -271,7 +264,7 @@ namespace PRN231.ExploreNow.Services.Services
 				photos.Add(new Photo
 				{
 					Url = uploadResult.SecureUrl.ToString(),
-					Alt = altText,  // Auto-generated Alt text from file name
+					Alt = altText,
 					Code = GenerateUniqueCode(),
 					CreatedBy = user.UserName
 				});
@@ -296,7 +289,6 @@ namespace PRN231.ExploreNow.Services.Services
 			return _mapper.Map<PostsResponse>(post);
 		}
 
-		// Helper method to generate a unique code
 		private string GenerateUniqueCode() => Guid.NewGuid().ToString("N").Substring(0, 10).ToUpper();
 
 	}

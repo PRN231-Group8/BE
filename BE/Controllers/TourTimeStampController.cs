@@ -26,6 +26,7 @@ namespace PRN231.ExploreNow.API.Controllers
 		}
 
 		[HttpGet]
+		[ProducesResponseType(typeof(BaseResponse<List<TourTimeStampResponse>>), 200)]
 		public async Task<IActionResult> GetAllTourTimeStamps(
 		   [FromQuery(Name = "page-number")] int page = 1,
 		   [FromQuery(Name = "page-size")] int pageSize = 10,
@@ -108,6 +109,7 @@ namespace PRN231.ExploreNow.API.Controllers
 		}
 
 		[HttpGet("{id}")]
+		[ProducesResponseType(typeof(BaseResponse<List<TourTimeStampResponse>>), 200)]
 		public async Task<IActionResult> GetTourTimeStampById(Guid id)
 		{
 			try
@@ -158,6 +160,9 @@ namespace PRN231.ExploreNow.API.Controllers
 		}
 
 		[HttpPost("{durationMinutes}")]
+		[ProducesResponseType(typeof(BaseResponse<TourTimeStampResponse>), 201)]
+		[ProducesResponseType(typeof(BaseResponse<object>), 400)]
+		[ProducesResponseType(typeof(BaseResponse<object>), 500)]
 		public async Task<IActionResult> CreateBatchTourTimeStamps([FromBody] List<TourTimeStampRequest> requests, int durationMinutes)
 		{
 			try
@@ -203,6 +208,10 @@ namespace PRN231.ExploreNow.API.Controllers
 		}
 
 		[HttpPut("{id}")]
+		[ProducesResponseType(typeof(BaseResponse<object>), 200)]
+		[ProducesResponseType(typeof(BaseResponse<object>), 400)]
+		[ProducesResponseType(typeof(BaseResponse<object>), 404)]
+		[ProducesResponseType(typeof(BaseResponse<object>), 500)]
 		public async Task<IActionResult> UpdateTourTimeStamp(Guid id, [FromBody] TourTimeStampRequest request)
 		{
 			try
@@ -252,6 +261,9 @@ namespace PRN231.ExploreNow.API.Controllers
 		}
 
 		[HttpDelete("{id}")]
+		[ProducesResponseType(typeof(BaseResponse<object>), 200)]
+		[ProducesResponseType(typeof(BaseResponse<object>), 404)]
+		[ProducesResponseType(typeof(BaseResponse<object>), 500)]
 		public async Task<IActionResult> DeleteTourTimeStamp(Guid id)
 		{
 			try

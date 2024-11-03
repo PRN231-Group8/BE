@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Npgsql.BackendMessages;
+using PRN231.ExploreNow.BusinessObject.Contracts.Repositories;
 using PRN231.ExploreNow.BusinessObject.Contracts.Repositories.Interfaces;
 using PRN231.ExploreNow.BusinessObject.Entities;
 using PRN231.ExploreNow.BusinessObject.Models.Request;
@@ -18,8 +18,8 @@ namespace PRN231.ExploreNow.Services.Services
 	{
 		private readonly IUnitOfWork _unitOfWork;
 		private Cloudinary _cloudinary;
-		private IConfiguration _configuration;
-		private IConfigurationSection _cloundinarySetting;
+		private readonly IConfiguration _configuration;
+		private readonly IConfigurationSection _cloundinarySetting;
 		private readonly IHttpContextAccessor _contextAccessor;
 		private readonly UserManager<ApplicationUser> _userManager;
 
@@ -52,7 +52,6 @@ namespace PRN231.ExploreNow.Services.Services
 					Transformation = new Transformation().Height(300).Width(200)
 				};
 				uploadResult = await _cloudinary.UploadAsync(uploadParams);
-
 			}
 			return uploadResult.SecureUrl.ToString();
 		}
@@ -100,6 +99,7 @@ namespace PRN231.ExploreNow.Services.Services
 
 			return true;
 		}
+
 		public async Task<UserProfileResponseModel> GetUserByEmailAsync(string email)
 		{
 			var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
@@ -107,18 +107,40 @@ namespace PRN231.ExploreNow.Services.Services
 			{
 				return null;
 			}
+
+			var userRoles = await _userManager.GetRolesAsync(user);
+			var role = userRoles.FirstOrDefault() ?? "Customer";
+
 			return new UserProfileResponseModel
 			{
 				FirstName = user.FirstName,
 				LastName = user.LastName,
 				Dob = user.Dob,
 				Gender = user.Gender,
-				AvatarPath = user.AvatarPath
+				AvatarPath = user.AvatarPath,
+				Role = role
 			};
 		}
+
 		public async Task<List<UserResponse>> GetAllUsersAsync()
 		{
-			return await _unitOfWork.UserRepository.GetAllUsersAsync();
+			var users = await _unitOfWork.UserRepository.GetAllUsersAsync();
+
+			if (users == null || !users.Any())
+				return new List<UserResponse>();
+
+			return users.Select(user => new UserResponse
+			{
+				UserId = user.UserId,
+				FirstName = user.FirstName,
+				LastName = user.LastName,
+				Dob = user.Dob,
+				Gender = user.Gender,
+				Address = user.Address,
+				AvatarPath = user.AvatarPath,
+				CreatedDate = user.CreatedDate
+			}).ToList();
 		}
+
 	}
 }

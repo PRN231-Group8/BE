@@ -50,23 +50,10 @@ namespace PRN231.ExploreNow.Repositories.Repositories
 				filteredTours = filteredTours.OrderBy(t => t.Status == sortByStatus.Value);
 			}
 
-			var tours = filteredTours.Select(t => new TourResponse
-			{
-				Id = t.Id,
-				Title = t.Title,
-				Description = t.Description,
-				Status = t.Status,
-				TourMoods = t.TourMoods
-					.Where(tm => tm.Mood != null) // Lọc những TourMood có Mood không null
-					.Select(tm => new TourMoodResponse
-					{
-						MoodTag = tm.Mood.MoodTag,
-						IconName = tm.Mood.IconName
-					}).ToList(),
-			})
-			.Skip((page - 1) * pageSize)
-			.Take(pageSize)
-			.ToList();
+			var tours = _mapper.Map<List<TourResponse>>(filteredTours
+				.Skip((page - 1) * pageSize)
+				.Take(pageSize)
+				.ToList());
 
 			return tours;
 		}

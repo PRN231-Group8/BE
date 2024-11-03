@@ -26,7 +26,7 @@ namespace PRN231.ExploreNow.API.Controllers
 		}
 
 		[HttpGet]
-		[Authorize(Roles = "MODERATOR")]
+		[Authorize(Roles = "CUSTOMER,MODERATOR,ADMIN")]
 		public async Task<IActionResult> GetAllPosts(
 			[FromQuery(Name = "filter-status")] PostsStatus? postsStatus,
 			[FromQuery(Name = "search-term")] string? searchTerm,
@@ -89,7 +89,7 @@ namespace PRN231.ExploreNow.API.Controllers
 		}
 
 		[HttpGet("pending")]
-		[Authorize(Roles = "MODERATOR")]
+		[Authorize(Roles = "MODERATOR,ADMIN")]
 		public async Task<IActionResult> GetAllPendingPosts(
 			[FromQuery(Name = "search-term")] string? searchTerm,
 			[FromQuery(Name = "page-number")] int page = 1,
@@ -146,7 +146,7 @@ namespace PRN231.ExploreNow.API.Controllers
 		}
 
 		[HttpGet("history")]
-		[Authorize(Roles = "CUSTOMER")]
+		[Authorize(Roles = "CUSTOMER,MODERATOR,ADMIN")]
 		public async Task<IActionResult> GetUserPosts(
 			[FromQuery(Name = "filter-status")] PostsStatus? postsStatus,
 			[FromQuery(Name = "search-term")] string? searchTerm,
@@ -208,7 +208,7 @@ namespace PRN231.ExploreNow.API.Controllers
 		}
 
 		[HttpGet("{id}")]
-		[Authorize(Roles = "CUSTOMER,MODERATOR")]
+		[Authorize(Roles = "CUSTOMER,MODERATOR,ADMIN")]
 		public async Task<IActionResult> GetPostsById(Guid id)
 		{
 			try
@@ -261,7 +261,7 @@ namespace PRN231.ExploreNow.API.Controllers
 		}
 
 		[HttpPut("{id}")]
-		[Authorize(Roles = "MODERATOR")]
+		[Authorize(Roles = "MODERATOR,ADMIN")]
 		public async Task<IActionResult> UpdatePosts(Guid id, [FromBody] PostsRequest postsRequest)
 		{
 			try
