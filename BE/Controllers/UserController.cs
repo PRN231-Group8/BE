@@ -106,5 +106,29 @@ namespace PRN231.ExploreNow.API.Controllers
 				});
 			}
 		}
+		[HttpGet]
+		[Authorize]
+		public async Task<IActionResult> GetAllUsers()
+		{
+			try
+			{
+				var users = await _userService.GetAllUsersAsync();
+				return Ok(new BaseResponse<List<UserResponse>>
+				{
+					IsSucceed = true,
+					Result = users,
+					Message = "Users retrieved successfully"
+				});
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(new BaseResponse<object>
+				{
+					IsSucceed = false,
+					Result = ex.Message,
+					Message = "There was an error retrieving users"
+				});
+			}
+		}
 	}
 }

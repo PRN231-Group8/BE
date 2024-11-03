@@ -11,7 +11,7 @@ public abstract class BaseEntity
     public DateTime CreatedDate { get; set; }
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }
-    public string LastUpdatedBy { get; set; }
+    public string? LastUpdatedBy { get; set; }
     public DateTime? LastUpdatedDate { get; set; }
     public bool IsDeleted { get; set; }
 }

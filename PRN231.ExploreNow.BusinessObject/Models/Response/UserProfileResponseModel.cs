@@ -13,5 +13,6 @@ namespace PRN231.ExploreNow.BusinessObject.Models.Response
         public DateTime? Dob { get; set; }
         public string? Gender { get; set; }
         public string? AvatarPath { get; set; }
+        public string? Role { get; set; }
     }
 }
