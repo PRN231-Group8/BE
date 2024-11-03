@@ -96,6 +96,12 @@ namespace PRN231.ExploreNow.BusinessObject.Contracts.Repositories
 			}
 			return user;
 		}
+		public async Task<ApplicationUser> GetByIdAsync(string userId)
+		{
+			return await _context.Users
+				.AsNoTracking()
+				.SingleOrDefaultAsync(u => u.Id == userId);
+		}
 
 	}
 }

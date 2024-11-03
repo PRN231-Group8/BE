@@ -39,15 +39,34 @@ namespace PRN231.ExploreNow.Services.Services
 			{
 				throw new Exception("Error adding comment: " + ex.InnerException?.Message, ex);
 			}
+
+			// Fetch user details for the response
+			var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
+			if (user == null)
+			{
+				throw new Exception("User not found.");
+			}
+
 			return new CommentResponse
 			{
 				Id = comment.Id,
 				Content = comment.Content,
 				CreatedDate = comment.CreatedDate,
-				UserId = comment.UserId,
 				PostId = (Guid)comment.PostId,
+				User = new UserResponse
+				{
+					UserId = Guid.Parse(user.Id),
+					FirstName = user.FirstName,
+					LastName = user.LastName,
+					Dob = user.Dob,
+					Gender = user.Gender,
+					Address = user.Address,
+					AvatarPath = user.AvatarPath,
+					CreatedDate = user.CreatedDate,
+				}
 			};
 		}
+
 		private string GenerateUniqueCode() => Guid.NewGuid().ToString("N").Substring(0, 10).ToUpper();
 	}
 }

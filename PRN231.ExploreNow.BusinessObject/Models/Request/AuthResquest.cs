@@ -1,6 +1,6 @@
-﻿namespace PRN231.ExploreNow.BusinessObject.Models.Response.Auth;
+﻿namespace PRN231.ExploreNow.BusinessObject.Models.Request;
 
-public class AuthResponse
+public class AuthResquest
 {
     public bool IsSucceed { get; set; }
     public string? Token { get; set; }
