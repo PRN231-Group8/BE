@@ -10,6 +10,6 @@ namespace PRN231.ExploreNow.BusinessObject.Contracts.Repositories.Interfaces
 		Task<UserProfileResponseModel> UpdateProfileAsync(ApplicationUser applicationUser);
 		Task<ApplicationUser> GetUsersClaimIdentity();
 		Task<List<UserResponse>> GetAllUsersAsync();
-
+		Task<ApplicationUser> GetByIdAsync(string userId);
 	}
 }
