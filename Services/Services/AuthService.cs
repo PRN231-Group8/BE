@@ -8,7 +8,6 @@ using PRN231.ExploreNow.BusinessObject.Enums;
 using PRN231.ExploreNow.BusinessObject.Models.Request;
 using PRN231.ExploreNow.BusinessObject.Models.Response.Auth;
 using PRN231.ExploreNow.BusinessObject.Utilities;
-using PRN231.ExploreNow.Repositories.Context;
 using PRN231.ExploreNow.Services.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -25,7 +24,6 @@ public class AuthService : IAuthService
 	private readonly ILogger<AuthService> _logger;
 	private readonly RoleManager<IdentityRole> _roleManager;
 	private readonly UserManager<ApplicationUser> _userManager;
-	private readonly ApplicationDbContext _context;
 
 	public AuthService(
 		UserManager<ApplicationUser> userManager,
@@ -33,8 +31,7 @@ public class AuthService : IAuthService
 		ILogger<AuthService> logger,
 		IConfiguration configuration,
 		IEmailVerify emailVerify,
-		TokenGenerator tokenGenerator,
-		ApplicationDbContext context
+		TokenGenerator tokenGenerator
 	)
 	{
 		_userManager = userManager;
@@ -44,7 +41,6 @@ public class AuthService : IAuthService
 		_googleSettings = _configuration.GetSection("GoogleAuthSettings:Google");
 		_logger = logger;
 		_emailVerify = emailVerify;
-		_context = context;
 	}
 
 	public async Task<AuthResponse> SeedRolesAsync()
@@ -198,8 +194,6 @@ public class AuthService : IAuthService
 		foreach (var userRole in userRoles) authClaims.Add(new Claim(ClaimTypes.Role, userRole));
 
 		var token = GenerateNewJsonWebToken(authClaims);
-
-		await _context.SaveChangesAsync();
 
 		return new AuthResponse { IsSucceed = true, Token = token, Role = role, UserId = user.Id, Email = user.Email, DeviceId = loginResponse.DeviceId };
 	}
