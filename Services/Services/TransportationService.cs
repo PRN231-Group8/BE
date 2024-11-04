@@ -67,10 +67,8 @@ namespace PRN231.ExploreNow.Services.Services
 			var transportation = _mapper.Map<Transportation>(req);
 
 			var tour = await _unitOfWork.GetRepository<ITourRepository>().GetById(req.TourId);
-			if (tour == null)
-			{
-				throw new CreateException("Tour is not found");
-			}
+            if (tour == null)
+                return false;
 
 			ApplicationUser currentUser = await _unitOfWork.GetRepository<IUserRepository>().GetUsersClaimIdentity();
 
@@ -92,10 +90,8 @@ namespace PRN231.ExploreNow.Services.Services
 		public async Task<bool> UpdateTransportation(Guid id, TransportationRequestModel req)
 		{
 			var existingTransportation = await _unitOfWork.GetRepository<ITransportationRepository>().GetById(id);
-			if (existingTransportation == null)
-			{
-				throw new("Transportation is not found");
-			}
+            if (existingTransportation == null)
+                return false;
 
 			_mapper.Map(req, existingTransportation);
 
