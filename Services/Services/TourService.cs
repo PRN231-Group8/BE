@@ -103,7 +103,7 @@ namespace PRN231.ExploreNow.Services.Services
 
 			// If there are no values ​​for startup and transportation,
 			// the total price of the tour is returned as 0
-			if (activeTourTrips.Count == 0 && activeTransportations.Count == 0)
+			if (!activeTourTrips.Any() || !activeTransportations.Any())
 			{
 				tour.TotalPrice = 0;
 				tour.LastUpdatedDate = DateTime.Now;

@@ -255,13 +255,13 @@ public class TransportationController : ControllerBase
         }
     }
 
-    private Task<bool> Save(IEnumerable<TransportationResponse> transportations, double expireAfterSeconds = 30)
+    private Task<bool> Save(IEnumerable<TransportationResponse> transportations, double expireAfterSeconds = 3)
     {
         var expirationTime = DateTimeOffset.Now.AddSeconds(expireAfterSeconds);
         return _cacheService.AddOrUpdateAsync(nameof(TransportationResponse), transportations, expirationTime);
     }
 
-    private async Task<bool> Save(List<TransportationResponse> transportations, int totalElements, double expireAfterSeconds = 30)
+    private async Task<bool> Save(List<TransportationResponse> transportations, int totalElements, double expireAfterSeconds = 3)
     {
         var cacheData = new BaseCacheResponse<TransportationResponse>
         {

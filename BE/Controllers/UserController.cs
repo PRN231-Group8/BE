@@ -1,13 +1,10 @@
 ﻿using FluentValidation.Results;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PRN231.ExploreNow.BusinessObject.Models.Request;
 using PRN231.ExploreNow.Services.Interfaces;
 using PRN231.ExploreNow.Validations.Profile;
-using PRN231.ExploreNow.Validations.User;
 using PRN231.ExploreNow.BusinessObject.Models.Response;
 using Microsoft.AspNetCore.Authorization;
-using PRN231.ExploreNow.BusinessObject.Enums;
 
 namespace PRN231.ExploreNow.API.Controllers
 {

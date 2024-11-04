@@ -85,6 +85,10 @@ namespace PRN231.ExploreNow.BusinessObject.Configs.Mapping
 				.ForMember(dest => dest.Temperature, opt => opt.MapFrom(src => src.Temperature))
 				.ForMember(dest => dest.Photos, opt => opt.MapFrom(src => src.Photos));
 
+			CreateMap<LocationsRequest, Location>()
+				.ForMember(dest => dest.Photos, opt => opt.Ignore());
+			CreateMap<LocationCreateRequest, Location>();
+
 			CreateMap<Transportation, TransportationResponse>();
 
 			CreateMap<Moods, MoodResponseWithoutTours>();

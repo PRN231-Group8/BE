@@ -8,6 +8,7 @@ using PRN231.ExploreNow.BusinessObject.Enums;
 using PRN231.ExploreNow.BusinessObject.Models.Request;
 using PRN231.ExploreNow.BusinessObject.Models.Response.Auth;
 using PRN231.ExploreNow.BusinessObject.Utilities;
+using PRN231.ExploreNow.Repositories.Context;
 using PRN231.ExploreNow.Services.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -16,7 +17,6 @@ using System.Text;
 namespace PRN231.ExploreNow.Services.Services;
 
 public class AuthService : IAuthService
-
 {
 	private readonly IConfiguration _configuration;
 	private readonly IEmailVerify _emailVerify;
@@ -25,15 +25,17 @@ public class AuthService : IAuthService
 	private readonly ILogger<AuthService> _logger;
 	private readonly RoleManager<IdentityRole> _roleManager;
 	private readonly UserManager<ApplicationUser> _userManager;
+	private readonly ApplicationDbContext _context;
 
 	public AuthService(
-	UserManager<ApplicationUser> userManager,
-	RoleManager<IdentityRole> roleManager,
-	ILogger<AuthService> logger,
-	IConfiguration configuration,
-	IEmailVerify emailVerify,
-	TokenGenerator tokenGenerator
-)
+		UserManager<ApplicationUser> userManager,
+		RoleManager<IdentityRole> roleManager,
+		ILogger<AuthService> logger,
+		IConfiguration configuration,
+		IEmailVerify emailVerify,
+		TokenGenerator tokenGenerator,
+		ApplicationDbContext context
+	)
 	{
 		_userManager = userManager;
 		_roleManager = roleManager;
@@ -42,6 +44,7 @@ public class AuthService : IAuthService
 		_googleSettings = _configuration.GetSection("GoogleAuthSettings:Google");
 		_logger = logger;
 		_emailVerify = emailVerify;
+		_context = context;
 	}
 
 	public async Task<AuthResponse> SeedRolesAsync()
@@ -67,6 +70,7 @@ public class AuthService : IAuthService
 			Token = "Role Seeding Done Successfully"
 		};
 	}
+
 	public async Task<AuthResponse> RegisterAsync(RegisterResponse registerResponse)
 	{
 		var isExistsUser = await _userManager.FindByNameAsync(registerResponse.UserName);
@@ -146,6 +150,7 @@ public class AuthService : IAuthService
 			Token = "Account created successfully and check your email to verify account!"
 		};
 	}
+
 	public async Task<AuthResponse> LoginAsync(LoginResponse loginResponse)
 	{
 		var user = await _userManager.FindByNameAsync(loginResponse.UserName);
@@ -185,12 +190,20 @@ public class AuthService : IAuthService
 			new("email", user.Email)
 		};
 
+		if (!string.IsNullOrEmpty(loginResponse.DeviceId))
+		{
+			authClaims.Add(new Claim("deviceId", loginResponse.DeviceId));
+		}
+
 		foreach (var userRole in userRoles) authClaims.Add(new Claim(ClaimTypes.Role, userRole));
 
 		var token = GenerateNewJsonWebToken(authClaims);
 
-		return new AuthResponse { IsSucceed = true, Token = token, Role = role, UserId = user.Id, Email = user.Email };
+		await _context.SaveChangesAsync();
+
+		return new AuthResponse { IsSucceed = true, Token = token, Role = role, UserId = user.Id, Email = user.Email, DeviceId = loginResponse.DeviceId };
 	}
+
 	private string GenerateNewJsonWebToken(List<Claim> claims)
 	{
 		var authSecret = new SymmetricSecurityKey(
@@ -213,6 +226,7 @@ public class AuthService : IAuthService
 
 		return token;
 	}
+
 	private SigningCredentials GetSigningCredentials()
 	{
 		var key = Encoding.UTF8.GetBytes(_jwtSettings.GetSection("Secret").Value);
@@ -245,6 +259,7 @@ public class AuthService : IAuthService
 
 		return tokenOptions;
 	}
+
 	public async Task<string> GenerateToken(ApplicationUser user)
 	{
 		var signingCredentials = GetSigningCredentials();
@@ -254,6 +269,7 @@ public class AuthService : IAuthService
 
 		return token;
 	}
+
 	public async Task<AuthResponse> MakeAdminAsync(
 		UpdatePermissionResponse updatePermissionDto
 	)

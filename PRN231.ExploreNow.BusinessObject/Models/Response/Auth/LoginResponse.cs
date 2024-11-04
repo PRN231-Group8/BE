@@ -14,5 +14,6 @@ namespace PRN231.ExploreNow.BusinessObject.Models.Response.Auth
 
         [Required(ErrorMessage = "Password is required")]
         public string Password { get; set; }
+		public string? DeviceId { get; set; }
     }
 }

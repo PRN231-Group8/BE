@@ -224,10 +224,10 @@ namespace PRN231.ExploreNow.API.Controllers
 			}
 		}
 
-		private Task<bool> Save(IEnumerable<TourResponse> tour, double expireAfterSeconds = 30)
+		private Task<bool> Save(IEnumerable<TourResponse> tour, double expireAfterSeconds = 3)
 		{
 			var expirationTime = DateTimeOffset.Now.AddSeconds(expireAfterSeconds);
-			return _cacheService.AddOrUpdateAsync(nameof(TourResponse), tour, expirationTime); // khoi tao key hoac luu value trong key trong cache 30 giay
+			return _cacheService.AddOrUpdateAsync(nameof(TourResponse), tour, expirationTime); // khoi tao key hoac luu value trong key trong cache 3 giay
 		}
 
 		private Dictionary<Guid, TourResponse> GetKeyValues()
