@@ -1,13 +1,10 @@
 ﻿using FluentValidation.Results;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PRN231.ExploreNow.BusinessObject.Models.Request;
 using PRN231.ExploreNow.Services.Interfaces;
 using PRN231.ExploreNow.Validations.Profile;
-using PRN231.ExploreNow.Validations.User;
 using PRN231.ExploreNow.BusinessObject.Models.Response;
 using Microsoft.AspNetCore.Authorization;
-using PRN231.ExploreNow.BusinessObject.Enums;
 
 namespace PRN231.ExploreNow.API.Controllers
 {
@@ -103,6 +100,30 @@ namespace PRN231.ExploreNow.API.Controllers
 					IsSucceed = false,
 					Result = ex.Message,
 					Message = "There is something wrong"
+				});
+			}
+		}
+		[HttpGet]
+		[Authorize]
+		public async Task<IActionResult> GetAllUsers()
+		{
+			try
+			{
+				var users = await _userService.GetAllUsersAsync();
+				return Ok(new BaseResponse<List<UserResponse>>
+				{
+					IsSucceed = true,
+					Result = users,
+					Message = "Users retrieved successfully"
+				});
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(new BaseResponse<object>
+				{
+					IsSucceed = false,
+					Result = ex.Message,
+					Message = "There was an error retrieving users"
 				});
 			}
 		}

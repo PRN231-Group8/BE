@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PRN231.ExploreNow.BusinessObject.Models.Response
 {
-	public class UserReponse
+	public class UserResponse
 	{
 		public Guid UserId { get; set; }
 		public string? FirstName { get; set; }
@@ -14,5 +14,7 @@ namespace PRN231.ExploreNow.BusinessObject.Models.Response
 		public DateTime? Dob { get; set; }
 		public string? Gender { get; set; }
 		public string? Address { get; set; }
+		public string? AvatarPath { get; set; }
+		public DateTime CreatedDate { get; set; }
 	}
 }

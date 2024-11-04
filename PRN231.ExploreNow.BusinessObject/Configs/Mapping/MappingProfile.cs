@@ -22,15 +22,15 @@ namespace PRN231.ExploreNow.BusinessObject.Configs.Mapping
 			CreateMap<Posts, PostsRequest>();
 
 			// Mapping between Comments and CommentsResponse
-			CreateMap<Comments, CommentsResponse>()
-				.ForMember(dest => dest.CommentsId, opt => opt.MapFrom(src => src.Id));
+			CreateMap<Comments, CommentResponse>()
+				.ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id));
 
 			// Mapping between Photo and PhotoResponse
 			CreateMap<Photo, PhotoResponse>()
 				.ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id));
 
 			// Mapping between ApplicationUser and UserResponse
-			CreateMap<ApplicationUser, UserReponse>()
+			CreateMap<ApplicationUser, UserResponse>()
 				.ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.Id));
 
 			CreateMap<TourTimestamp, TourTimeStampResponse>().ReverseMap()
@@ -43,14 +43,21 @@ namespace PRN231.ExploreNow.BusinessObject.Configs.Mapping
 
 			CreateMap<Location, LocationResponse>()
 				.ForMember(dest => dest.Photos, opt => opt.MapFrom(src => src.Photos != null ? src.Photos.ToList() : null));
-
 			CreateMap<Photo, PhotoResponse>();
-			CreateMap<Tour, TourResponse>();
 
-			CreateMap<Tour, TourResponse>();
-			CreateMap<TourMood, TourMoodResponse>()
-				.ForMember(dest => dest.MoodTag, opt => opt.MapFrom(src => src.Mood.MoodTag))
-				.ForMember(dest => dest.IconName, opt => opt.MapFrom(src => src.Mood.IconName));
+			CreateMap<Tour, TourResponse>()
+				.ForMember(dest => dest.Transportations, opt => opt.MapFrom(src => src.Transportations))
+				.ForMember(dest => dest.TourTimestamps, opt => opt.MapFrom(src => src.TourTimestamps))
+				.ForMember(dest => dest.LocationInTours, opt => opt.MapFrom(src => src.LocationInTours.Select(lit => lit.Location)))
+				.ForMember(dest => dest.TourMoods, opt => opt.MapFrom(src => src.TourMoods.Select(tm => tm.Mood)))
+				.ForMember(dest => dest.TourTrips, opt => opt.MapFrom(src => src.TourTrips));
+
+			CreateMap<TourRequestModel, Tour>()
+				.ForMember(dest => dest.TourMoods, opt => opt.Ignore())
+				.ForMember(dest => dest.LocationInTours, opt => opt.Ignore())
+				.ForMember(dest => dest.Transportations, opt => opt.Ignore())
+				.ForMember(dest => dest.TourTrips, opt => opt.Ignore())
+				.ForMember(dest => dest.TourTimestamps, opt => opt.Ignore());
 
 			CreateMap<TourTrip, VNPayRequest>();
 
@@ -63,17 +70,36 @@ namespace PRN231.ExploreNow.BusinessObject.Configs.Mapping
 			CreateMap<Tour, TourDetailsResponse>()
 				.ForMember(dest => dest.TourTrips, opt => opt.MapFrom(src => src.TourTrips.OrderBy(tt => tt.TripDate)));
 
+			CreateMap<Tour, TourTimeStampDetailsResponse>();
+
 			CreateMap<TourTrip, TourTripDetailsResponse>()
 				.ForMember(dest => dest.TripStatus, opt => opt.MapFrom(src => src.TripStatus.ToString()))
 				.ForMember(dest => dest.TourTripId, opt => opt.MapFrom(src => src.Id));
 
-			CreateMap<Location, LocationResponse>();
+			CreateMap<Location, LocationResponse>()
+				.ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+				.ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
+				.ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
+				.ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
+				.ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
+				.ForMember(dest => dest.Temperature, opt => opt.MapFrom(src => src.Temperature))
+				.ForMember(dest => dest.Photos, opt => opt.MapFrom(src => src.Photos));
 
-			CreateMap<LocationInTour, LocationInTourResponse>();
+			CreateMap<LocationsRequest, Location>()
+				.ForMember(dest => dest.Photos, opt => opt.Ignore());
+			CreateMap<LocationCreateRequest, Location>();
 
 			CreateMap<Transportation, TransportationResponse>();
 
 			CreateMap<Moods, MoodResponseWithoutTours>();
+
+			CreateMap<Moods, MoodRequest>();
+			CreateMap<MoodRequest, Moods>();
+
+			CreateMap<Moods, MoodResponse>()
+				.ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+				.ForMember(dest => dest.MoodTag, opt => opt.MapFrom(src => src.MoodTag))
+				.ForMember(dest => dest.IconName, opt => opt.MapFrom(src => src.IconName));
 
 			CreateMap<TourTrip, TourTripResponse>()
 				.ForMember(dest => dest.CreatedDate, opt => opt.MapFrom(src => src.CreatedDate))

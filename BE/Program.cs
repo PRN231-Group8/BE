@@ -27,9 +27,7 @@ using PRN231.ExploreNow.Validations;
 using PRN231.ExploreNow.Validations.Interface;
 using PRN231.ExploreNow.Validations.Tour;
 using PRN231.ExploreNow.Repositories.Repositories.Interface;
-using PRN231.ExploreNow.Validations.User;
 using PRN231.ExploreNow.Validations.Profile;
-using PRN231.ExploreNow.Repositories.Repositories.Interfaces;
 using PRN231.ExploreNow.Repositories.Repositories.Repositories;
 using PRN231.ExploreNow.Validations.TourTimeStamp;
 using Microsoft.OpenApi.Any;
@@ -160,12 +158,15 @@ builder.Services.AddScoped<IPostsRepository, PostsRepository>();
 builder.Services.AddScoped<ITransportationRepository, TransportationRepository>();
 builder.Services.AddScoped<ITransportationService, TransportationService>();
 builder.Services.AddScoped<ITourTripService, TourTripService>();
+builder.Services.AddScoped<ICommentService, CommentService>();
+builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 #endregion
 
 #region Configure FluentValidator
 builder.Services.AddScoped<IValidator<LocationsRequest>, LocationRequestValidator>();
 builder.Services.AddScoped<IValidator<PhotoRequest>, PhotoRequestValidator>();
 builder.Services.AddScoped<IValidator<TourTimeStampRequest>, TourTimeStampValidator>();
+builder.Services.AddScoped<IValidator<LocationCreateRequest>, LocationCreateValidator>();
 builder.Services.AddScoped<ITokenValidator, TokenValidator>();
 builder.Services.AddScoped<TourValidation>();
 builder.Services.AddScoped<ProfileValidation>();
@@ -274,17 +275,6 @@ builder.Services.AddSwaggerGen(options =>
 });
 #endregion
 
-//builder.Services.AddCors(options =>
-//{
-//	options.AddDefaultPolicy(
-//		builder =>
-//		{
-//			builder.WithOrigins("https://localhost:4200")
-//				   .AllowAnyHeader()
-//				   .AllowAnyMethod();
-//		});
-//});
-
 #region Config Cors
 builder.Services.AddCors(p =>
 	p.AddPolicy(
@@ -292,7 +282,7 @@ builder.Services.AddCors(p =>
 		build =>
 		{
 			build
-				.WithOrigins("http://localhost:4200")
+				.WithOrigins("http://localhost:4200", "https://explore-now-one.vercel.app")
 				.AllowAnyMethod()
 				.AllowAnyHeader();
 		}

@@ -15,4 +15,5 @@ public interface IUnitOfWork : IBaseUnitOfWork
     IMoodRepository MoodRepository { get; }
     IPostsRepository PostsRepository { get; }
     ITransportationRepository TransportationRepository { get; }
+    ICommentRepository CommentRepository { get; }
 }

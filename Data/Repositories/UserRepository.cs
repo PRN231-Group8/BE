@@ -5,6 +5,9 @@ using PRN231.ExploreNow.BusinessObject.Contracts.Repositories.Interfaces;
 using PRN231.ExploreNow.BusinessObject.Entities;
 using PRN231.ExploreNow.BusinessObject.Models.Response;
 using PRN231.ExploreNow.Repositories.Context;
+using PRN231.ExploreNow.Repositories.Repositories;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace PRN231.ExploreNow.BusinessObject.Contracts.Repositories
 {
@@ -68,14 +71,37 @@ namespace PRN231.ExploreNow.BusinessObject.Contracts.Repositories
 			};
 		}
 
-        public async Task<ApplicationUser> GetUsersClaimIdentity()
-        {
-            var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
-            if (user == null)
-            {
-                throw new UnauthorizedAccessException("User not authenticated");
-            }
-            return user;
-        }
-    }
+		public async Task<List<UserResponse>> GetAllUsersAsync()
+		{
+			return await _context.Users
+				.Select(user => new UserResponse
+				{
+					UserId = Guid.Parse(user.Id),
+					FirstName = user.FirstName,
+					LastName = user.LastName,
+					Dob = user.Dob,
+					Gender = user.Gender,
+					Address = user.Address,
+					AvatarPath = user.AvatarPath,
+					CreatedDate = user.CreatedDate
+				})
+				.ToListAsync();
+		}
+		public async Task<ApplicationUser> GetUsersClaimIdentity()
+		{
+			var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
+			if (user == null)
+			{
+				throw new UnauthorizedAccessException("User not authenticated");
+			}
+			return user;
+		}
+		public async Task<ApplicationUser> GetByIdAsync(string userId)
+		{
+			return await _context.Users
+				.AsNoTracking()
+				.SingleOrDefaultAsync(u => u.Id == userId);
+		}
+
+	}
 }

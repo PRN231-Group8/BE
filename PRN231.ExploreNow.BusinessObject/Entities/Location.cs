@@ -9,6 +9,6 @@ public class Location : BaseEntity
 	public string Address { get; set; }
 	public WeatherStatus Status { get; set; }
 	public double Temperature { get; set; }
-	public ICollection<Photo> Photos { get; set; }
+	public ICollection<Photo> Photos { get; set; } = new List<Photo>();
 	public ICollection<TourTimestamp> TourTimestamps { get; set; }
 }

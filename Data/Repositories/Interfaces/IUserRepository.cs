@@ -1,10 +1,5 @@
 ﻿using PRN231.ExploreNow.BusinessObject.Entities;
 using PRN231.ExploreNow.BusinessObject.Models.Response;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PRN231.ExploreNow.BusinessObject.Contracts.Repositories.Interfaces
 {
@@ -14,5 +9,7 @@ namespace PRN231.ExploreNow.BusinessObject.Contracts.Repositories.Interfaces
 		Task Update(ApplicationUser applicationUser);
 		Task<UserProfileResponseModel> UpdateProfileAsync(ApplicationUser applicationUser);
 		Task<ApplicationUser> GetUsersClaimIdentity();
+		Task<List<UserResponse>> GetAllUsersAsync();
+		Task<ApplicationUser> GetByIdAsync(string userId);
 	}
 }

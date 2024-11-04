@@ -26,7 +26,7 @@ namespace PRN231.ExploreNow.API.Controllers
 		}
 
 		[HttpGet]
-		[Authorize(Roles = "CUSTOMER,MODERATOR,ADMIN")]
+		[ProducesResponseType(typeof(BaseResponse<List<PostsResponse>>), 200)]
 		public async Task<IActionResult> GetAllPosts(
 			[FromQuery(Name = "filter-status")] PostsStatus? postsStatus,
 			[FromQuery(Name = "search-term")] string? searchTerm,
@@ -90,6 +90,7 @@ namespace PRN231.ExploreNow.API.Controllers
 
 		[HttpGet("pending")]
 		[Authorize(Roles = "MODERATOR,ADMIN")]
+		[ProducesResponseType(typeof(BaseResponse<List<PostsResponse>>), 200)]
 		public async Task<IActionResult> GetAllPendingPosts(
 			[FromQuery(Name = "search-term")] string? searchTerm,
 			[FromQuery(Name = "page-number")] int page = 1,
@@ -147,6 +148,7 @@ namespace PRN231.ExploreNow.API.Controllers
 
 		[HttpGet("history")]
 		[Authorize(Roles = "CUSTOMER,MODERATOR,ADMIN")]
+		[ProducesResponseType(typeof(BaseResponse<List<PostsResponse>>), 200)]
 		public async Task<IActionResult> GetUserPosts(
 			[FromQuery(Name = "filter-status")] PostsStatus? postsStatus,
 			[FromQuery(Name = "search-term")] string? searchTerm,
@@ -209,6 +211,7 @@ namespace PRN231.ExploreNow.API.Controllers
 
 		[HttpGet("{id}")]
 		[Authorize(Roles = "CUSTOMER,MODERATOR,ADMIN")]
+		[ProducesResponseType(typeof(BaseResponse<List<PostsResponse>>), 200)]
 		public async Task<IActionResult> GetPostsById(Guid id)
 		{
 			try
@@ -262,6 +265,10 @@ namespace PRN231.ExploreNow.API.Controllers
 
 		[HttpPut("{id}")]
 		[Authorize(Roles = "MODERATOR,ADMIN")]
+		[ProducesResponseType(typeof(BaseResponse<object>), 200)]
+		[ProducesResponseType(typeof(BaseResponse<object>), 400)]
+		[ProducesResponseType(typeof(BaseResponse<object>), 404)]
+		[ProducesResponseType(typeof(BaseResponse<object>), 500)]
 		public async Task<IActionResult> UpdatePosts(Guid id, [FromBody] PostsRequest postsRequest)
 		{
 			try
@@ -305,6 +312,9 @@ namespace PRN231.ExploreNow.API.Controllers
 
 		[HttpDelete("{id}")]
 		[Authorize(Roles = "CUSTOMER,MODERATOR")]
+		[ProducesResponseType(typeof(BaseResponse<object>), 200)]
+		[ProducesResponseType(typeof(BaseResponse<object>), 404)]
+		[ProducesResponseType(typeof(BaseResponse<object>), 500)]
 		public async Task<IActionResult> DeletePosts(Guid id)
 		{
 			try
@@ -333,9 +343,58 @@ namespace PRN231.ExploreNow.API.Controllers
 			}
 		}
 
-		private Task<bool> Save(IEnumerable<PostsResponse> posts, double expireAfterSeconds = 30)
+		[HttpPost]
+		[Authorize(Roles = "CUSTOMER,MODERATOR")]
+		public async Task<IActionResult> CreatePost([FromForm] CreatePostRequest createPostRequest)
 		{
-			// Set expiration time for the cache (default is 30 seconds)
+			try
+			{
+				// Validate the number of uploaded images
+				if (createPostRequest.Photos.Count > 5)
+				{
+					return BadRequest(new BaseResponse<object>
+					{
+						IsSucceed = false,
+						Message = "You can upload up to 5 images only."
+					});
+				}
+
+				// Validate file sizes
+				foreach (var file in createPostRequest.Photos)
+				{
+					if (file.Length > 3 * 1024 * 1024) // 3MB limit
+					{
+						return BadRequest(new BaseResponse<object>
+						{
+							IsSucceed = false,
+							Message = $"File {file.FileName} exceeds the 3MB size limit."
+						});
+					}
+				}
+
+				// Call the service to create the post with images
+				var result = await _postsService.CreatePost(createPostRequest);
+
+				return Ok(new BaseResponse<PostsResponse>
+				{
+					IsSucceed = true,
+					Result = result,
+					Message = "Post created successfully."
+				});
+			}
+			catch (Exception ex)
+			{
+				return StatusCode((int) HttpStatusCode.InternalServerError, new BaseResponse<object>
+				{
+					IsSucceed = false,
+					Message = $"An error occurred while creating the post: {ex.InnerException?.Message ?? ex.Message}"
+				});
+			}
+		}
+
+		private Task<bool> Save(IEnumerable<PostsResponse> posts, double expireAfterSeconds = 3)
+		{
+			// Set expiration time for the cache (default is 3 seconds)
 			var expirationTime = DateTimeOffset.Now.AddSeconds(expireAfterSeconds);
 
 			// Save data to Redis cache

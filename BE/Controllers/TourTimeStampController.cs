@@ -11,7 +11,6 @@ namespace PRN231.ExploreNow.API.Controllers
 {
 	[ApiController]
 	[Route("api/tour-timestamps")]
-	[Authorize(Roles = "ADMIN")]
 	public class TourTimeStampController : ControllerBase
 	{
 		private readonly ITourTimeStampService _tourTimeStampService;
@@ -159,7 +158,43 @@ namespace PRN231.ExploreNow.API.Controllers
 			}
 		}
 
+		[HttpGet("{id}/tour")]
+		[ProducesResponseType(typeof(BaseResponse<TourTimeStampDetailsResponse>), 200)]
+		public async Task<IActionResult> GetTourTourTimeStampsByTourId(Guid id)
+		{
+			try
+			{
+				var result = await _tourTimeStampService.GetTourTimeStampsByTourIdAsync(id);
+
+				if (result == null)
+				{
+					return NotFound(new BaseResponse<TourTimeStampDetailsResponse>
+					{
+						IsSucceed = false,
+						Message = $"Tour with ID {id} not found or has been deleted."
+					});
+				}
+
+				return Ok(new BaseResponse<object>
+				{
+					IsSucceed = true,
+					Result = result,
+					Message = "Tour and timestamps retrieved successfully."
+				});
+			}
+			catch (Exception ex)
+			{
+				return StatusCode((int) HttpStatusCode.InternalServerError, new BaseResponse<object>
+				{
+					IsSucceed = false,
+					Message = $"An error occurred while retrieving the tour trip: {ex.Message}"
+				});
+			}
+		}
+
+
 		[HttpPost("{durationMinutes}")]
+		[Authorize(Roles = "ADMIN")]
 		[ProducesResponseType(typeof(BaseResponse<TourTimeStampResponse>), 201)]
 		[ProducesResponseType(typeof(BaseResponse<object>), 400)]
 		[ProducesResponseType(typeof(BaseResponse<object>), 500)]
@@ -208,6 +243,7 @@ namespace PRN231.ExploreNow.API.Controllers
 		}
 
 		[HttpPut("{id}")]
+		[Authorize(Roles = "ADMIN")]
 		[ProducesResponseType(typeof(BaseResponse<object>), 200)]
 		[ProducesResponseType(typeof(BaseResponse<object>), 400)]
 		[ProducesResponseType(typeof(BaseResponse<object>), 404)]
@@ -261,6 +297,7 @@ namespace PRN231.ExploreNow.API.Controllers
 		}
 
 		[HttpDelete("{id}")]
+		[Authorize(Roles = "ADMIN")]
 		[ProducesResponseType(typeof(BaseResponse<object>), 200)]
 		[ProducesResponseType(typeof(BaseResponse<object>), 404)]
 		[ProducesResponseType(typeof(BaseResponse<object>), 500)]
@@ -292,9 +329,9 @@ namespace PRN231.ExploreNow.API.Controllers
 			}
 		}
 
-		private Task<bool> Save(IEnumerable<TourTimeStampResponse> tourTimeStamps, double expireAfterSeconds = 30)
+		private Task<bool> Save(IEnumerable<TourTimeStampResponse> tourTimeStamps, double expireAfterSeconds = 3)
 		{
-			// Set expiration time for the cache (default is 30 seconds)
+			// Set expiration time for the cache (default is 3 seconds)
 			var expirationTime = DateTimeOffset.Now.AddSeconds(expireAfterSeconds);
 
 			// Save data to Redis cache

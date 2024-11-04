@@ -45,14 +45,16 @@ namespace PRN231.ExploreNow.API.Controllers
 						filteredData = filteredData.Where(t =>
 							t.TripStatus.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
 
+					var totalElements = filteredData.Count();
+
 					var result = ApplySortingAndPagination(filteredData, sortByPrice, page, pageSize);
 
-					return Ok(new BaseResponse<TourTripResponse>
-					{
-						IsSucceed = true,
-						Results = result,
-						Message = result.Any() ? "Tour trips retrieved from cache successfully." : "No tour trips found."
-					});
+					return Ok(new BaseResponse<TourTripResponse>(
+						result,
+						totalElements,
+						page,
+						pageSize,
+						result.Any() ? "Tour trips retrieved from cache successfully." : "No tour trips found."));
 				}
 				else
 				{
@@ -60,13 +62,12 @@ namespace PRN231.ExploreNow.API.Controllers
 						page, pageSize, sortByPrice, searchTerm);
 
 					await Save(serviceItems);
-					return Ok(new BaseResponse<TourTripResponse>
-					{
-						IsSucceed = true,
-						Results = serviceItems,
-						TotalElements = serviceTotalCount,
-						Message = serviceItems.Any() ? "Tour trips retrieved successfully." : "No tour trips found."
-					});
+					return Ok(new BaseResponse<TourTripResponse>(
+						serviceItems,
+						serviceTotalCount,
+						page,
+						pageSize,
+						serviceItems.Any() ? "Tour trips retrieved from cache successfully." : "No tour trips found."));
 				}
 			}
 			catch (Exception ex)
@@ -302,7 +303,7 @@ namespace PRN231.ExploreNow.API.Controllers
 			}
 		}
 
-		private Task<bool> Save(IEnumerable<TourTripResponse> tourTrips, double expireAfterSeconds = 30)
+		private Task<bool> Save(IEnumerable<TourTripResponse> tourTrips, double expireAfterSeconds = 3)
 		{
 			var expirationTime = DateTimeOffset.Now.AddSeconds(expireAfterSeconds);
 			return _cacheService.AddOrUpdateAsync(nameof(TourTripResponse), tourTrips, expirationTime);

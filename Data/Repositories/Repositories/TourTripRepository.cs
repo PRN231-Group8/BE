@@ -22,7 +22,7 @@ namespace PRN231.ExploreNow.Repositories.Repositories.Repositories
 		public async Task<(List<TourTripResponse> Items, int TotalCount)> GetAllTourTripAsync(int page, int pageSize, bool? sortByPrice, string? searchTerm)
 		{
 			var currentDate = DateTime.Now.Date;
-			var query = GetQueryable(tt => !tt.IsDeleted)
+			var query = GetQueryable(tt => !tt.IsDeleted && !tt.Tour.IsDeleted)
 						.AsSplitQuery()
 						.Include(tt => tt.Tour)
 						.AsQueryable();

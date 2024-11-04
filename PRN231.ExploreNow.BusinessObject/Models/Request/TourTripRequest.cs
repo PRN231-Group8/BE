@@ -8,7 +8,6 @@ namespace PRN231.ExploreNow.BusinessObject.Models.Request
 		public DateTime TripDate { get; set; }
 		public decimal Price { get; set; }
 		public int TotalSeats { get; set; }
-		public int BookedSeats { get; set; }
 		public TripStatus TripStatus { get; set; }
 	}
 }

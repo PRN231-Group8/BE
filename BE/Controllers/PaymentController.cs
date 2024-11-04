@@ -6,7 +6,6 @@ using PRN231.ExploreNow.BusinessObject.Enums;
 using PRN231.ExploreNow.BusinessObject.Models.Request;
 using PRN231.ExploreNow.BusinessObject.Models.Response;
 using PRN231.ExploreNow.Services.Interfaces;
-using PRN231.ExploreNow.Services.Services;
 using System.Net;
 
 namespace PRN231.ExploreNow.API.Controllers
@@ -219,9 +218,9 @@ namespace PRN231.ExploreNow.API.Controllers
 			}
 		}
 
-		private Task<bool> Save(IEnumerable<TourPackageHistoryResponse> tourHistory, double expireAfterSeconds = 300)
+		private Task<bool> Save(IEnumerable<TourPackageHistoryResponse> tourHistory, double expireAfterSeconds = 3)
 		{
-			// Set expiration time for the cache (default is 5 minutes)
+			// Set expiration time for the cache (default is 3 minutes)
 			var expirationTime = DateTimeOffset.Now.AddSeconds(expireAfterSeconds);
 			// Save data to Redis cache
 			return _cacheService.AddOrUpdateAsync(nameof(TourPackageHistoryResponse), tourHistory, expirationTime);
