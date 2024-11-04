@@ -42,6 +42,9 @@ namespace PRN231.ExploreNow.Services.Services
 					  .Include(t => t.LocationInTours.Where(lit => !lit.IsDeleted && !lit.Location.IsDeleted))
 						 .ThenInclude(lit => lit.Location)
 							.ThenInclude(l => l.Photos.Where(p => !p.IsDeleted))
+					  .Include(t => t.TourTimestamps.Where(tt => !tt.IsDeleted && !tt.Location.IsDeleted))
+						 .ThenInclude(lit => lit.Location)
+							.ThenInclude(l => l.Photos.Where(p => !p.IsDeleted))
 					  .Include(t => t.TourTrips.Where(tt => !tt.IsDeleted))
 					  .Include(t => t.Transportations.Where(tr => !tr.IsDeleted))
 					  .SingleOrDefaultAsync();
