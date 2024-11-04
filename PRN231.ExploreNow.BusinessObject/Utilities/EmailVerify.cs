@@ -1,29 +1,24 @@
 ﻿using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Mail;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PRN231.ExploreNow.BusinessObject.Utilities
 {
-    public class EmailVerify : IEmailVerify
+	public class EmailVerify : IEmailVerify
 	{
-        private readonly IConfiguration _config;
+		private readonly IConfiguration _config;
 
-        public EmailVerify(IConfiguration config)
-        {
-            _config = config;
-        }
+		public EmailVerify(IConfiguration config)
+		{
+			_config = config;
+		}
 
-        public bool SendVerifyAccountEmail(string email, string token)
-        {
-            var subject = "[ExploreNow] Verify account request";
-            var baseUrl = "http://localhost:4200";
-            var verifyUrl = $"{baseUrl}/verify-email?email={Uri.EscapeDataString(email)}&token={Uri.EscapeDataString(token)}";
-            var message = @"
+		public bool SendVerifyAccountEmail(string email, string token)
+		{
+			var subject = "[ExploreNow] Verify account request";
+			var baseUrl = "https://explore-now-one.vercel.app";
+			var verifyUrl = $"{baseUrl}/verify-email?email={Uri.EscapeDataString(email)}&token={Uri.EscapeDataString(token)}";
+			var message = @"
 <!DOCTYPE html>
 <html dir='ltr' xmlns='http://www.w3.org/1999/xhtml' xmlns:o='urn:schemas-microsoft-com:office:office'>
 <head>
@@ -98,41 +93,37 @@ namespace PRN231.ExploreNow.BusinessObject.Utilities
 </body>
 </html>";
 
-            return SendEmail(email, subject, message);
-        }
+			return SendEmail(email, subject, message);
+		}
 
+		private bool SendEmail(string email, string subject, string body)
+		{
+			{
+				var senderEmail = _config["SMTP:Username"];
+				var senderPassword = _config["SMTP:Password"];
+				var smtpHost = _config["SMTP:Host"];
+				var smtpPort = int.Parse(_config["SMTP:Port"]);
 
+				var smtpClient = new SmtpClient(smtpHost)
+				{
+					Port = smtpPort,
+					Credentials = new NetworkCredential(senderEmail, senderPassword),
+					EnableSsl = true,
+				};
 
-        private bool SendEmail(string email, string subject, string body)
-        {
-            {
-                var senderEmail = _config["SMTP:Username"];
-                var senderPassword = _config["SMTP:Password"];
-                var smtpHost = _config["SMTP:Host"];
-                var smtpPort = int.Parse(_config["SMTP:Port"]);
+				var mailMessage = new MailMessage
+				{
+					From = new MailAddress(senderEmail),
+					Subject = subject,
+					Body = body,
+					IsBodyHtml = true,
+				};
+				mailMessage.To.Add(email);
 
-                var smtpClient = new SmtpClient(smtpHost)
-                {
-                    Port = smtpPort,
-                    Credentials = new NetworkCredential(senderEmail, senderPassword),
-                    EnableSsl = true,
-                };
-
-                var mailMessage = new MailMessage
-                {
-                    From = new MailAddress(senderEmail),
-                    Subject = subject,
-                    Body = body,
-                    IsBodyHtml = true,
-                };
-                mailMessage.To.Add(email);
-
-                smtpClient.Send(mailMessage);
-                return true;
-            }
-
-        }
-
-    }
+				smtpClient.Send(mailMessage);
+				return true;
+			}
+		}
+	}
 }
 

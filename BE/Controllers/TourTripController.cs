@@ -303,7 +303,7 @@ namespace PRN231.ExploreNow.API.Controllers
 			}
 		}
 
-		private Task<bool> Save(IEnumerable<TourTripResponse> tourTrips, double expireAfterSeconds = 30)
+		private Task<bool> Save(IEnumerable<TourTripResponse> tourTrips, double expireAfterSeconds = 3)
 		{
 			var expirationTime = DateTimeOffset.Now.AddSeconds(expireAfterSeconds);
 			return _cacheService.AddOrUpdateAsync(nameof(TourTripResponse), tourTrips, expirationTime);

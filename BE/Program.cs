@@ -275,17 +275,6 @@ builder.Services.AddSwaggerGen(options =>
 });
 #endregion
 
-//builder.Services.AddCors(options =>
-//{
-//	options.AddDefaultPolicy(
-//		builder =>
-//		{
-//			builder.WithOrigins("https://localhost:4200")
-//				   .AllowAnyHeader()
-//				   .AllowAnyMethod();
-//		});
-//});
-
 #region Config Cors
 builder.Services.AddCors(p =>
 	p.AddPolicy(
@@ -293,7 +282,7 @@ builder.Services.AddCors(p =>
 		build =>
 		{
 			build
-				.WithOrigins("http://localhost:4200")
+				.WithOrigins("http://localhost:4200", "https://explore-now-one.vercel.app")
 				.AllowAnyMethod()
 				.AllowAnyHeader();
 		}
