@@ -22,8 +22,8 @@ namespace PRN231.ExploreNow.BusinessObject.Configs.Mapping
 			CreateMap<Posts, PostsRequest>();
 
 			// Mapping between Comments and CommentsResponse
-			CreateMap<Comments, CommentsResponse>()
-				.ForMember(dest => dest.CommentsId, opt => opt.MapFrom(src => src.Id));
+			CreateMap<Comments, CommentResponse>()
+				.ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id));
 
 			// Mapping between Photo and PhotoResponse
 			CreateMap<Photo, PhotoResponse>()

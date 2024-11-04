@@ -142,11 +142,19 @@ public class TransportationController : ControllerBase
                 });
             }
 
-            await _transportationService.AddTransportation(transportation);
-            return Ok(new BaseResponse<object>
+            var result = await _transportationService.AddTransportation(transportation);
+            if (result)
             {
-                IsSucceed = true,
-                Message = "Transportation added successfully."
+                return Ok(new BaseResponse<object>
+                {
+                    IsSucceed = true,
+                    Message = "Transportation added successfully."
+                });
+            }
+            return NotFound(new BaseResponse<object>
+            {
+                IsSucceed = false,
+                Message = "Transportation is not found."
             });
         }
         catch (Exception ex)
