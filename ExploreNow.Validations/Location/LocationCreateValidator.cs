@@ -22,5 +22,17 @@ public class LocationCreateValidator : AbstractValidator<LocationCreateRequest>
 
 		RuleFor(x => x.Temperature)
 			.InclusiveBetween(-100, 100).WithMessage("Temperature must be between -100 and 100 degrees");
+
+		RuleFor(x => x.Longitude)
+			.Must(lng => !lng.HasValue || (lng >= -180 && lng <= 180))
+			.WithMessage("Longitude must be between -180 and 180 degrees");
+
+		RuleFor(x => x.Latitude)
+			.Must(lat => !lat.HasValue || (lat >= -90 && lat <= 90))
+			.WithMessage("Latitude must be between -90 and 90 degrees");
+
+		RuleFor(x => x)
+			.Must(x => (!x.Latitude.HasValue && !x.Longitude.HasValue) || (x.Latitude.HasValue && x.Longitude.HasValue))
+			.WithMessage("Both Latitude and Longitude must be provided together");
 	}
 }

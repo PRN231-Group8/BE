@@ -8,4 +8,6 @@ public class LocationCreateRequest
 	public string Address { get; set; }
 	public WeatherStatus Status { get; set; }
 	public double Temperature { get; set; }
+	public double? Longitude { get; set; }
+	public double? Latitude { get; set; }
 }
