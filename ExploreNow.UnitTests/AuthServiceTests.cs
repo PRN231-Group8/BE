@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -7,6 +8,7 @@ using PRN231.ExploreNow.BusinessObject.Entities;
 using PRN231.ExploreNow.BusinessObject.Enums;
 using PRN231.ExploreNow.BusinessObject.Models.Response.Auth;
 using PRN231.ExploreNow.BusinessObject.Utilities;
+using PRN231.ExploreNow.Repositories.Context;
 using PRN231.ExploreNow.Services.Services;
 using Xunit;
 
@@ -21,6 +23,7 @@ namespace PRN231.ExploreNow.UnitTests
 		private readonly Mock<IEmailVerify> _mockEmailVerify;
 		private readonly AuthService _authService;
 		private readonly Func<string> _originalCreateRandomTokenDelegate;
+		private readonly Mock<ApplicationDbContext> _mockContext;
 
 		public AuthServiceTests()
 		{
@@ -28,7 +31,7 @@ namespace PRN231.ExploreNow.UnitTests
 			_originalCreateRandomTokenDelegate = TokenGenerator.CreateRandomTokenDelegate;
 
 			var mockUserStore = new Mock<IUserStore<ApplicationUser>>();
-			_mockUserManager = new Mock<UserManager<ApplicationUser>>(mockUserStore.Object, null, null, null, null, null, null, null, null);
+			_mockUserManager = new Mock<UserManager<ApplicationUser>>(new Mock<IUserStore<ApplicationUser>>().Object, null, null, null, null, null, null, null, null);
 
 			var mockRoleStore = new Mock<IRoleStore<IdentityRole>>();
 			_mockRoleManager = new Mock<RoleManager<IdentityRole>>(mockRoleStore.Object, null, null, null, null);
@@ -46,6 +49,7 @@ namespace PRN231.ExploreNow.UnitTests
 
 			// Mock EmailVerify
 			_mockEmailVerify = new Mock<IEmailVerify>();
+			_mockContext = new Mock<ApplicationDbContext>(new DbContextOptions<ApplicationDbContext>());
 
 			// Mock configuration settings for JWT and GoogleAuthSettings
 			var mockJwtSection = new Mock<IConfigurationSection>();
@@ -59,7 +63,8 @@ namespace PRN231.ExploreNow.UnitTests
 				_mockLogger.Object,
 				_mockConfiguration.Object,
 				_mockEmailVerify.Object,
-				new TokenGenerator()
+				new TokenGenerator(),
+				_mockContext.Object
 			);
 		}
 
@@ -216,7 +221,8 @@ namespace PRN231.ExploreNow.UnitTests
 			var loginRequest = new LoginResponse
 			{
 				UserName = "existingUser",
-				Password = "Password123!"
+				Password = "Password123!",
+				DeviceId = "testDeviceId"
 			};
 
 			var existingUser = new ApplicationUser
@@ -238,10 +244,14 @@ namespace PRN231.ExploreNow.UnitTests
 			_mockUserManager.Setup(x => x.GetRolesAsync(existingUser))
 				.ReturnsAsync(new List<string> { "CUSTOMER" });
 
+			_mockUserManager.Setup(x => x.UpdateAsync(existingUser)).ReturnsAsync(IdentityResult.Success);
+
 			// Mock JWT settings
 			_mockConfiguration.Setup(x => x["JWT:Secret"]).Returns("aaaaabDDDejExploreNowDSecretKeysnmaasekE");
 			_mockConfiguration.Setup(x => x["JWT:ValidIssuer"]).Returns("https://localhost:7130");
 			_mockConfiguration.Setup(x => x["JWT:ValidAudience"]).Returns("http://localhost:3000");
+
+			_mockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
 			// Act
 			var result = await _authService.LoginAsync(loginRequest);
@@ -250,6 +260,7 @@ namespace PRN231.ExploreNow.UnitTests
 			result.IsSucceed.Should().BeTrue();
 			result.Token.Should().NotBeNullOrEmpty();
 			result.Role.Should().Be("CUSTOMER");
+			result.DeviceId.Should().Be(loginRequest.DeviceId);
 		}
 
 		[Fact]

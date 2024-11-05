@@ -3,5 +3,6 @@
 	public class PaymentRequest
 	{
 		public Guid TourTripId { get; set; }
+		public int NumberOfPassengers { get; set; }
 	}
 }

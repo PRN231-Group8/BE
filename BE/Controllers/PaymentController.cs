@@ -156,7 +156,7 @@ namespace PRN231.ExploreNow.API.Controllers
 					});
 				}
 
-				var paymentUrl = await _vnPayService.CreatePaymentForTourTrip(request);
+				var paymentUrl = await _vnPayService.CreateEmbeddedPaymentForTourTrip(request);
 				return CreatedAtAction(nameof(GetTourPackageDetails), new { id = request.TourTripId }, new BaseResponse<string>
 				{
 					IsSucceed = true,

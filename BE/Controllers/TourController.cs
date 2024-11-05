@@ -124,12 +124,9 @@ namespace PRN231.ExploreNow.API.Controllers
 			try
 			{
 				ValidationResult ValidateResult = await _tourValidation.ValidateAsync(model);
-				var cacheData = GetKeyValues();
 				if (ValidateResult.IsValid)
 				{
 					var tour = await _tourService.Add(model);
-					cacheData[tour.Id] = tour;
-					await Save(cacheData.Values).ConfigureAwait(false);
 					return Ok(new BaseResponse<object> { IsSucceed = true, Message = "Created successfully" });
 				}
 				var errors = ValidateResult.Errors.Select(e => (object)new

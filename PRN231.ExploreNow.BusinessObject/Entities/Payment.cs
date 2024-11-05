@@ -12,5 +12,6 @@ public class Payment : BaseEntity
 	public PaymentStatus Status { get; set; }
 	public string PaymentMethod { get; set; }
 	public string PaymentTransactionId { get; set; }
+	public int NumberOfPassengers { get; set; }
 	public Transaction Transaction { get; set; }
 }
