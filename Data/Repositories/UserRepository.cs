@@ -5,9 +5,6 @@ using PRN231.ExploreNow.BusinessObject.Contracts.Repositories.Interfaces;
 using PRN231.ExploreNow.BusinessObject.Entities;
 using PRN231.ExploreNow.BusinessObject.Models.Response;
 using PRN231.ExploreNow.Repositories.Context;
-using PRN231.ExploreNow.Repositories.Repositories;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace PRN231.ExploreNow.BusinessObject.Contracts.Repositories
 {
@@ -56,7 +53,10 @@ namespace PRN231.ExploreNow.BusinessObject.Contracts.Repositories
 			existUser.FirstName = newUser.FirstName;
 			existUser.LastName = newUser.LastName;
 			existUser.Dob = newUser.Dob;
-			existUser.AvatarPath = newUser.AvatarPath;
+			if (!string.IsNullOrEmpty(newUser.AvatarPath))
+			{
+				existUser.AvatarPath = newUser.AvatarPath;
+			}
 		}
 
 		private UserProfileResponseModel MapToResponse(ApplicationUser applicationUser)

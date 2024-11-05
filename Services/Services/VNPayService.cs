@@ -76,7 +76,7 @@ namespace PRN231.ExploreNow.Services.Services
 			return tourPackageDetails;
 		}
 
-		public async Task<string> CreatePaymentForTourTrip(PaymentRequest request)
+		public async Task<string> CreateEmbeddedPaymentForTourTrip(PaymentRequest request)
 		{
 			var user = await GetAuthenticatedUserAsync();
 			var tourTrip = await _unitOfWork.GetRepository<ITourTripRepository>().GetQueryable()
@@ -87,20 +87,34 @@ namespace PRN231.ExploreNow.Services.Services
 							  .ThenInclude(t => t.Transportations.Where(tr => !tr.IsDeleted))
 						  .SingleOrDefaultAsync();
 
-			var amount = CalculateTourTripTotalPrice(tourTrip);
-			var paymentTransactionId = GenerateUniqueCode(); // Tạo PaymentTransactionId duy nhất
-
-			var vnPayRequest = new VNPayRequest
+			// Validate remaining seats
+			int remainingSeats = tourTrip.TotalSeats - tourTrip.BookedSeats;
+			if (remainingSeats < request.NumberOfPassengers)
 			{
-				Amount = amount,
-				Description = $"Payment for Tour Trip {tourTrip.Id}",
-				FullName = user.UserName,
-				OrderId = paymentTransactionId
-			};
+				throw new InvalidOperationException($"Not enough seats available. Only {remainingSeats} seats remaining.");
+			}
 
-			var paymentUrl = CreatePaymentUrl(_httpContextAccessor.HttpContext, vnPayRequest);
+			var amount = CalculateTourTripTotalPrice(tourTrip, request.NumberOfPassengers);
+			var paymentTransactionId = GenerateUniqueCode();
 
-			// Create a pending payment record
+			// Create and save payment record
+			var payment = await CreatePaymentRecord(user, tourTrip, amount, request.NumberOfPassengers, paymentTransactionId);
+
+			// Create payment URL
+			return CreatePaymentUrl(_httpContextAccessor.HttpContext,
+				new VNPayRequest
+				{
+					Amount = amount,
+					Description = $"Payment for Tour Trip {tourTrip.Id}",
+					FullName = user.UserName,
+					OrderId = paymentTransactionId
+				}
+			);
+		}
+
+		private async Task<Payment> CreatePaymentRecord(ApplicationUser user, TourTrip tourTrip, long amount,
+			int numberOfPassengers, string paymentTransactionId)
+		{
 			var payment = new Payment
 			{
 				Amount = amount,
@@ -112,12 +126,13 @@ namespace PRN231.ExploreNow.Services.Services
 				CreatedBy = user.UserName,
 				LastUpdatedBy = user.UserName,
 				LastUpdatedDate = DateTime.Now,
+				NumberOfPassengers = numberOfPassengers,
 				PaymentMethod = "VnPay",
 				PaymentTransactionId = paymentTransactionId
 			};
+
 			await _unitOfWork.GetRepository<IPaymentRepository>().AddAsync(payment);
 
-			// Create a pending transaction record
 			var transaction = new Transaction
 			{
 				Amount = payment.Amount,
@@ -130,10 +145,11 @@ namespace PRN231.ExploreNow.Services.Services
 				LastUpdatedBy = user.UserName,
 				Code = GenerateUniqueCode()
 			};
+
 			await _unitOfWork.GetRepository<ITransactionRepository>().AddAsync(transaction);
 			await _unitOfWork.SaveChangesAsync();
 
-			return paymentUrl;
+			return payment;
 		}
 
 		private string CreatePaymentUrl(HttpContext context, VNPayRequest model)
@@ -286,7 +302,8 @@ namespace PRN231.ExploreNow.Services.Services
 			transaction.Status = PaymentTransactionStatus.SUCCESSFUL;
 			transaction.LastUpdatedDate = DateTime.UtcNow;
 
-			tourTrip.BookedSeats++;
+			// Update the number of booked seats based on the number of people in payment
+			tourTrip.BookedSeats += payment.NumberOfPassengers;
 			if (tourTrip.BookedSeats == tourTrip.TotalSeats)
 			{
 				tourTrip.TripStatus = TripStatus.FULLYBOOKED;
@@ -336,9 +353,14 @@ namespace PRN231.ExploreNow.Services.Services
 			};
 		}
 
-		private static long CalculateTourTripTotalPrice(TourTrip tourTrip)
+		private static long CalculateTourTripTotalPrice(TourTrip tourTrip, int numberOfPassengers)
 		{
-			decimal totalPrice = tourTrip.Price + tourTrip.Tour.Transportations.Sum(t => t.Price);
+			// Calculate price per person
+			decimal tourPrice = tourTrip.Price * numberOfPassengers;
+			decimal transportationPrice = tourTrip.Tour.Transportations.Sum(t => t.Price);
+
+			// Calculate totalprice
+			decimal totalPrice = tourPrice + transportationPrice;
 			return (long)Math.Round(totalPrice / 1000, 0) * 1000;
 		}
 

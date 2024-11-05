@@ -2,9 +2,7 @@
 using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using PRN231.ExploreNow.BusinessObject.Contracts.Repositories;
 using PRN231.ExploreNow.BusinessObject.Contracts.Repositories.Interfaces;
 using PRN231.ExploreNow.BusinessObject.Entities;
 using PRN231.ExploreNow.BusinessObject.Models.Request;
@@ -73,7 +71,7 @@ namespace PRN231.ExploreNow.Services.Services
 				LastName = user.LastName,
 				Dob = user.Dob,
 				Gender = user.Gender,
-				AvatarPath = user.AvatarPath,
+				AvatarPath = string.IsNullOrEmpty(user.AvatarPath) ? currUser?.AvatarPath : user.AvatarPath,
 				LastUpdatedBy = currUserName,
 				CreatedDate = DateTime.Now,
 				LastUpdatedDate = DateTime.Now,

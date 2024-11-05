@@ -9,6 +9,9 @@ namespace PRN231.ExploreNow.Validations.Payment
 		{
 			RuleFor(x => x.TourTripId)
 				.NotEmpty().WithMessage("TourTripId is required.");
+
+			RuleFor(x => x.NumberOfPassengers)
+				.NotEmpty().WithMessage("Number of passengers is required");
 		}
 	}
 }

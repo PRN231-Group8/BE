@@ -157,21 +157,34 @@ namespace PRN231.ExploreNow.Services.Services
 		{
 			UpdateTourProperties(tour, request, user);
 
-			// Remove old relationships using DeleteRange
-			foreach (var tourMood in tour.TourMoods)
-			{
-				_iUnitOfWork.GetRepositoryByEntity<TourMood>().Delete(tourMood);
-			}
-			foreach (var locationInTour in tour.LocationInTours)
-			{
-				_iUnitOfWork.GetRepositoryByEntity<LocationInTour>().Delete(locationInTour);
-			}
+			// Clear existing relationships first
+			tour.TourMoods.Clear();
+			tour.LocationInTours.Clear();
 
 			// Create new relationships
 			var newTourMoods = CreateTourMoods(tour.Id, request.TourMoods, user);
 			var newLocationInTours = CreateLocationInTours(tour.Id, request.LocationInTours, user);
 
-			// Add new relationships using AddRange
+			// Remove old records from database
+			var existingTourMoods = await _iUnitOfWork.GetRepositoryByEntity<TourMood>()
+				.GetQueryable()
+				.Where(tm => tm.TourId == tour.Id)
+				.ToListAsync();
+			var existingLocationInTours = await _iUnitOfWork.GetRepositoryByEntity<LocationInTour>()
+				.GetQueryable()
+				.Where(lt => lt.TourId == tour.Id)
+				.ToListAsync();
+
+			foreach (var oldTourMood in existingTourMoods)
+			{
+				await _iUnitOfWork.GetRepositoryByEntity<TourMood>().DeleteAsync(oldTourMood.Id);
+			}
+			foreach (var oldLocationInTour in existingLocationInTours)
+			{
+				await _iUnitOfWork.GetRepositoryByEntity<LocationInTour>().DeleteAsync(oldLocationInTour.Id);
+			}
+
+			// Add new relationships
 			foreach (var tourMood in newTourMoods)
 			{
 				await _iUnitOfWork.GetRepositoryByEntity<TourMood>().AddAsync(tourMood);
@@ -181,7 +194,7 @@ namespace PRN231.ExploreNow.Services.Services
 				await _iUnitOfWork.GetRepositoryByEntity<LocationInTour>().AddAsync(locationInTour);
 			}
 
-			// Update the navigation properties
+			// Update navigation properties
 			tour.TourMoods = newTourMoods;
 			tour.LocationInTours = newLocationInTours;
 		}

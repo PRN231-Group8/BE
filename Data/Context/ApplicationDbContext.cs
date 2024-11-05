@@ -199,6 +199,13 @@ namespace PRN231.ExploreNow.Repositories.Context
 				entity.HasMany(l => l.TourTimestamps)
 					  .WithOne(tt => tt.Location)
 					  .HasForeignKey(tt => tt.LocationId);
+
+				entity.OwnsOne(l => l.Address, addressBuilder =>
+				{
+					addressBuilder.Property(a => a.FullAddress).HasColumnName("Address");
+					addressBuilder.Property(a => a.Longitude).HasColumnName("AddressLongitude");
+					addressBuilder.Property(a => a.Latitude).HasColumnName("AddressLatitude");
+				});
 			});
 
 			// Photo configurations
