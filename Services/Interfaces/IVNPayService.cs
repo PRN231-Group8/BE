@@ -8,7 +8,7 @@ namespace PRN231.ExploreNow.Services.Interfaces
 	public interface IVNPayService
 	{
 		Task<TourPackageDetailsResponse> GetTourPackageDetails(Guid tourId);
-		Task<string> CreatePaymentForTourTrip(PaymentRequest request);
+		Task<string> CreateEmbeddedPaymentForTourTrip(PaymentRequest request);
 		Task<VNPayResponse> ProcessPaymentCallback(IQueryCollection query);
 		Task<(List<TourPackageHistoryResponse> Items, int TotalCount)> GetUserTourHistory(
 			int page,
