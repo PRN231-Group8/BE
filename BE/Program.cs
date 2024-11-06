@@ -160,6 +160,8 @@ builder.Services.AddScoped<ITransportationService, TransportationService>();
 builder.Services.AddScoped<ITourTripService, TourTripService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
+builder.Services.AddScoped<IPhotoService, PhotoService>();
+builder.Services.AddScoped<IPhotoRepository, PhotoRepository>();
 #endregion
 
 #region Configure FluentValidator

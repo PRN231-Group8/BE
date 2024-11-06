@@ -1,4 +1,5 @@
-﻿using PRN231.ExploreNow.BusinessObject.Contracts.Repositories.Interfaces;
+﻿using Microsoft.EntityFrameworkCore;
+using PRN231.ExploreNow.BusinessObject.Contracts.Repositories.Interfaces;
 using PRN231.ExploreNow.BusinessObject.Entities;
 using PRN231.ExploreNow.BusinessObject.Models.Request;
 using PRN231.ExploreNow.BusinessObject.Models.Response;
@@ -53,18 +54,39 @@ namespace PRN231.ExploreNow.Services.Services
 				Content = comment.Content,
 				CreatedDate = comment.CreatedDate,
 				PostId = (Guid)comment.PostId,
-				User = new UserResponse
+				User = new UserPostResponse
 				{
 					UserId = Guid.Parse(user.Id),
 					FirstName = user.FirstName,
 					LastName = user.LastName,
-					Dob = user.Dob,
-					Gender = user.Gender,
-					Address = user.Address,
 					AvatarPath = user.AvatarPath,
 					CreatedDate = user.CreatedDate,
 				}
 			};
+		}
+
+		public async Task<List<CommentResponse>> GetCommentsByPostIdAsync(Guid id)
+		{
+			var comments = await _unitOfWork.CommentRepository
+				.GetQueryable() // Use GetQueryable without lambda here
+				.Where(c => c.PostId == id && !c.IsDeleted)
+				.Include(c => c.User) // Assuming there’s a navigation property to User
+				.ToListAsync();
+
+			return comments.Select(comment => new CommentResponse
+			{
+				Id = comment.Id,
+				Content = comment.Content,
+				PostId = (Guid)comment.PostId,
+				CreatedDate = comment.CreatedDate,
+				User = new UserPostResponse
+				{
+					FirstName = comment.User.FirstName,
+					LastName = comment.User.LastName,
+					AvatarPath = comment.User.AvatarPath,
+					CreatedDate = comment.User.CreatedDate,
+				}
+			}).ToList();
 		}
 
 		private string GenerateUniqueCode() => Guid.NewGuid().ToString("N").Substring(0, 10).ToUpper();

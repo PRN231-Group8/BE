@@ -32,6 +32,8 @@ namespace PRN231.ExploreNow.BusinessObject.Configs.Mapping
 			// Mapping between ApplicationUser and UserResponse
 			CreateMap<ApplicationUser, UserResponse>()
 				.ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.Id));
+			CreateMap<ApplicationUser, UserPostResponse>()
+				.ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.Id));
 
 			CreateMap<TourTimestamp, TourTimeStampResponse>().ReverseMap()
 				.ForMember(dest => dest.PreferredTimeSlot, opt => opt.MapFrom(src => src.PreferredTimeSlot))
