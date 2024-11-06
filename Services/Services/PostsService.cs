@@ -14,6 +14,7 @@ using PRN231.ExploreNow.Services.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using PRN231.ExploreNow.Repositories.UnitOfWorks;
+using Microsoft.Extensions.Hosting;
 
 namespace PRN231.ExploreNow.Services.Services
 {
@@ -95,7 +96,13 @@ namespace PRN231.ExploreNow.Services.Services
 												.Include(p => p.Photos.Where(ph => !ph.IsDeleted))
 												.Include(p => p.User)
 												.SingleAsync();
-
+			// Check user roles and permissions
+			var isModerator = await _userManager.IsInRoleAsync(user, "MODERATOR");
+			var isOwner = existingPost.UserId == user.Id;
+			if (!isModerator && !isOwner)
+			{
+				throw new UnauthorizedAccessException("You don't have permission to delete this post. Only the post owner or moderators can delete posts.");
+			}
 			// Validate status update
 			if (postsRequest.Status.HasValue)
 			{
