@@ -264,7 +264,7 @@ namespace PRN231.ExploreNow.API.Controllers
 		}
 
 		[HttpPut("{id}")]
-		[Authorize(Roles = "MODERATOR,ADMIN")]
+		[Authorize(Roles = "CUSTOMER,MODERATOR,ADMIN")]
 		[ProducesResponseType(typeof(BaseResponse<object>), 200)]
 		[ProducesResponseType(typeof(BaseResponse<object>), 400)]
 		[ProducesResponseType(typeof(BaseResponse<object>), 404)]
