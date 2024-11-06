@@ -101,7 +101,11 @@ namespace PRN231.ExploreNow.Services.Services
 
 		public async Task<bool> UpdateTransportation(Guid id, TransportationRequestModel req)
 		{
-			var existingTransportation = await _unitOfWork.GetRepository<ITransportationRepository>().GetById(id);
+			var existingTransportation = await _unitOfWork.GetRepository<ITransportationRepository>()
+				.GetQueryable()
+				.Include(t => t.Tour)
+					.ThenInclude(tour => tour.TourTrips.Where(tt => !tt.IsDeleted))
+				.SingleOrDefaultAsync(t => t.Id == id && !t.IsDeleted);
 			if (existingTransportation == null)
 				return false;
 
