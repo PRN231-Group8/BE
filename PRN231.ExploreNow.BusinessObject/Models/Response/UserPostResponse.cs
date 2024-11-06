@@ -13,5 +13,6 @@ namespace PRN231.ExploreNow.BusinessObject.Models.Response
 		public string? LastName { get; set; }
 		public string? AvatarPath { get; set; }
 		public DateTime CreatedDate { get; set; }
+		public string? DeviceId { get; set; }
 	}
 }
