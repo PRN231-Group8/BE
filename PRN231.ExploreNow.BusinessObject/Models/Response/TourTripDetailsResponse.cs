@@ -9,5 +9,6 @@ namespace PRN231.ExploreNow.BusinessObject.Models.Response
 		public TripStatus TripStatus { get; set; }
 		public decimal Price { get; set; }
 		public int BookedSeats { get; set; }
+		public int TotalSeats { get; set; }
 	}
 }
