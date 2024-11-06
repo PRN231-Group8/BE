@@ -79,6 +79,16 @@ namespace PRN231.ExploreNow.Services.Services
 				if (tour == null)
 					throw new InvalidOperationException($"Tour with ID {tourId} not found");
 
+				int totalNewSeats = tripsForTour.Sum(t => t.TotalSeats);
+
+				bool isValid = await ValidateTotalSeatsTransportation(tourId, totalNewSeats);
+
+				if (!isValid)
+				{
+					throw new InvalidOperationException(
+						$"Total seats of all new tour trips ({totalNewSeats}) would exceed transportation capacity for tour {tourId}");
+				}
+
 				// Validate all trip dates against tour date range
 				foreach (var trip in tripsForTour)
 				{
@@ -170,6 +180,24 @@ namespace PRN231.ExploreNow.Services.Services
 			if (updateRequest.TotalSeats < existingTourTrip.BookedSeats)
 				throw new InvalidOperationException("Cannot reduce total seats below current booked seats");
 
+			if (updateRequest.TotalSeats > existingTourTrip.TotalSeats)
+			{
+				// Calculate the additional number of seats
+				int additionalSeats = updateRequest.TotalSeats - existingTourTrip.TotalSeats;
+
+				bool isValid = await ValidateTotalSeatsTransportation(
+					existingTourTrip.TourId,
+					additionalSeats  // Only transmit the increased number of seats
+				);
+
+				if (!isValid)
+				{
+					throw new InvalidOperationException(
+						$"Cannot update total seats to {updateRequest.TotalSeats}. " +
+						"The new total would exceed transportation capacity.");
+				}
+			}
+
 			// Handle status-specific logic
 			await HandleStatusUpdate(existingTourTrip, updateRequest.TripStatus, user);
 
@@ -203,6 +231,28 @@ namespace PRN231.ExploreNow.Services.Services
 			}
 
 			return result;
+		}
+
+		public async Task<bool> ValidateTotalSeatsTransportation(Guid tourId, int newTotalSeats)
+		{
+			var tour = await _unitOfWork.GetRepository<ITourRepository>().GetQueryable()
+				.Include(t => t.TourTrips.Where(tt => !tt.IsDeleted))
+				.Include(t => t.Transportations.Where(tr => !tr.IsDeleted))
+				.FirstOrDefaultAsync(t => t.Id == tourId);
+
+			if (tour == null) return false;
+
+			if (!tour.Transportations.Any())
+				return true;
+
+			// Calculate the current total number of seats for all TourTrips
+			int currentTotalSeats = tour.TourTrips.Sum(tt => tt.TotalSeats);
+
+			// Find the transportation with the smallest capacity
+			int minTransportationCapacity = tour.Transportations.Min(t => t.Capacity);
+
+			// Check if the total number of seats (including new seats) does not exceed capacity
+			return (currentTotalSeats + newTotalSeats) <= minTransportationCapacity;
 		}
 
 		#region Helper method TourTripService

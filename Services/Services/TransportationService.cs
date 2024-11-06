@@ -8,7 +8,6 @@ using PRN231.ExploreNow.Repositories.UnitOfWorks.Interfaces;
 using PRN231.ExploreNow.Services.Interfaces;
 using System.Linq.Expressions;
 using PRN231.ExploreNow.BusinessObject.Contracts.Repositories.Interfaces;
-using PRN231.ExploreNow.BusinessObject.OtherObjects;
 
 namespace PRN231.ExploreNow.Services.Services
 {
@@ -66,10 +65,21 @@ namespace PRN231.ExploreNow.Services.Services
 		{
 			var transportation = _mapper.Map<Transportation>(req);
 
-			var tour = await _unitOfWork.GetRepository<ITourRepository>().GetById(req.TourId);
+			var tour = await _unitOfWork.GetRepository<ITourRepository>().GetQueryable()
+				.Include(t => t.TourTrips.Where(tt => !tt.IsDeleted))
+				.SingleOrDefaultAsync(t => t.Id == req.TourId && !t.IsDeleted);
 			if (tour == null)
+				return false;
+
+			if (tour.TourTrips.Any())
 			{
-				throw new CreateException("Tour is not found");
+				int totalTourSeats = tour.TourTrips.Sum(tt => tt.TotalSeats);
+				if (totalTourSeats > req.Capacity)
+				{
+					throw new InvalidOperationException(
+						$"Cannot add transportation with capacity {req.Capacity}. " +
+						$"Total seats of all tour trips ({totalTourSeats}) exceeds transportation capacity.");
+				}
 			}
 
 			ApplicationUser currentUser = await _unitOfWork.GetRepository<IUserRepository>().GetUsersClaimIdentity();
@@ -91,14 +101,23 @@ namespace PRN231.ExploreNow.Services.Services
 
 		public async Task<bool> UpdateTransportation(Guid id, TransportationRequestModel req)
 		{
-			var existingTransportation = await _unitOfWork.GetRepository<ITransportationRepository>().GetById(id);
+			var existingTransportation = await _unitOfWork.GetRepository<ITransportationRepository>()
+				.GetQueryable()
+				.Include(t => t.Tour)
+					.ThenInclude(tour => tour.TourTrips.Where(tt => !tt.IsDeleted))
+				.SingleOrDefaultAsync(t => t.Id == id && !t.IsDeleted);
 			if (existingTransportation == null)
+				return false;
+
+			int totalTourSeats = existingTransportation.Tour.TourTrips.Sum(tt => tt.TotalSeats);
+			if (totalTourSeats > req.Capacity)
 			{
-				throw new("Transportation is not found");
+				throw new InvalidOperationException(
+					$"Cannot update transportation capacity to {req.Capacity}. " +
+					$"Total seats of all tour trips ({totalTourSeats}) exceeds new capacity.");
 			}
 
 			_mapper.Map(req, existingTransportation);
-
 			await _unitOfWork.GetRepository<ITransportationRepository>().UpdateAsync(existingTransportation);
 			var result = await _unitOfWork.SaveChangesAsync();
 

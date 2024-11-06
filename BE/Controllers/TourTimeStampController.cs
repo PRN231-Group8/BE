@@ -329,9 +329,9 @@ namespace PRN231.ExploreNow.API.Controllers
 			}
 		}
 
-		private Task<bool> Save(IEnumerable<TourTimeStampResponse> tourTimeStamps, double expireAfterSeconds = 30)
+		private Task<bool> Save(IEnumerable<TourTimeStampResponse> tourTimeStamps, double expireAfterSeconds = 3)
 		{
-			// Set expiration time for the cache (default is 30 seconds)
+			// Set expiration time for the cache (default is 3 seconds)
 			var expirationTime = DateTimeOffset.Now.AddSeconds(expireAfterSeconds);
 
 			// Save data to Redis cache

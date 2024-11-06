@@ -142,11 +142,19 @@ public class TransportationController : ControllerBase
                 });
             }
 
-            await _transportationService.AddTransportation(transportation);
-            return Ok(new BaseResponse<object>
+            var result = await _transportationService.AddTransportation(transportation);
+            if (result)
             {
-                IsSucceed = true,
-                Message = "Transportation added successfully."
+                return Ok(new BaseResponse<object>
+                {
+                    IsSucceed = true,
+                    Message = "Transportation added successfully."
+                });
+            }
+            return NotFound(new BaseResponse<object>
+            {
+                IsSucceed = false,
+                Message = "Transportation is not found."
             });
         }
         catch (Exception ex)
@@ -255,13 +263,13 @@ public class TransportationController : ControllerBase
         }
     }
 
-    private Task<bool> Save(IEnumerable<TransportationResponse> transportations, double expireAfterSeconds = 30)
+    private Task<bool> Save(IEnumerable<TransportationResponse> transportations, double expireAfterSeconds = 3)
     {
         var expirationTime = DateTimeOffset.Now.AddSeconds(expireAfterSeconds);
         return _cacheService.AddOrUpdateAsync(nameof(TransportationResponse), transportations, expirationTime);
     }
 
-    private async Task<bool> Save(List<TransportationResponse> transportations, int totalElements, double expireAfterSeconds = 30)
+    private async Task<bool> Save(List<TransportationResponse> transportations, int totalElements, double expireAfterSeconds = 3)
     {
         var cacheData = new BaseCacheResponse<TransportationResponse>
         {

@@ -11,5 +11,6 @@ namespace PRN231.ExploreNow.Services.Interfaces
 		Task<List<TourTripResponse>> CreateBatchTourTrips(List<TourTripRequest> tourTripRequests);
 		Task<TourTripResponse> UpdateTourTrip(Guid tourTripId, TourTripRequest updateRequest);
 		Task<bool> DeleteTourTrip(Guid id);
+		Task<bool> ValidateTotalSeatsTransportation(Guid tourId, int newTotalSeats);
 	}
 }

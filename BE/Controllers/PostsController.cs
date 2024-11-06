@@ -343,24 +343,6 @@ namespace PRN231.ExploreNow.API.Controllers
 			}
 		}
 
-		private Task<bool> Save(IEnumerable<PostsResponse> posts, double expireAfterSeconds = 30)
-		{
-			// Set expiration time for the cache (default is 30 seconds)
-			var expirationTime = DateTimeOffset.Now.AddSeconds(expireAfterSeconds);
-
-			// Save data to Redis cache
-			return _cacheService.AddOrUpdateAsync(nameof(PostsResponse), posts, expirationTime);
-		}
-
-		private Dictionary<Guid, PostsResponse> GetKeyValues()
-		{
-			// Attempt to retrieve data from Redis cache
-			var data = _cacheService.Get<IEnumerable<PostsResponse>>(nameof(PostsResponse));
-
-			// Convert data to Dictionary or return empty Dictionary if no data
-			return data?.ToDictionary(key => key.PostsId, val => val) ?? new Dictionary<Guid, PostsResponse>();
-		}
-
 		[HttpPost]
 		[Authorize(Roles = "CUSTOMER,MODERATOR")]
 		public async Task<IActionResult> CreatePost([FromForm] CreatePostRequest createPostRequest)
@@ -402,12 +384,30 @@ namespace PRN231.ExploreNow.API.Controllers
 			}
 			catch (Exception ex)
 			{
-				return StatusCode((int)HttpStatusCode.InternalServerError, new BaseResponse<object>
+				return StatusCode((int) HttpStatusCode.InternalServerError, new BaseResponse<object>
 				{
 					IsSucceed = false,
 					Message = $"An error occurred while creating the post: {ex.InnerException?.Message ?? ex.Message}"
 				});
 			}
+		}
+
+		private Task<bool> Save(IEnumerable<PostsResponse> posts, double expireAfterSeconds = 3)
+		{
+			// Set expiration time for the cache (default is 3 seconds)
+			var expirationTime = DateTimeOffset.Now.AddSeconds(expireAfterSeconds);
+
+			// Save data to Redis cache
+			return _cacheService.AddOrUpdateAsync(nameof(PostsResponse), posts, expirationTime);
+		}
+
+		private Dictionary<Guid, PostsResponse> GetKeyValues()
+		{
+			// Attempt to retrieve data from Redis cache
+			var data = _cacheService.Get<IEnumerable<PostsResponse>>(nameof(PostsResponse));
+
+			// Convert data to Dictionary or return empty Dictionary if no data
+			return data?.ToDictionary(key => key.PostsId, val => val) ?? new Dictionary<Guid, PostsResponse>();
 		}
 	}
 }

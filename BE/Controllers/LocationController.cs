@@ -3,6 +3,7 @@ using FluentValidation.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using PRN231.ExploreNow.BusinessObject.Enums;
 using PRN231.ExploreNow.BusinessObject.Models.Request;
 using PRN231.ExploreNow.BusinessObject.Models.Response;
@@ -171,7 +172,8 @@ namespace PRN231.ExploreNow.API.Controllers
 		[ProducesResponseType(typeof(BaseResponse<object>), 404)]
 		[ProducesResponseType(typeof(BaseResponse<object>), 400)]
 		[ProducesResponseType(typeof(BaseResponse<object>), 500)]
-		public async Task<IActionResult> Update(Guid id,
+		public async Task<IActionResult> Update(
+			Guid id,
 			[FromForm] LocationsRequest locationsRequest,
 			[FromForm] List<IFormFile> files = null)
 		{
@@ -186,23 +188,33 @@ namespace PRN231.ExploreNow.API.Controllers
 						{
 							try
 							{
-								if (!photosJson.TrimStart().StartsWith("["))
+								// Clean and validate JSON
+								photosJson = CleanJsonString(photosJson);
+
+								if (IsValidJson(photosJson))
 								{
-									var photo = JsonConvert.DeserializeObject<PhotoRequest>(photosJson);
-									if (photo != null)
+									var photos = JsonConvert.DeserializeObject<List<PhotoRequest>>(photosJson);
+									if (photos != null)
 									{
-										locationsRequest.Photos = new List<PhotoRequest> { photo };
+										locationsRequest.Photos = photos;
 									}
 								}
 								else
 								{
-									var photos = JsonConvert.DeserializeObject<List<PhotoRequest>>(photosJson);
-									locationsRequest.Photos = photos ?? new List<PhotoRequest>();
+									return BadRequest(new BaseResponse<object>
+									{
+										IsSucceed = false,
+										Message = "Invalid JSON format for Photos"
+									});
 								}
 							}
 							catch (JsonException jsonEx)
 							{
-								locationsRequest.Photos = new List<PhotoRequest>();
+								return BadRequest(new BaseResponse<object>
+								{
+									IsSucceed = false,
+									Message = $"Invalid photos data format: {jsonEx.Message}"
+								});
 							}
 						}
 					}
@@ -237,7 +249,7 @@ namespace PRN231.ExploreNow.API.Controllers
 				return StatusCode((int) HttpStatusCode.InternalServerError, new BaseResponse<object>
 				{
 					IsSucceed = false,
-					Message = $"Error: {ex.Message}"
+					Message = $"An error occurred while updating the location: {ex.Message}"
 				});
 			}
 		}
@@ -286,7 +298,7 @@ namespace PRN231.ExploreNow.API.Controllers
 		}
 
 		#region Helper method
-		private Task<bool> Save(IEnumerable<LocationResponse> locations, double expireAfterSeconds = 30)
+		private Task<bool> Save(IEnumerable<LocationResponse> locations, double expireAfterSeconds = 3)
 		{
 			var expirationTime = DateTimeOffset.Now.AddSeconds(expireAfterSeconds);
 			return _cacheService.AddOrUpdateAsync(nameof(LocationResponse), locations, expirationTime);
@@ -296,6 +308,40 @@ namespace PRN231.ExploreNow.API.Controllers
 		{
 			var data = _cacheService.Get<IEnumerable<LocationResponse>>(nameof(LocationResponse));
 			return data?.ToDictionary(key => key.Id, val => val) ?? new Dictionary<Guid, LocationResponse>();
+		}
+
+		private string CleanJsonString(string json)
+		{
+			json = json.Trim();
+
+			json = json.Replace("\\\"", "\"")
+					  .Replace("\"{", "{")
+					  .Replace("}\"", "}")
+					  .Replace("\"[", "[")
+					  .Replace("]\"", "]");
+
+			json = new string(json.Where(c => !char.IsControl(c)).ToArray());
+
+			if (!json.StartsWith("["))
+				json = "[" + json;
+			if (!json.EndsWith("]"))
+				json = json + "]";
+
+			return json;
+		}
+
+		private bool IsValidJson(string strInput)
+		{
+			if (string.IsNullOrWhiteSpace(strInput)) return false;
+			try
+			{
+				JToken.Parse(strInput);
+				return true;
+			}
+			catch (JsonReaderException)
+			{
+				return false;
+			}
 		}
 
 		private List<LocationResponse> ApplySortingAndPagination(

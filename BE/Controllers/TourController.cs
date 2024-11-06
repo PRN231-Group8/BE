@@ -124,12 +124,9 @@ namespace PRN231.ExploreNow.API.Controllers
 			try
 			{
 				ValidationResult ValidateResult = await _tourValidation.ValidateAsync(model);
-				var cacheData = GetKeyValues();
 				if (ValidateResult.IsValid)
 				{
 					var tour = await _tourService.Add(model);
-					cacheData[tour.Id] = tour;
-					await Save(cacheData.Values).ConfigureAwait(false);
 					return Ok(new BaseResponse<object> { IsSucceed = true, Message = "Created successfully" });
 				}
 				var errors = ValidateResult.Errors.Select(e => (object)new
@@ -224,10 +221,10 @@ namespace PRN231.ExploreNow.API.Controllers
 			}
 		}
 
-		private Task<bool> Save(IEnumerable<TourResponse> tour, double expireAfterSeconds = 30)
+		private Task<bool> Save(IEnumerable<TourResponse> tour, double expireAfterSeconds = 3)
 		{
 			var expirationTime = DateTimeOffset.Now.AddSeconds(expireAfterSeconds);
-			return _cacheService.AddOrUpdateAsync(nameof(TourResponse), tour, expirationTime); // khoi tao key hoac luu value trong key trong cache 30 giay
+			return _cacheService.AddOrUpdateAsync(nameof(TourResponse), tour, expirationTime); // khoi tao key hoac luu value trong key trong cache 3 giay
 		}
 
 		private Dictionary<Guid, TourResponse> GetKeyValues()

@@ -156,7 +156,7 @@ namespace PRN231.ExploreNow.API.Controllers
 					});
 				}
 
-				var paymentUrl = await _vnPayService.CreatePaymentForTourTrip(request);
+				var paymentUrl = await _vnPayService.CreateEmbeddedPaymentForTourTrip(request);
 				return CreatedAtAction(nameof(GetTourPackageDetails), new { id = request.TourTripId }, new BaseResponse<string>
 				{
 					IsSucceed = true,
@@ -218,9 +218,9 @@ namespace PRN231.ExploreNow.API.Controllers
 			}
 		}
 
-		private Task<bool> Save(IEnumerable<TourPackageHistoryResponse> tourHistory, double expireAfterSeconds = 300)
+		private Task<bool> Save(IEnumerable<TourPackageHistoryResponse> tourHistory, double expireAfterSeconds = 3)
 		{
-			// Set expiration time for the cache (default is 5 minutes)
+			// Set expiration time for the cache (default is 3 minutes)
 			var expirationTime = DateTimeOffset.Now.AddSeconds(expireAfterSeconds);
 			// Save data to Redis cache
 			return _cacheService.AddOrUpdateAsync(nameof(TourPackageHistoryResponse), tourHistory, expirationTime);
