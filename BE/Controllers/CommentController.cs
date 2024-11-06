@@ -54,5 +54,28 @@ namespace PRN231.ExploreNow.API.Controllers
 				});
 			}
 		}
+		[HttpGet("post/{id}")]
+		public async Task<IActionResult> GetCommentsByPostId(Guid id)
+		{
+			try
+			{
+				var comments = await _commentService.GetCommentsByPostIdAsync(id);
+				return Ok(new BaseResponse<List<CommentResponse>>
+				{
+					IsSucceed = true,
+					Result = comments,
+					Message = "Comments retrieved successfully"
+				});
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(new BaseResponse<object>
+				{
+					IsSucceed = false,
+					Message = "Error retrieving comments",
+					Result = ex.Message
+				});
+			}
+		}
 	}
 }
