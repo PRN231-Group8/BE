@@ -5,6 +5,7 @@ using PRN231.ExploreNow.Services.Interfaces;
 using PRN231.ExploreNow.Validations.Profile;
 using PRN231.ExploreNow.BusinessObject.Models.Response;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace PRN231.ExploreNow.API.Controllers
 {
@@ -63,12 +64,22 @@ namespace PRN231.ExploreNow.API.Controllers
 		{
 			try
 			{
-				var imageUrl = new { Url = _userService.SaveImage(file).Result };
-				return Ok(new BaseResponse<object> { IsSucceed = true, Message = "Update image successfully", Result = imageUrl });
+				var imageUrl = await _userService.UpdateUserAvatarAsync(file);
+				return Ok(new BaseResponse<object>
+				{
+					IsSucceed = true,
+					Message = "Image uploaded successfully",
+					Result = new { Url = imageUrl }
+				});
 			}
 			catch (Exception ex)
 			{
-				return BadRequest(new BaseResponse<object> { IsSucceed = false, Result = ex.Message, Message = "There is something wrong" }); return BadRequest(ex.Message);
+				return BadRequest(new BaseResponse<object>
+				{
+					IsSucceed = false,
+					Message = "There was an error uploading the image",
+					Result = ex.Message
+				});
 			}
 		}
 
