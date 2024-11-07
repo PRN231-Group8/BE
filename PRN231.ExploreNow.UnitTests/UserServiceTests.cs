@@ -1,15 +1,13 @@
-﻿using Castle.Core.Configuration;
-using Microsoft.Extensions.Configuration;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Moq;
-using PRN231.ExploreNow.BusinessObject.Contracts.Repositories.Interfaces;
 using PRN231.ExploreNow.BusinessObject.Entities;
 using PRN231.ExploreNow.Repositories.UnitOfWorks.Interfaces;
 using PRN231.ExploreNow.Services.Services;
 using Xunit;
 using IConfiguration = Microsoft.Extensions.Configuration.IConfiguration;
+using PRN231.ExploreNow.Repositories.Repositories.Interfaces;
 
 namespace PRN231.ExploreNow.UnitTests
 {
