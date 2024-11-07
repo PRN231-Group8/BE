@@ -143,6 +143,7 @@ namespace PRN231.ExploreNow.Services.Services
 			return result;
 		}
 
+		#region Helper method
 		private IQueryable<Transportation> ApplySorting(IQueryable<Transportation> query, string sortBy)
 		{
 			var isFirst = true;
@@ -171,5 +172,6 @@ namespace PRN231.ExploreNow.Services.Services
 		}
 
 		private static string GenerateUniqueCode() => Guid.NewGuid().ToString("N").Substring(0, 10).ToUpper();
+		#endregion
 	}
 }

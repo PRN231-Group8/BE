@@ -146,7 +146,6 @@ namespace PRN231.ExploreNow.Services.Services
 		{
 			tour.Id = Guid.NewGuid();
 			tour.Code = GenerateUniqueCode();
-			tour.UserId = user.Id;
 			tour.CreatedBy = user.UserName;
 			tour.CreatedDate = DateTime.UtcNow;
 			tour.LastUpdatedBy = user.UserName;
@@ -273,8 +272,8 @@ namespace PRN231.ExploreNow.Services.Services
 		private void ConfigureRelationships(Tour tour, TourRequestModel request)
 		{
 			var user = new { UserName = tour.CreatedBy };
-			tour.TourMoods = CreateTourMoods(tour.Id, request.TourMoods, new ApplicationUser { UserName = user.UserName });
-			tour.LocationInTours = CreateLocationInTours(tour.Id, request.LocationInTours, new ApplicationUser { UserName = user.UserName });
+			tour.TourMoods = CreateTourMoods(tour.Id, request.TourMoods, new ApplicationUser { UserName = tour.CreatedBy });
+			tour.LocationInTours = CreateLocationInTours(tour.Id, request.LocationInTours, new ApplicationUser { UserName = tour.CreatedBy });
 
 			tour.TourTrips = new List<TourTrip>();
 			tour.TourTimestamps = new List<TourTimestamp>();

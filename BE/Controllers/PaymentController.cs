@@ -107,7 +107,7 @@ namespace PRN231.ExploreNow.API.Controllers
 			}
 		}
 
-		[HttpGet("details/{id}/tour")]
+		[HttpGet("{id}/tour")]
 		[Authorize]
 		public async Task<IActionResult> GetTourPackageDetails(Guid id)
 		{
@@ -218,6 +218,7 @@ namespace PRN231.ExploreNow.API.Controllers
 			}
 		}
 
+		#region Helper method
 		private Task<bool> Save(IEnumerable<TourPackageHistoryResponse> tourHistory, double expireAfterSeconds = 3)
 		{
 			// Set expiration time for the cache (default is 3 minutes)
@@ -233,5 +234,6 @@ namespace PRN231.ExploreNow.API.Controllers
 			// Convert data to Dictionary or return empty Dictionary if no data
 			return data?.ToDictionary(key => key.Id, val => val) ?? new Dictionary<Guid, TourPackageHistoryResponse>();
 		}
+		#endregion
 	}
 }

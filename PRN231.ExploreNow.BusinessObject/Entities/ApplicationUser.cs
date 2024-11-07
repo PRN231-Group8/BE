@@ -18,7 +18,6 @@ public class ApplicationUser : IdentityUser<string>
 	public string? VerifyToken { get; set; }
 	public DateTime? VerifyTokenExpires { get; set; }
 	public bool isActived { get; set; } = false;
-	public ICollection<Tour> Tours { get; set; } = new List<Tour>();
 	public ICollection<Posts> Posts { get; set; }
 	public ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
 	public ICollection<Payment> Payments { get; set; }

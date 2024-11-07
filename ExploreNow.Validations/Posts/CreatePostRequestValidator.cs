@@ -17,8 +17,8 @@ namespace PRN231.ExploreNow.BusinessObject.Validators
 				.Must(photos => photos.Count <= 5).WithMessage("You can upload up to 5 images only.")
 				.ForEach(photo =>
 				{
-					photo.Must(file => file.Length <= 3 * 1024 * 1024)
-						 .WithMessage("Each file must be smaller than 3MB.");
+					photo.Must(file => file.Length <= 10 * 1024 * 1024)
+						 .WithMessage("Each file must be smaller than 10MB.");
 				});
 		}
 	}
