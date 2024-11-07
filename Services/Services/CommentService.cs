@@ -1,12 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PRN231.ExploreNow.BusinessObject.Contracts.Repositories.Interfaces;
 using PRN231.ExploreNow.BusinessObject.Entities;
 using PRN231.ExploreNow.BusinessObject.Models.Request;
 using PRN231.ExploreNow.BusinessObject.Models.Response;
 using PRN231.ExploreNow.Repositories.UnitOfWorks.Interfaces;
 using PRN231.ExploreNow.Services.Interfaces;
-using System;
-using System.Threading.Tasks;
 
 namespace PRN231.ExploreNow.Services.Services
 {
@@ -61,6 +58,7 @@ namespace PRN231.ExploreNow.Services.Services
 					LastName = user.LastName,
 					AvatarPath = user.AvatarPath,
 					CreatedDate = user.CreatedDate,
+					DeviceId = user.DeviceId,
 				}
 			};
 		}
@@ -81,10 +79,12 @@ namespace PRN231.ExploreNow.Services.Services
 				CreatedDate = comment.CreatedDate,
 				User = new UserPostResponse
 				{
+					UserId = Guid.Parse(comment.UserId),
 					FirstName = comment.User.FirstName,
 					LastName = comment.User.LastName,
 					AvatarPath = comment.User.AvatarPath,
 					CreatedDate = comment.User.CreatedDate,
+					DeviceId = comment.User.DeviceId,
 				}
 			}).ToList();
 		}

@@ -3,6 +3,7 @@ using PRN231.ExploreNow.BusinessObject.Entities;
 using PRN231.ExploreNow.BusinessObject.Models.Request;
 using PRN231.ExploreNow.BusinessObject.Models.Response;
 using PRN231.ExploreNow.BusinessObject.OtherObjects;
+using System.Net;
 
 namespace PRN231.ExploreNow.BusinessObject.Configs.Mapping
 {
@@ -46,7 +47,8 @@ namespace PRN231.ExploreNow.BusinessObject.Configs.Mapping
 
 			CreateMap<Location, LocationResponse>()
 				.ForMember(dest => dest.Photos, opt => opt.MapFrom(src => src.Photos != null ? src.Photos.ToList() : null));
-			CreateMap<Photo, PhotoResponse>();
+			CreateMap<Photo, PhotoResponseForLocation>();
+			CreateMap<Photo, PhotoResponseForPosts>();
 
 			CreateMap<Tour, TourResponse>()
 				.ForMember(dest => dest.Transportations, opt => opt.MapFrom(src => src.Transportations))
@@ -83,14 +85,10 @@ namespace PRN231.ExploreNow.BusinessObject.Configs.Mapping
 				.ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
 				.ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
 				.ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
-				.ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
+				.ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address.FullAddress))
 				.ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
-				.ForMember(dest => dest.Address, opt => opt.MapFrom(src => new AddressInfoResponse
-				{
-					FullAddress = src.Address.FullAddress,
-					Longitude = src.Address.Longitude,
-					Latitude = src.Address.Latitude
-				}))
+				.ForMember(dest => dest.Longitude, opt => opt.MapFrom(src => src.Address.Longitude))
+				.ForMember(dest => dest.Latitude, opt => opt.MapFrom(src => src.Address.Latitude)) 
 				.ForMember(dest => dest.Temperature, opt => opt.MapFrom(src => src.Temperature))
 				.ForMember(dest => dest.Photos, opt => opt.MapFrom(src => src.Photos));
 

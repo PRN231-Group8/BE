@@ -311,12 +311,6 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-//if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
-//{
-//	app.UseSwagger();
-//	app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "PRN231.ExploreNow.API V1"); });
-//}
-
 app.UseRouting();
 
 app.UseCors("corspolicy");

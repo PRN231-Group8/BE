@@ -192,13 +192,12 @@ namespace PRN231.ExploreNow.API.Controllers
 			}
 		}
 
-
-		[HttpPost("{durationMinutes}")]
+		[HttpPost()]
 		[Authorize(Roles = "ADMIN")]
 		[ProducesResponseType(typeof(BaseResponse<TourTimeStampResponse>), 201)]
 		[ProducesResponseType(typeof(BaseResponse<object>), 400)]
 		[ProducesResponseType(typeof(BaseResponse<object>), 500)]
-		public async Task<IActionResult> CreateBatchTourTimeStamps([FromBody] List<TourTimeStampRequest> requests, int durationMinutes)
+		public async Task<IActionResult> CreateBatchTourTimeStamps([FromBody] List<TourTimeStampRequest> requests)
 		{
 			try
 			{
@@ -223,7 +222,7 @@ namespace PRN231.ExploreNow.API.Controllers
 				{
 					cacheData[result.Id] = result;
 				}
-				await Save(cacheData.Values, durationMinutes).ConfigureAwait(false);
+				await Save(cacheData.Values).ConfigureAwait(false);
 
 				return CreatedAtAction(nameof(GetAllTourTimeStamps), new BaseResponse<TourTimeStampResponse>
 				{
@@ -329,6 +328,7 @@ namespace PRN231.ExploreNow.API.Controllers
 			}
 		}
 
+		#region Helper method
 		private Task<bool> Save(IEnumerable<TourTimeStampResponse> tourTimeStamps, double expireAfterSeconds = 3)
 		{
 			// Set expiration time for the cache (default is 3 seconds)
@@ -346,5 +346,6 @@ namespace PRN231.ExploreNow.API.Controllers
 			// Convert data to Dictionary or return empty Dictionary if no data
 			return data?.ToDictionary(key => key.Id, val => val) ?? new Dictionary<Guid, TourTimeStampResponse>();
 		}
+		#endregion
 	}
 }

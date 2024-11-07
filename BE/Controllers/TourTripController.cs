@@ -303,6 +303,7 @@ namespace PRN231.ExploreNow.API.Controllers
 			}
 		}
 
+		#region Helper method
 		private Task<bool> Save(IEnumerable<TourTripResponse> tourTrips, double expireAfterSeconds = 3)
 		{
 			var expirationTime = DateTimeOffset.Now.AddSeconds(expireAfterSeconds);
@@ -344,5 +345,6 @@ namespace PRN231.ExploreNow.API.Controllers
 			  .Take(pageSize)
 			  .ToList();
 		}
+		#endregion
 	}
 }

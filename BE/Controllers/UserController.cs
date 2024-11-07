@@ -22,7 +22,7 @@ namespace PRN231.ExploreNow.API.Controllers
 		}
 
 		[Authorize]
-		[HttpPut("profile/{id}")]
+		[HttpPut("{id}")]
 		public async Task<IActionResult> UpdateUserProfile(UserProfileRequestModel model, string id)
 		{
 			try
@@ -71,7 +71,8 @@ namespace PRN231.ExploreNow.API.Controllers
 				return BadRequest(new BaseResponse<object> { IsSucceed = false, Result = ex.Message, Message = "There is something wrong" }); return BadRequest(ex.Message);
 			}
 		}
-		[HttpGet("{email}/email")]
+
+		[HttpGet("{email}")]
 		[Authorize]
 		public async Task<IActionResult> GetUserByEmail(string email)
 		{
@@ -103,6 +104,7 @@ namespace PRN231.ExploreNow.API.Controllers
 				});
 			}
 		}
+
 		[HttpGet]
 		[Authorize]
 		public async Task<IActionResult> GetAllUsers()

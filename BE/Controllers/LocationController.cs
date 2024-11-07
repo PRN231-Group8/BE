@@ -233,7 +233,7 @@ namespace PRN231.ExploreNow.API.Controllers
 					return Ok(new BaseResponse<object>
 					{
 						IsSucceed = true,
-						Result = data,
+						Result = null,
 						Message = "Location updated successfully"
 					});
 				}
