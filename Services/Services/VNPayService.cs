@@ -269,6 +269,7 @@ namespace PRN231.ExploreNow.Services.Services
 			};
 		}
 
+		#region Helper method
 		private string GetMessageFromResponseCode(string responseCode)
 		{
 			return responseCode switch
@@ -376,5 +377,6 @@ namespace PRN231.ExploreNow.Services.Services
 			}
 			return user;
 		}
+		#endregion
 	}
 }

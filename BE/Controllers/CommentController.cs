@@ -4,7 +4,6 @@ using PRN231.ExploreNow.BusinessObject.Models.Request;
 using PRN231.ExploreNow.BusinessObject.Models.Response;
 using PRN231.ExploreNow.Services.Interfaces;
 using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace PRN231.ExploreNow.API.Controllers
 {
@@ -21,6 +20,9 @@ namespace PRN231.ExploreNow.API.Controllers
 
 		[HttpPost]
 		[Authorize]
+		[ProducesResponseType(typeof(BaseResponse<CommentResponse>), 201)]
+		[ProducesResponseType(typeof(BaseResponse<object>), 400)]
+		[ProducesResponseType(typeof(BaseResponse<object>), 500)]
 		public async Task<IActionResult> AddComment([FromBody] CommentRequest model)
 		{
 			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -40,7 +42,7 @@ namespace PRN231.ExploreNow.API.Controllers
 				return Ok(new BaseResponse<CommentResponse>
 				{
 					IsSucceed = true,
-					Result = result,
+					Result = null,
 					Message = "Comment added successfully"
 				});
 			}
@@ -54,7 +56,9 @@ namespace PRN231.ExploreNow.API.Controllers
 				});
 			}
 		}
-		[HttpGet("post/{id}")]
+
+		[HttpGet("{id}/post")]
+		[ProducesResponseType(typeof(BaseResponse<List<CommentResponse>>), 200)]
 		public async Task<IActionResult> GetCommentsByPostId(Guid id)
 		{
 			try

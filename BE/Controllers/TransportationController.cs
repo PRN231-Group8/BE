@@ -263,7 +263,8 @@ public class TransportationController : ControllerBase
         }
     }
 
-    private Task<bool> Save(IEnumerable<TransportationResponse> transportations, double expireAfterSeconds = 3)
+	#region Helper method
+	private Task<bool> Save(IEnumerable<TransportationResponse> transportations, double expireAfterSeconds = 3)
     {
         var expirationTime = DateTimeOffset.Now.AddSeconds(expireAfterSeconds);
         return _cacheService.AddOrUpdateAsync(nameof(TransportationResponse), transportations, expirationTime);
@@ -314,4 +315,5 @@ public class TransportationController : ControllerBase
             _ => source
         };
     }
+	#endregion
 }

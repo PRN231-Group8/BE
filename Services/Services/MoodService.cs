@@ -77,6 +77,7 @@ namespace PRN231.ExploreNow.Services.Services
 			await _unitOfWork.SaveChangesAsync();
 		}
 
+		#region Helper method
 		private string GenerateUniqueCode() => Guid.NewGuid().ToString("N").Substring(0, 10).ToUpper();
 
 		private async Task<ApplicationUser> GetAuthenticatedUserAsync()
@@ -88,5 +89,6 @@ namespace PRN231.ExploreNow.Services.Services
 			}
 			return user;
 		}
+		#endregion
 	}
 }

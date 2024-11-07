@@ -2,8 +2,6 @@
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PRN231.ExploreNow.BusinessObject.Entities;
 using PRN231.ExploreNow.BusinessObject.Enums;
-using System;
-using System.Linq;
 
 namespace PRN231.ExploreNow.Repositories.Context
 {
@@ -41,10 +39,6 @@ namespace PRN231.ExploreNow.Repositories.Context
 				entity.HasMany(u => u.Posts)
 					  .WithOne(p => p.User)
 					  .HasForeignKey(p => p.UserId);
-
-				entity.HasMany(u => u.Tours)
-					  .WithOne(t => t.User)
-					  .HasForeignKey(t => t.UserId);
 
 				entity.HasMany(u => u.Transactions)
 					  .WithOne(tr => tr.User)

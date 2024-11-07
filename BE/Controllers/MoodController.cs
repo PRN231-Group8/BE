@@ -248,6 +248,7 @@ namespace PRN231.ExploreNow.API.Controllers
 			}
 		}
 
+		#region Helper method
 		private Task<bool> Save(IEnumerable<MoodResponse> posts, double expireAfterSeconds = 3)
 		{
 			// Set expiration time for the cache (default is 3 seconds)
@@ -263,5 +264,6 @@ namespace PRN231.ExploreNow.API.Controllers
 			// Convert data to Dictionary or return empty Dictionary if no data
 			return data?.ToDictionary(key => key.Id, val => val) ?? new Dictionary<Guid, MoodResponse>();
 		}
+		#endregion
 	}
 }

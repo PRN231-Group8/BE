@@ -158,6 +158,7 @@ namespace PRN231.ExploreNow.Services.Services
 			return await _unitOfWork.GetRepository<ITourTimeStampRepository>().DeleteAsync(tourTimeStampId);
 		}
 
+		#region Helper method
 		// Generate random Code
 		private static string GenerateUniqueCode() => Guid.NewGuid().ToString("N").Substring(0, 10).ToUpper();
 
@@ -184,5 +185,6 @@ namespace PRN231.ExploreNow.Services.Services
 		{
 			return slot1.StartTime < slot2.EndTime && slot2.StartTime < slot1.EndTime;
 		}
+		#endregion
 	}
 }
