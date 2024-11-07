@@ -47,8 +47,7 @@ namespace PRN231.ExploreNow.Services.Services
 				Id = photo.Id,
 				Url = photo.Url,
 				Alt = photo.Alt,
-				PostId = photo.PostId,
-				LocationId = photo.LocationId
+				PostId = photo.PostId
 			};
 		}
 
@@ -86,8 +85,7 @@ namespace PRN231.ExploreNow.Services.Services
 				Id = photo.Id,
 				Url = photo.Url,
 				Alt = photo.Alt,
-				PostId = photo.PostId,
-				LocationId = photo.LocationId
+				PostId = photo.PostId
 			};
 		}
 	}
