@@ -12,8 +12,6 @@ using PRN231.ExploreNow.Repositories.Repositories.Interfaces;
 using PRN231.ExploreNow.Repositories.UnitOfWorks.Interfaces;
 using PRN231.ExploreNow.Services.Interfaces;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using PRN231.ExploreNow.Repositories.UnitOfWorks;
 
 namespace PRN231.ExploreNow.Services.Services
 {
@@ -25,6 +23,9 @@ namespace PRN231.ExploreNow.Services.Services
 		private readonly IMapper _mapper;
 		private Cloudinary _cloudinary;
 		private readonly IConfiguration _configuration;
+		private const int MAX_IMAGES = 5;
+		private const int MAX_FILE_SIZE = 10 * 1024 * 1024;
+		private const string SIZE_LIMIT_TEXT = "10MB";
 
 		public PostsService(
 			IUnitOfWork unitOfWork,
@@ -95,7 +96,13 @@ namespace PRN231.ExploreNow.Services.Services
 												.Include(p => p.Photos.Where(ph => !ph.IsDeleted))
 												.Include(p => p.User)
 												.SingleAsync();
-
+			// Check user roles and permissions
+			var isModerator = await _userManager.IsInRoleAsync(user, "MODERATOR");
+			var isOwner = existingPost.UserId == user.Id;
+			if (!isModerator && !isOwner)
+			{
+				throw new UnauthorizedAccessException("You don't have permission to delete this post. Only the post owner or moderators can delete posts.");
+			}
 			// Validate status update
 			if (postsRequest.Status.HasValue)
 			{
@@ -211,16 +218,6 @@ namespace PRN231.ExploreNow.Services.Services
 			return await _unitOfWork.GetRepository<IPostsRepository>().DeleteAsync(postsId);
 		}
 
-		// Check the user is authenticated
-		private async Task<ApplicationUser> GetAuthenticatedUserAsync()
-		{
-			var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
-			if (user == null)
-			{
-				throw new UnauthorizedAccessException("User not authenticated");
-			}
-			return user;
-		}
 		public async Task<PostsResponse> CreatePost(CreatePostRequest createPostRequest)
 		{
 			var user = await GetAuthenticatedUserAsync();
@@ -234,16 +231,16 @@ namespace PRN231.ExploreNow.Services.Services
 			{
 				throw new ArgumentException("At least one photo is required.");
 			}
-			if (createPostRequest.Photos.Count > 5)
+			if (createPostRequest.Photos.Count > MAX_IMAGES)
 			{
-				throw new ArgumentException("You can upload up to 5 images only.");
+				throw new ArgumentException("You can upload up to {MAX_IMAGES} images only.");
 			}
 
 			foreach (var file in createPostRequest.Photos)
 			{
-				if (file.Length > 3 * 1024 * 1024)
+				if (file.Length > MAX_FILE_SIZE)
 				{
-					throw new ArgumentException($"File {file.FileName} exceeds the 3MB size limit.");
+					throw new ArgumentException($"File {file.FileName} exceeds the {SIZE_LIMIT_TEXT} size limit.");
 				}
 			}
 
@@ -289,7 +286,19 @@ namespace PRN231.ExploreNow.Services.Services
 			return _mapper.Map<PostsResponse>(post);
 		}
 
-		private string GenerateUniqueCode() => Guid.NewGuid().ToString("N").Substring(0, 10).ToUpper();
+		#region Helper method
+		// Check the user is authenticated
+		private async Task<ApplicationUser> GetAuthenticatedUserAsync()
+		{
+			var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
+			if (user == null)
+			{
+				throw new UnauthorizedAccessException("User not authenticated");
+			}
+			return user;
+		}
 
+		private string GenerateUniqueCode() => Guid.NewGuid().ToString("N").Substring(0, 10).ToUpper();
+		#endregion
 	}
 }

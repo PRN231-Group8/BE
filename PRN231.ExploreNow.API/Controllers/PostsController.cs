@@ -17,6 +17,9 @@ namespace PRN231.ExploreNow.API.Controllers
 		private readonly IPostsService _postsService;
 		private readonly IValidator<PostsRequest> _postsValidator;
 		private readonly ICacheService _cacheService;
+		const int MAX_IMAGES = 5;
+		const int MAX_FILE_SIZE = 10 * 1024 * 1024;
+		const string SIZE_LIMIT_TEXT = "10MB";
 
 		public PostsController(IPostsService postsService, IValidator<PostsRequest> postsValidator, ICacheService cacheService)
 		{
@@ -263,8 +266,60 @@ namespace PRN231.ExploreNow.API.Controllers
 			}
 		}
 
+		[HttpPost]
+		[Authorize(Roles = "CUSTOMER,MODERATOR")]
+		[ProducesResponseType(typeof(BaseResponse<PostsResponse>), 201)]
+		[ProducesResponseType(typeof(BaseResponse<object>), 400)]
+		[ProducesResponseType(typeof(BaseResponse<object>), 500)]
+		public async Task<IActionResult> CreatePost([FromForm] CreatePostRequest createPostRequest)
+		{
+			try
+			{
+				// Validate the number of uploaded images
+				if (createPostRequest.Photos.Count > MAX_IMAGES)
+				{
+					return BadRequest(new BaseResponse<object>
+					{
+						IsSucceed = false,
+						Message = "You can upload up to 5 images only."
+					});
+				}
+
+				// Validate file sizes
+				foreach (var file in createPostRequest.Photos)
+				{
+					if (file.Length > MAX_FILE_SIZE) // 3MB limit
+					{
+						return BadRequest(new BaseResponse<object>
+						{
+							IsSucceed = false,
+							Message = $"File {file.FileName} exceeds the {SIZE_LIMIT_TEXT} size limit."
+						});
+					}
+				}
+
+				// Call the service to create the post with images
+				var result = await _postsService.CreatePost(createPostRequest);
+
+				return Ok(new BaseResponse<PostsResponse>
+				{
+					IsSucceed = true,
+					Result = null,
+					Message = "Post created successfully."
+				});
+			}
+			catch (Exception ex)
+			{
+				return StatusCode((int)HttpStatusCode.InternalServerError, new BaseResponse<object>
+				{
+					IsSucceed = false,
+					Message = $"An error occurred while creating the post: {ex.InnerException?.Message ?? ex.Message}"
+				});
+			}
+		}
+
 		[HttpPut("{id}")]
-		[Authorize(Roles = "MODERATOR,ADMIN")]
+		[Authorize(Roles = "CUSTOMER,MODERATOR,ADMIN")]
 		[ProducesResponseType(typeof(BaseResponse<object>), 200)]
 		[ProducesResponseType(typeof(BaseResponse<object>), 400)]
 		[ProducesResponseType(typeof(BaseResponse<object>), 404)]
@@ -343,55 +398,7 @@ namespace PRN231.ExploreNow.API.Controllers
 			}
 		}
 
-		[HttpPost]
-		[Authorize(Roles = "CUSTOMER,MODERATOR")]
-		public async Task<IActionResult> CreatePost([FromForm] CreatePostRequest createPostRequest)
-		{
-			try
-			{
-				// Validate the number of uploaded images
-				if (createPostRequest.Photos.Count > 5)
-				{
-					return BadRequest(new BaseResponse<object>
-					{
-						IsSucceed = false,
-						Message = "You can upload up to 5 images only."
-					});
-				}
-
-				// Validate file sizes
-				foreach (var file in createPostRequest.Photos)
-				{
-					if (file.Length > 3 * 1024 * 1024) // 3MB limit
-					{
-						return BadRequest(new BaseResponse<object>
-						{
-							IsSucceed = false,
-							Message = $"File {file.FileName} exceeds the 3MB size limit."
-						});
-					}
-				}
-
-				// Call the service to create the post with images
-				var result = await _postsService.CreatePost(createPostRequest);
-
-				return Ok(new BaseResponse<PostsResponse>
-				{
-					IsSucceed = true,
-					Result = result,
-					Message = "Post created successfully."
-				});
-			}
-			catch (Exception ex)
-			{
-				return StatusCode((int) HttpStatusCode.InternalServerError, new BaseResponse<object>
-				{
-					IsSucceed = false,
-					Message = $"An error occurred while creating the post: {ex.InnerException?.Message ?? ex.Message}"
-				});
-			}
-		}
-
+		#region Helper method
 		private Task<bool> Save(IEnumerable<PostsResponse> posts, double expireAfterSeconds = 3)
 		{
 			// Set expiration time for the cache (default is 3 seconds)
@@ -409,5 +416,6 @@ namespace PRN231.ExploreNow.API.Controllers
 			// Convert data to Dictionary or return empty Dictionary if no data
 			return data?.ToDictionary(key => key.PostsId, val => val) ?? new Dictionary<Guid, PostsResponse>();
 		}
+		#endregion
 	}
 }
