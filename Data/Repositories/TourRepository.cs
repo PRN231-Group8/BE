@@ -71,30 +71,18 @@ namespace PRN231.ExploreNow.Repositories.Repositories
 			PaymentTransactionStatus? filterTransactionStatus,
 			string? searchTerm = null)
 		{
-			// Start with tours that have bookings for this user
 			var query = GetQueryable()
 				.Where(t => !t.IsDeleted)
 				.Where(t => t.TourTrips.Any(tt => !tt.IsDeleted && tt.Payments.Any(p => !p.IsDeleted && p.UserId == userId)))
 				.Include(t => t.TourTrips.Where(tt => !tt.IsDeleted))
 					.ThenInclude(tt => tt.Payments.Where(p => !p.IsDeleted && p.UserId == userId))
-						.ThenInclude(p => p.Transaction)
-				.Include(t => t.TourTimestamps.Where(ts => !ts.IsDeleted))
-					.ThenInclude(ts => ts.Location)
-						.ThenInclude(l => l.Photos.Where(t => !t.IsDeleted))
-				.Include(t => t.Transportations.Where(t => !t.IsDeleted))
-				.Include(t => t.TourMoods.Where(tm => !tm.IsDeleted && !tm.Mood.IsDeleted))
-					.ThenInclude(tm => tm.Mood)
+					.ThenInclude(p => p.Transaction)
 				.AsSplitQuery();
 
 			// Apply filters
-			if (!string.IsNullOrEmpty(searchTerm))
+			if (!string.IsNullOrEmpty(searchTerm) && decimal.TryParse(searchTerm, out decimal searchPrice))
 			{
-				searchTerm = searchTerm.ToLower();
-				query = query.Where(t =>
-					t.Title.ToLower().Contains(searchTerm) ||
-					t.Description.ToLower().Contains(searchTerm) ||
-					t.TourTimestamps.Any(tt => tt.Location.Name.ToLower().Contains(searchTerm))
-				);
+				query = query.Where(t => t.TotalPrice == searchPrice);
 			}
 
 			if (filterTransactionStatus.HasValue)

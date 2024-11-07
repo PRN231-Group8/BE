@@ -44,16 +44,16 @@ namespace PRN231.ExploreNow.API.Controllers
 				if (cacheData.Count > 0)
 				{
 					var filteredData = cacheData.Values.AsQueryable();
-					if (!string.IsNullOrEmpty(searchTerm))
+					if (!string.IsNullOrEmpty(searchTerm) && decimal.TryParse(searchTerm, out decimal searchPrice))
 					{
-						filteredData = filteredData.Where(t =>
-							t.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-							t.Description.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+						filteredData = filteredData.Where(t => t.TotalPrice == searchPrice);
 					}
 
 					if (status.HasValue)
 					{
-						filteredData = filteredData.Where(t => t.Status == status.Value.ToString());
+						filteredData = filteredData.Where(t =>
+							t.Transactions.Any(tr => tr.Status == status)
+						);
 					}
 
 					totalCount = filteredData.Count();
