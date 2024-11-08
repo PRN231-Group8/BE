@@ -54,6 +54,28 @@ namespace PRN231.ExploreNow.Services.Services
 			return uploadResult.SecureUrl.ToString();
 		}
 
+		public async Task<string> UpdateUserAvatarAsync(IFormFile file)
+		{
+			var currentUser = await _userManager.GetUserAsync(_contextAccessor.HttpContext.User);
+			var imageUrl = await SaveImage(file);
+			if (string.IsNullOrEmpty(imageUrl))
+			{
+				throw new Exception("Failed to upload image to Cloudinary");
+			}
+
+			var profileUpdate = new UserProfileRequestModel
+			{
+				FirstName = currentUser.FirstName,
+				LastName = currentUser.LastName,
+				Dob = currentUser.Dob,
+				Gender = currentUser.Gender,
+				AvatarPath = imageUrl
+			};
+			await UpdateUserProfile(currentUser.Id, profileUpdate);
+
+			return imageUrl;
+		}
+
 		public async Task<UserProfileResponseModel> UpdateUserProfile(string id, UserProfileRequestModel profile)
 		{
 			var user = MapToProfile(profile);

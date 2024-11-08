@@ -8,6 +8,7 @@ namespace PRN231.ExploreNow.Services.Interfaces
 	{
 		Task<bool> VerifyEmailTokenAsync(string email, string token);
 		Task<string> SaveImage(IFormFile image);
+		Task<string> UpdateUserAvatarAsync(IFormFile file);
 		Task<UserProfileResponseModel> UpdateUserProfile(string id, UserProfileRequestModel profile);
 		Task<UserProfileResponseModel> GetUserByEmailAsync(string email);
 		Task<List<UserResponse>> GetAllUsersAsync();

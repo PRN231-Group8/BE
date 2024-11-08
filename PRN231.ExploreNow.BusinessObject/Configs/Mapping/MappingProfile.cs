@@ -131,8 +131,6 @@ namespace PRN231.ExploreNow.BusinessObject.Configs.Mapping
 
 			// New mappings for TourPackageHistoryResponse
 			CreateMap<Tour, TourPackageHistoryResponse>()
-				.ForMember(dest => dest.Moods, opt => opt.MapFrom(src => src.TourMoods.Select(tm => tm.Mood)))
-				.ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
 				.ForMember(dest => dest.Transactions, opt => opt.MapFrom(src =>
 					src.TourTrips.SelectMany(tt => tt.Payments)
 						.Where(p => p.Transaction != null)
