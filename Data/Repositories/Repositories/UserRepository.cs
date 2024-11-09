@@ -87,6 +87,7 @@ namespace PRN231.ExploreNow.Repositories.Repositories.Repositories
                 })
                 .ToListAsync();
         }
+
         public async Task<ApplicationUser> GetUsersClaimIdentity()
         {
             var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
@@ -96,6 +97,7 @@ namespace PRN231.ExploreNow.Repositories.Repositories.Repositories
             }
             return user;
         }
+
         public async Task<ApplicationUser> GetByIdAsync(string userId)
         {
             return await _context.Users
