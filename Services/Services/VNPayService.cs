@@ -44,14 +44,14 @@ namespace PRN231.ExploreNow.Services.Services
 
             var query = _unitOfWork.GetRepository<ITransactionRepository>()
                 .GetQueryable()
-                .Where(t => t.Status == PaymentTransactionStatus.SUCCESSFUL &&
-                            t.UserId == user.Id);
-            
+                .Where(t =>
+                    t.UserId == user.Id);
+
             if (filterByStatus.HasValue)
             {
                 query = query.Where(t => t.Status == filterByStatus.Value);
             }
-            
+
             if (!string.IsNullOrEmpty(searchTerm))
             {
                 query = query.Where(t =>
@@ -60,16 +60,16 @@ namespace PRN231.ExploreNow.Services.Services
                     t.Payment.TourTrip.Tour.Title.Contains(searchTerm)
                 );
             }
-            
+
             var totalCount = await query.CountAsync();
-            
+
             var transactions = await query
                 .Skip(zeroBasedPage * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
 
             var transactionDetails = new List<BookingHistoryResponse>();
-            
+
             foreach (var transaction in transactions)
             {
                 var payment = await _unitOfWork.GetRepository<IPaymentRepository>()
@@ -83,6 +83,7 @@ namespace PRN231.ExploreNow.Services.Services
 
                 var transactionDetail = new BookingHistoryResponse
                 {
+                    Id = transaction.Id,
                     TransactionAmount = transaction.Amount,
                     TransactionStatus = transaction.Status,
                     PaymentMethod = payment.PaymentMethod,

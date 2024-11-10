@@ -4,6 +4,7 @@ namespace PRN231.ExploreNow.BusinessObject.Models.Response;
 
 public class BookingHistoryResponse
 {
+    public Guid Id { get; set; }
     public decimal TransactionAmount { get; set; }
     public PaymentTransactionStatus TransactionStatus { get; set; }
     public string PaymentMethod { get; set; }

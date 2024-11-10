@@ -26,87 +26,87 @@ namespace PRN231.ExploreNow.API.Controllers
             _cacheService = cacheService;
         }
 
-        [HttpGet("history")]
-        [Authorize]
-        public async Task<IActionResult> GetTourHistory(
-            [FromQuery(Name = "page-number")] int page = 1,
-            [FromQuery(Name = "page-size")] int pageSize = 10,
-            [FromQuery(Name = "filter-status")] PaymentTransactionStatus? status = null,
-            [FromQuery(Name = "search-term")] string? searchTerm = null)
-        {
-            try
-            {
-                var zeroBasedPage = page - 1;
-                var cacheData = GetKeyValues();
-                List<TourPackageHistoryResponse> items;
-                int totalCount;
-
-                // If data is found in cache, filter and return it
-                if (cacheData.Count > 0)
-                {
-                    var filteredData = cacheData.Values.AsQueryable();
-                    if (!string.IsNullOrEmpty(searchTerm) && decimal.TryParse(searchTerm, out decimal searchPrice))
-                    {
-                        filteredData = filteredData.Where(t => t.TotalPrice == searchPrice);
-                    }
-
-                    if (status.HasValue)
-                    {
-                        filteredData = filteredData.Where(t =>
-                            t.Transactions.Any(tr => tr.Status == status)
-                        );
-                    }
-
-                    totalCount = filteredData.Count();
-                    items = filteredData
-                        .Skip(zeroBasedPage * pageSize)
-                        .Take(pageSize)
-                        .ToList();
-                }
-                else
-                {
-                    // If not in cache, query from service
-                    var (serviceItems, serviceTotalCount) = await _vnPayService.GetUserTourHistory(
-                        page, pageSize, status, searchTerm);
-                    items = serviceItems;
-                    totalCount = serviceTotalCount;
-
-                    // Save the result to cache for future requests
-                    await Save(items).ConfigureAwait(false);
-                }
-
-                return Ok(new BaseResponse<TourPackageHistoryResponse>
-                {
-                    IsSucceed = true,
-                    Results = items,
-                    TotalElements = totalCount,
-                    Message = items?.Any() == true
-                        ? "Tour history retrieved successfully."
-                        : "No tour history found for the current user.",
-                    Size = pageSize,
-                    Number = zeroBasedPage,
-                    TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize),
-                    NumberOfElements = items.Count,
-                    First = zeroBasedPage == 0,
-                    Last = zeroBasedPage >= (int)Math.Ceiling(totalCount / (double)pageSize) - 1,
-                    Empty = !items.Any(),
-                    Sort = new BaseResponse<TourPackageHistoryResponse>.SortInfo
-                    {
-                        Empty = false,
-                        Sorted = true,
-                        Unsorted = false
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode((int)HttpStatusCode.InternalServerError, new BaseResponse<TourPackageDetailsResponse>
-                {
-                    IsSucceed = false,
-                    Message = $"An error occurred while retrieving tour package details: {ex.Message}"
-                });
-            }
-        }
+        // [HttpGet("history")]
+        // [Authorize]
+        // public async Task<IActionResult> GetTourHistory(
+        //     [FromQuery(Name = "page-number")] int page = 1,
+        //     [FromQuery(Name = "page-size")] int pageSize = 10,
+        //     [FromQuery(Name = "filter-status")] PaymentTransactionStatus? status = null,
+        //     [FromQuery(Name = "search-term")] string? searchTerm = null)
+        // {
+        //     try
+        //     {
+        //         var zeroBasedPage = page - 1;
+        //         var cacheData = GetKeyValues();
+        //         List<TourPackageHistoryResponse> items;
+        //         int totalCount;
+        //
+        //         // If data is found in cache, filter and return it
+        //         if (cacheData.Count > 0)
+        //         {
+        //             var filteredData = cacheData.Values.AsQueryable();
+        //             if (!string.IsNullOrEmpty(searchTerm) && decimal.TryParse(searchTerm, out decimal searchPrice))
+        //             {
+        //                 filteredData = filteredData.Where(t => t.TotalPrice == searchPrice);
+        //             }
+        //
+        //             if (status.HasValue)
+        //             {
+        //                 filteredData = filteredData.Where(t =>
+        //                     t.Transactions.Any(tr => tr.Status == status)
+        //                 );
+        //             }
+        //
+        //             totalCount = filteredData.Count();
+        //             items = filteredData
+        //                 .Skip(zeroBasedPage * pageSize)
+        //                 .Take(pageSize)
+        //                 .ToList();
+        //         }
+        //         else
+        //         {
+        //             // If not in cache, query from service
+        //             var (serviceItems, serviceTotalCount) = await _vnPayService.GetUserTourHistory(
+        //                 page, pageSize, status, searchTerm);
+        //             items = serviceItems;
+        //             totalCount = serviceTotalCount;
+        //
+        //             // Save the result to cache for future requests
+        //             await Save(items).ConfigureAwait(false);
+        //         }
+        //
+        //         return Ok(new BaseResponse<TourPackageHistoryResponse>
+        //         {
+        //             IsSucceed = true,
+        //             Results = items,
+        //             TotalElements = totalCount,
+        //             Message = items?.Any() == true
+        //                 ? "Tour history retrieved successfully."
+        //                 : "No tour history found for the current user.",
+        //             Size = pageSize,
+        //             Number = zeroBasedPage,
+        //             TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize),
+        //             NumberOfElements = items.Count,
+        //             First = zeroBasedPage == 0,
+        //             Last = zeroBasedPage >= (int)Math.Ceiling(totalCount / (double)pageSize) - 1,
+        //             Empty = !items.Any(),
+        //             Sort = new BaseResponse<TourPackageHistoryResponse>.SortInfo
+        //             {
+        //                 Empty = false,
+        //                 Sorted = true,
+        //                 Unsorted = false
+        //             }
+        //         });
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         return StatusCode((int)HttpStatusCode.InternalServerError, new BaseResponse<TourPackageDetailsResponse>
+        //         {
+        //             IsSucceed = false,
+        //             Message = $"An error occurred while retrieving tour package details: {ex.Message}"
+        //         });
+        //     }
+        // }
 
         [HttpGet("{id}/tour")]
         [Authorize]
@@ -231,9 +231,54 @@ namespace PRN231.ExploreNow.API.Controllers
         {
             try
             {
-                var (transactionDetails, totalCount) = await _vnPayService.GetSuccessfulTransactionsWithTourInfo(
-                    page, pageSize, status, searchTerm);
+                // Step 1: Check if the data is already cached
+                var cachedData = GetKeyValues();
+                List<BookingHistoryResponse> transactionDetails;
+                int totalCount;
 
+                // Step 2: If data is cached, apply the necessary filters and pagination
+                if (cachedData.Count > 0)
+                {
+                    var filteredData = cachedData.Values.AsQueryable();
+
+                    // Apply search filter if provided
+                    if (!string.IsNullOrEmpty(searchTerm))
+                    {
+                        filteredData =
+                            filteredData.Where(t =>
+                                t.Id.ToString().Contains(searchTerm)); // Modify as per your search logic
+                    }
+
+                    // Apply status filter if provided
+                    if (status.HasValue)
+                    {
+                        filteredData = filteredData.Where(t => t.TransactionStatus == status);
+                    }
+
+                    // Get total count and apply pagination
+                    totalCount = filteredData.Count();
+                    transactionDetails = filteredData
+                        .Skip((page - 1) * pageSize)
+                        .Take(pageSize)
+                        .ToList();
+                }
+                else
+                {
+                    // Step 3: If no data in cache, call the service to get data
+                    var (serviceItems, serviceTotalCount) = await _vnPayService.GetSuccessfulTransactionsWithTourInfo(
+                        page, pageSize, status, searchTerm);
+
+                    transactionDetails = serviceItems;
+                    totalCount = serviceTotalCount;
+
+                    // Step 4: Save the data to Redis cache for future use
+                    if (transactionDetails.Any())
+                    {
+                        await Save(transactionDetails); // Cache data for future requests
+                    }
+                }
+
+                // Step 5: Return the response
                 return Ok(new BaseResponse<BookingHistoryResponse>
                 {
                     IsSucceed = true,
@@ -270,20 +315,20 @@ namespace PRN231.ExploreNow.API.Controllers
 
         #region Helper method
 
-        private Task<bool> Save(IEnumerable<TourPackageHistoryResponse> tourHistory, double expireAfterSeconds = 3)
+        private Task<bool> Save(IEnumerable<BookingHistoryResponse> bookingHistory, double expireAfterSeconds = 3)
         {
             // Set expiration time for the cache (default is 3 minutes)
             var expirationTime = DateTimeOffset.Now.AddSeconds(expireAfterSeconds);
             // Save data to Redis cache
-            return _cacheService.AddOrUpdateAsync(nameof(TourPackageHistoryResponse), tourHistory, expirationTime);
+            return _cacheService.AddOrUpdateAsync(nameof(BookingHistoryResponse), bookingHistory, expirationTime);
         }
 
-        private Dictionary<Guid, TourPackageHistoryResponse> GetKeyValues()
+        private Dictionary<Guid, BookingHistoryResponse> GetKeyValues()
         {
             // Attempt to retrieve data from Redis cache
-            var data = _cacheService.Get<IEnumerable<TourPackageHistoryResponse>>(nameof(TourPackageHistoryResponse));
+            var data = _cacheService.Get<IEnumerable<BookingHistoryResponse>>(nameof(BookingHistoryResponse));
             // Convert data to Dictionary or return empty Dictionary if no data
-            return data?.ToDictionary(key => key.Id, val => val) ?? new Dictionary<Guid, TourPackageHistoryResponse>();
+            return data?.ToDictionary(key => key.Id, val => val) ?? new Dictionary<Guid, BookingHistoryResponse>();
         }
 
         #endregion
