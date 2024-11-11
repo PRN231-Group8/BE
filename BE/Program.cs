@@ -41,6 +41,7 @@ using PRN231.ExploreNow.Validations.Mood;
 using PRN231.ExploreNow.Validations.Payment;
 using PRN231.ExploreNow.Validations.Transportation;
 using PRN231.ExploreNow.Validations.TourTrip;
+using PRN231.ExploreNow.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -162,6 +163,8 @@ builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<IPhotoService, PhotoService>();
 builder.Services.AddScoped<IPhotoRepository, PhotoRepository>();
+builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 #endregion
 
 #region Configure FluentValidator

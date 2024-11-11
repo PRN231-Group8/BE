@@ -18,4 +18,5 @@ public interface IUnitOfWork : IBaseUnitOfWork
     ICommentRepository CommentRepository { get; }
     IPhotoRepository PhotoRepository { get; }
     IPaymentRepository PaymentRepository { get; }
+    IDashboardRepository DashboardRepository { get; }
 }
