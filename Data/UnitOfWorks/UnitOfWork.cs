@@ -20,4 +20,5 @@ public class UnitOfWork : BaseUnitOfWork<ApplicationDbContext>, IUnitOfWork
     public ITransportationRepository TransportationRepository => GetRepository<ITransportationRepository>();
 	public ICommentRepository CommentRepository => GetRepository<ICommentRepository>();
 	public IPhotoRepository PhotoRepository => GetRepository<IPhotoRepository>();
+    public IDashboardRepository DashboardRepository => GetRepository<IDashboardRepository>();
 }

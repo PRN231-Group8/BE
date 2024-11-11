@@ -17,4 +17,5 @@ public interface IUnitOfWork : IBaseUnitOfWork
     ITransportationRepository TransportationRepository { get; }
     ICommentRepository CommentRepository { get; }
     IPhotoRepository PhotoRepository { get; }
+    IDashboardRepository DashboardRepository { get; }
 }
