@@ -18,8 +18,8 @@ public class UnitOfWork : BaseUnitOfWork<ApplicationDbContext>, IUnitOfWork
     public ITourTimeStampRepository TourTimeStampRepository => GetRepository<ITourTimeStampRepository>();
     public IPostsRepository PostsRepository => GetRepository<IPostsRepository>();
     public ITransportationRepository TransportationRepository => GetRepository<ITransportationRepository>();
-	public ICommentRepository CommentRepository => GetRepository<ICommentRepository>();
-	public IPhotoRepository PhotoRepository => GetRepository<IPhotoRepository>();
-	public IPaymentRepository PaymentRepository => GetRepository<IPaymentRepository>();
+    public ICommentRepository CommentRepository => GetRepository<ICommentRepository>();
+    public IPhotoRepository PhotoRepository => GetRepository<IPhotoRepository>();
+    public IPaymentRepository PaymentRepository => GetRepository<IPaymentRepository>();
     public IDashboardRepository DashboardRepository => GetRepository<IDashboardRepository>();
 }
