@@ -10,6 +10,7 @@
         public string Status { get; set; }
         public DateTime CreateDate { get; set; }
         public UserPostResponse User { get; set; }
+        public Guid TourTripId { get; set; }
         public List<CommentResponse> Comments { get; set; } = new List<CommentResponse>();
         public List<PhotoResponseForPosts> Photos { get; set; } = new List<PhotoResponseForPosts>();
     }

@@ -243,7 +243,7 @@ namespace PRN231.ExploreNow.Services.Services
             {
                 throw new InvalidOperationException("You must have a completed payment for this tour trip to create a post.");
             }
-
+             
             // Check if the tour trip has ended
             var tourTrip = await _unitOfWork.GetRepository<ITourTripRepository>()
             .GetQueryable()
