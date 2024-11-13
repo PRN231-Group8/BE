@@ -8,7 +8,7 @@ using PRN231.ExploreNow.Repositories.Repositories.Interfaces;
 
 namespace PRN231.ExploreNow.Repositories.Repositories.Repositories
 {
-	public class TourTripRepository : BaseRepository<TourTrip>, ITourTripRepository
+    public class TourTripRepository : BaseRepository<TourTrip>, ITourTripRepository
 	{
 		private readonly ApplicationDbContext _context;
 		private readonly IMapper _mapper;
