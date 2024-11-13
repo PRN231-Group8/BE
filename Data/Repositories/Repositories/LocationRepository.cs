@@ -5,10 +5,11 @@ using PRN231.ExploreNow.BusinessObject.Enums;
 using PRN231.ExploreNow.BusinessObject.Models.Response;
 using PRN231.ExploreNow.Repositories.Context;
 using PRN231.ExploreNow.Repositories.Repositories.Interface;
+using PRN231.ExploreNow.Repositories.Repositories.Repositories;
 
 namespace PRN231.ExploreNow.Repositories.Repositories
 {
-	public class LocationRepository : BaseRepository<Location>, ILocationRepository
+    public class LocationRepository : BaseRepository<Location>, ILocationRepository
 	{
 		private readonly ApplicationDbContext _context;
 		private readonly IMapper _mapper;

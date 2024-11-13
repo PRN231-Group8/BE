@@ -12,5 +12,6 @@ namespace PRN231.ExploreNow.Services.Interfaces
 		Task<UserProfileResponseModel> UpdateUserProfile(string id, UserProfileRequestModel profile);
 		Task<UserProfileResponseModel> GetUserByEmailAsync(string email);
 		Task<List<UserResponse>> GetAllUsersAsync();
-	}
+
+    }
 }

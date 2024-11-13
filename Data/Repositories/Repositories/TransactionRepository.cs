@@ -4,7 +4,7 @@ using PRN231.ExploreNow.Repositories.Repositories.Interfaces;
 
 namespace PRN231.ExploreNow.Repositories.Repositories.Repositories
 {
-	public class TransactionRepository : BaseRepository<Transaction>, ITransactionRepository
+    public class TransactionRepository : BaseRepository<Transaction>, ITransactionRepository
 	{
 		private readonly ApplicationDbContext _context;
 

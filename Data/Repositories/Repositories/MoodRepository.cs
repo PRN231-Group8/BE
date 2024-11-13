@@ -4,7 +4,7 @@ using PRN231.ExploreNow.Repositories.Repositories.Interfaces;
 
 namespace PRN231.ExploreNow.Repositories.Repositories.Repositories
 {
-	public class MoodRepository : BaseRepository<Moods>, IMoodRepository
+    public class MoodRepository : BaseRepository<Moods>, IMoodRepository
 	{
 		private readonly ApplicationDbContext _context;
 

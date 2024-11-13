@@ -4,7 +4,7 @@ using PRN231.ExploreNow.Repositories.Repositories.Interfaces;
 
 namespace PRN231.ExploreNow.Repositories.Repositories.Repositories
 {
-	public class PaymentRepository : BaseRepository<Payment>, IPaymentRepository
+    public class PaymentRepository : BaseRepository<Payment>, IPaymentRepository
 	{
 		private readonly ApplicationDbContext _context;
 
