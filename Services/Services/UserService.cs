@@ -165,6 +165,5 @@ namespace PRN231.ExploreNow.Services.Services
                 CreatedDate = user.CreatedDate
             }).ToList();
         }
-
     }
 }

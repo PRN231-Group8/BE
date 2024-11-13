@@ -141,7 +141,6 @@ namespace PRN231.ExploreNow.BusinessObject.Configs.Mapping
             CreateMap<Transportation, TransportationResponse>().ReverseMap();
             CreateMap<Transportation, TransportationRequestModel>().ReverseMap();
 
-
             // New mappings for ChatBox
             CreateMap<ChatMessage, ChatMessageResponse>()
                 .ForMember(dest => dest.ChatRoomId, opt => opt.MapFrom(src => src.ChatRoom.Id))
