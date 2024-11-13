@@ -24,6 +24,7 @@ public class AuthController : Controller
 
 	[HttpPost]
 	[Route("seed-roles")]
+	[ApiExplorerSettings(IgnoreApi = true)]
 	public async Task<IActionResult> SeedRoles()
 	{
 		var seedRoles = await _authService.SeedRolesAsync();
@@ -68,7 +69,8 @@ public class AuthController : Controller
 	//verify
 	[HttpGet]
 	[Route("verify-email")]
-	public async Task<IActionResult> VerifyEmail(string email, string token)
+    [ApiExplorerSettings(IgnoreApi = true)]
+    public async Task<IActionResult> VerifyEmail(string email, string token)
 	{
 		try
 		{
@@ -88,7 +90,8 @@ public class AuthController : Controller
 	// Route -> make customer -> admin
 	[HttpPost]
 	[Route("make-admin")]
-	public async Task<IActionResult> MakeAdmin([FromBody] UpdatePermissionResponse updatePermissionResponse)
+    [ApiExplorerSettings(IgnoreApi = true)]
+    public async Task<IActionResult> MakeAdmin([FromBody] UpdatePermissionResponse updatePermissionResponse)
 	{
 		var operationResult = await _authService.MakeAdminAsync(updatePermissionResponse);
 
@@ -101,7 +104,8 @@ public class AuthController : Controller
 	// Route -> make customer -> staff
 	[HttpPost]
 	[Route("make-staff")]
-	public async Task<IActionResult> MakeOwner([FromBody] UpdatePermissionResponse updatePermissionResponse)
+    [ApiExplorerSettings(IgnoreApi = true)]
+    public async Task<IActionResult> MakeOwner([FromBody] UpdatePermissionResponse updatePermissionResponse)
 	{
 		var operationResult = await _authService.MakeModeratorAsync(updatePermissionResponse);
 

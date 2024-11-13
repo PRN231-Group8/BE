@@ -6,6 +6,7 @@ namespace PRN231.ExploreNow.API.Controllers
 {
     [ApiController]
     [Route("api/dashboard")]
+    [ApiExplorerSettings(IgnoreApi = true)]
     public class DashboardController : Controller
     {
         private readonly IDashboardService _dashboardService;
