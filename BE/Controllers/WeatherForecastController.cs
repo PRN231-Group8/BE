@@ -6,7 +6,7 @@ namespace PRN231.ExploreNow.API.Controllers;
 
 [ApiController]
 [Route("api/weather-forecast")]
-// [ApiExplorerSettings(IgnoreApi = true)]  // Cai nay se giau tren swagger khi demo
+[ApiExplorerSettings(IgnoreApi = true)]  // Cai nay se giau tren swagger khi demo
 public class WeatherForecastController : ControllerBase
 {
     private static readonly string[] Summaries =
