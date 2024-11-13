@@ -84,7 +84,7 @@ builder.Configuration.AddAzureKeyVault(client, new AzureKeyVaultConfigurationOpt
 
 builder.Services.AddSignalR(options =>
 {
-    options.EnableDetailedErrors = true; // Hữu ích cho development
+    options.EnableDetailedErrors = true; // development
     options.KeepAliveInterval = TimeSpan.FromSeconds(15);
     options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
     options.MaximumReceiveMessageSize = 5 * 1024 * 1024; // 1MB
