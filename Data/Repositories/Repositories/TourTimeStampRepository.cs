@@ -8,15 +8,15 @@ using PRN231.ExploreNow.Repositories.Repositories.Interfaces;
 namespace PRN231.ExploreNow.Repositories.Repositories.Repositories
 {
     public class TourTimeStampRepository : BaseRepository<TourTimestamp>, ITourTimeStampRepository
-	{
-		private readonly ApplicationDbContext _context;
-		private readonly IMapper _mapper;
+    {
+        private readonly ApplicationDbContext _context;
+        private readonly IMapper _mapper;
 
-		public TourTimeStampRepository(ApplicationDbContext context, IMapper mapper) : base(context)
-		{
-			_context = context;
-			_mapper = mapper;
-		}
+        public TourTimeStampRepository(ApplicationDbContext context, IMapper mapper) : base(context)
+        {
+            _context = context;
+            _mapper = mapper;
+        }
 
         public async Task<(List<TourTimeStampResponse> Items, int TotalCount)> GetAllTourTimestampsAsync(int page, int pageSize, TimeSpan? sortByTime, string? searchTerm)
         {

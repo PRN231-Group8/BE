@@ -18,4 +18,6 @@ public interface IUnitOfWork : IBaseUnitOfWork
     IPhotoRepository PhotoRepository { get; }
     IChatMessageRepository ChatMessageRepository { get; }
     IChatRoomRepository ChatRoomRepository { get; }
+    IPaymentRepository PaymentRepository { get; }
+    IDashboardRepository DashboardRepository { get; }
 }

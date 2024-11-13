@@ -104,6 +104,5 @@ namespace PRN231.ExploreNow.Repositories.Repositories.Repositories
                 .AsNoTracking()
                 .SingleOrDefaultAsync(u => u.Id == userId);
         }
-
     }
 }

@@ -41,6 +41,7 @@ using PRN231.ExploreNow.Validations.Mood;
 using PRN231.ExploreNow.Validations.Payment;
 using PRN231.ExploreNow.Validations.Transportation;
 using PRN231.ExploreNow.Validations.TourTrip;
+using PRN231.ExploreNow.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -174,6 +175,8 @@ builder.Services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
 builder.Services.AddScoped<IChatRoomRepository, ChatRoomRepository>();
 builder.Services.AddScoped<IChatMessageService, ChatMessageService>();
 builder.Services.AddScoped<IChatRoomService, ChatRoomService>();
+builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 #endregion
 
 #region Configure FluentValidator
