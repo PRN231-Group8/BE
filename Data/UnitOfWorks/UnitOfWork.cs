@@ -22,4 +22,6 @@ public class UnitOfWork : BaseUnitOfWork<ApplicationDbContext>, IUnitOfWork
     public IPhotoRepository PhotoRepository => GetRepository<IPhotoRepository>();
     public IPaymentRepository PaymentRepository => GetRepository<IPaymentRepository>();
     public IDashboardRepository DashboardRepository => GetRepository<IDashboardRepository>();
+    public IChatRoomRepository ChatRoomRepository => GetRepository<IChatRoomRepository>();
+    public IChatMessageRepository ChatMessageRepository => GetRepository<IChatMessageRepository>();
 }

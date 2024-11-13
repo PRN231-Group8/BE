@@ -8,7 +8,7 @@ using PRN231.ExploreNow.Repositories.Repositories.Interfaces;
 
 namespace PRN231.ExploreNow.Repositories.Repositories.Repositories
 {
-	public class PostsRepository : BaseRepository<Posts>, IPostsRepository
+    public class PostsRepository : BaseRepository<Posts>, IPostsRepository
 	{
 		private readonly ApplicationDbContext _context;
 		private readonly IMapper _mapper;
