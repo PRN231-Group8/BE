@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using PRN231.ExploreNow.BusinessObject.Entities;
 using PRN231.ExploreNow.BusinessObject.Enums;
 using PRN231.ExploreNow.BusinessObject.Models.Request;
 using PRN231.ExploreNow.BusinessObject.Models.Response;
@@ -14,5 +15,7 @@ namespace PRN231.ExploreNow.Services.Interfaces
 		Task<PostsResponse> UpdatePostsAsync(Guid postsId, PostsRequest postsRequest);
 		Task<bool> DeletePostAsync(Guid postsId);
 		Task<PostsResponse> CreatePost(CreatePostRequest createPostRequest);
-	}
+		Task<Payment> HasValidPaymentAsync(string userId, Guid tourTripId);
+
+    }
 }

@@ -4,7 +4,8 @@ namespace PRN231.ExploreNow.BusinessObject.Models.Request
 {
 	public class PostsRequest
 	{
-		public string? Content { get; set; }
+        public bool IsRecommended { get; set; }
+        public string Content { get; set; }
 		public PostsStatus? Status { get; set; }
 		public bool? RemoveAllComments { get; set; }
 		public List<string>? CommentsToRemove { get; set; }

@@ -3,7 +3,9 @@
 	public class PostsResponse
 	{
 		public Guid PostsId { get; set; }
-		public string Content { get; set; }
+        public bool IsRecommended { get; set; }
+        public string Title { get; set; }
+        public string Content { get; set; }
 		public int Rating { get; set; }
 		public string Status { get; set; }
 		public DateTime CreateDate { get; set; }
