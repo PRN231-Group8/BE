@@ -7,8 +7,9 @@ namespace PRN231.ExploreNow.BusinessObject.Models.Request
 {
 	public class CreatePostRequest
 	{
-		public string Content { get; set; }
+        public bool IsRecommended { get; set; }
+        public string Content { get; set; }
 		public List<IFormFile> Photos { get; set; } = new List<IFormFile>();
-
-	}
+        public Guid TourTripId { get; set; }
+    }
 }
