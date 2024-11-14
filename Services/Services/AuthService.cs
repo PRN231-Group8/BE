@@ -263,17 +263,27 @@ public class AuthService : IAuthService
 		return tokenOptions;
 	}
 
-	public async Task<string> GenerateToken(ApplicationUser user)
-	{
-		var signingCredentials = GetSigningCredentials();
-		var claims = await GetClaims(user);
-		var tokenOptions = GenerateTokenOptions(signingCredentials, claims);
-		var token = new JwtSecurityTokenHandler().WriteToken(tokenOptions);
+    public async Task<string> GenerateToken(ApplicationUser user, bool isExternalLogin = false)
+    {
+        var signingCredentials = GetSigningCredentials();
+        var claims = await GetClaims(user);
 
-		return token;
-	}
+        // Add additional claims for external login if required
+        if (isExternalLogin)
+        {
+            claims.Add(new Claim("FirstName", user.FirstName ?? string.Empty));
+            claims.Add(new Claim("LastName", user.LastName ?? string.Empty));
+            claims.Add(new Claim("PhoneNumber", user.PhoneNumber ?? string.Empty));
+            claims.Add(new Claim(ClaimTypes.Email, user.Email ?? string.Empty));
+        }
 
-	public async Task<AuthResponse> MakeAdminAsync(
+        var tokenOptions = GenerateTokenOptions(signingCredentials, claims);
+        var token = new JwtSecurityTokenHandler().WriteToken(tokenOptions);
+
+        return token;
+    }
+
+    public async Task<AuthResponse> MakeAdminAsync(
 		UpdatePermissionResponse updatePermissionDto
 	)
 	{
@@ -379,8 +389,8 @@ public class AuthService : IAuthService
 			await _userManager.AddLoginAsync(user, info);
 		}
 
-		var token = await GenerateToken(user);
-		return new ExternalAuthResponse
+        var token = await GenerateToken(user, isExternalLogin: true);
+        return new ExternalAuthResponse
 		{
 			Token = token,
 			IsSucceed = true,
